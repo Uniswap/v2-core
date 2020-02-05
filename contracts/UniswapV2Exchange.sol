@@ -15,7 +15,6 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
     bytes4 public constant selector = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factory;
-    address public proxy;
     address public token0;
     address public token1;
 
