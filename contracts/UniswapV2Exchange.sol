@@ -6,6 +6,7 @@ import './libraries/Math.sol';
 import './libraries/UQ112x112.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IUniswapV2Factory.sol';
+import './interfaces/IUniswapV2Borrower.sol';
 
 contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
     using SafeMath  for uint;
@@ -50,6 +51,7 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
     event Swap(address indexed sender, address indexed tokenIn, uint amountIn, uint amountOut, address indexed to);
+    event Rent(address indexed sender, uint amount0Out, uint amount1Out, address indexed to);
     event Sync(uint112 reserve0, uint112 reserve1);
 
     constructor() public {
@@ -176,6 +178,28 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
 
         _update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, tokenIn, amountIn, amountOut, to);
+    }
+
+    function rent(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
+        require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_RENTAL_AMOUNT');
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+        address _token0 = token0; // gas savings
+        address _token1 = token1; // gas savings
+
+        if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+        IUniswapV2Borrower(to).uniswap(msg.sender, amount0Out, amount1Out, data);
+        uint balance0 = IERC20(_token0).balanceOf(address(this));
+        uint balance1 = IERC20(_token1).balanceOf(address(this));
+        uint amount0In = balance0.add(amount0Out).sub(_reserve0);
+        uint amount1In = balance1.add(amount1Out).sub(_reserve1);
+        uint reserve0Adjusted = uint(_reserve0).sub(amount0Out).mul(1000).add(amount0In.mul(997));
+        uint reserve1Adjusted = uint(_reserve1).sub(amount1Out).mul(1000).add(amount1In.mul(997));
+        require(reserve0Adjusted.mul(reserve1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+
+        _update(balance0, balance1, _reserve0, _reserve1);
+        emit Rent(msg.sender, amount0Out, amount1Out, to);
     }
 
     // force balances to match reserves
