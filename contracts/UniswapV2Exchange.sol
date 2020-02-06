@@ -184,18 +184,17 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_RENTAL_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
-        address _token0 = token0; // gas savings
-        address _token1 = token1; // gas savings
+        // opting out of SLOAD gas savings for token{0,1} to avoid stack too deep errors
 
-        if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // optimistically transfer tokens
+        if (amount1Out > 0) _safeTransfer(token1, to, amount1Out); // optimistically transfer tokens
         IUniswapV2Borrower(to).uniswap(msg.sender, amount0Out, amount1Out, data);
-        uint balance0 = IERC20(_token0).balanceOf(address(this));
-        uint balance1 = IERC20(_token1).balanceOf(address(this));
+        uint balance0 = IERC20(token0).balanceOf(address(this));
+        uint balance1 = IERC20(token1).balanceOf(address(this));
         uint amount0In = balance0.add(amount0Out).sub(_reserve0);
         uint amount1In = balance1.add(amount1Out).sub(_reserve1);
-        uint reserve0Adjusted = uint(_reserve0).sub(amount0Out).mul(1000).add(amount0In.mul(997));
-        uint reserve1Adjusted = uint(_reserve1).sub(amount1Out).mul(1000).add(amount1In.mul(997));
+        uint reserve0Adjusted = amount0In.mul(997).add((uint(_reserve0) - amount0Out).mul(1000));
+        uint reserve1Adjusted = amount1In.mul(997).add((uint(_reserve1) - amount1Out).mul(1000));
         require(reserve0Adjusted.mul(reserve1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
 
         _update(balance0, balance1, _reserve0, _reserve1);

@@ -12,7 +12,7 @@ const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
 chai.use(solidity)
 
 const overrides = {
-  gasLimit: 1000000
+  gasLimit: 9999999
 }
 
 describe('UniswapV2Exchange', () => {
