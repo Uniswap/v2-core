@@ -161,8 +161,8 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         uint amountIn0 = balance0.add(amountOut0).sub(_reserve0);
         uint amountIn1 = balance1.add(amountOut1).sub(_reserve1);
 
-        uint newReserve0 = amountIn0.mul(997).add(reserve0);
-        uint newReserve1 = amountIn1.mul(997);
+        uint newReserve0 = amountIn0.mul(997).add(uint(reserve0).mul(1000));
+        uint newReserve1 = amountIn1.mul(997).add(uint(reserve1).mul(1000));
         require(newReserve0.mul(newReserve1) > uint(_reserve0).mul(_reserve1).mul(1000), 'UniswapV2: K');
 
         _update(balance0, balance1, _reserve0, _reserve1);
