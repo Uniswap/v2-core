@@ -174,24 +174,19 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         uint amount1In = balance1 > _reserve1 ? balance1 - _reserve1 : 0; // captures net positive changes only
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint reserve0Adjusted;
-            if (amount0In > 0) { // net deposit, charge fees on the gross
-                uint amount0Base = _reserve0 - amount0Out; // safe because amount0Out is in (0, _reserve0)
-                uint amount0Gross = amount0Out.add(amount0In);
-                reserve0Adjusted = amount0Base.mul(1000).add(amount0Gross.mul(997));
-            } else { // net withdrawal, no fees are charged
-                reserve0Adjusted = balance0;
+            uint reserve0Next;
+            {
+                uint amount0Base = amount0In > 0 ? uint(_reserve0).sub(amount0Out) : balance0;
+                uint amount0Gross = amount0In > 0 ? amount0Out.add(amount0In) : 0;
+                reserve0Next = amount0Base.mul(1000).add(amount0Gross.mul(997));
             }
-            uint reserve1Adjusted;
-            if (amount1In > 0) { // net deposit, charge fees on the gross
-                uint amount1Base = _reserve1 - amount1Out; // safe because amount1Out is in (0, _reserve1)
-                uint amount1Gross = amount1Out.add(amount1In);
-                reserve1Adjusted = amount1Base.mul(1000).add(amount1Gross.mul(997));
-            } else { // net withdrawal, no fees are charged
-                reserve1Adjusted = balance1;
+            uint reserve1Next;
+            {
+                uint amount1Base = amount1In > 0 ? uint(_reserve1).sub(amount1Out) : balance1;
+                uint amount1Gross = amount1In > 0 ? amount1Out.add(amount1In) : 0;
+                reserve1Next = amount1Base.mul(1000).add(amount1Gross.mul(997));
             }
-            uint factor = amount0In > 0 && amount1In > 0 ? 1000**2 : 1000;
-            require(reserve0Adjusted.mul(reserve1Adjusted) >= factor.mul(_reserve0).mul(_reserve1), 'UniswapV2: K');
+            require(reserve0Next.mul(reserve1Next) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
