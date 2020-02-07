@@ -50,7 +50,14 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
 
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(address indexed sender, uint amount0Out, uint amount1Out, address indexed to);
+    event Swap(
+        address indexed sender,
+        uint amount0In,
+        uint amount1In,
+        uint amount0Out,
+        uint amount1Out,
+        address indexed to
+    );
     event Sync(uint112 reserve0, uint112 reserve1);
 
     constructor() public {
@@ -119,7 +126,7 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint(reserve0).mul(reserve1);
+        if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Mint(msg.sender, amount0, amount1);
     }
 
@@ -143,7 +150,7 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint(reserve0).mul(reserve1);
+        if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
@@ -151,21 +158,44 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
-        // opting out of SLOAD gas savings for token{0,1} to avoid stack too deep errors
 
-        if (amount0Out > 0) _safeTransfer(token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(token1, to, amount1Out); // optimistically transfer tokens
-        if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-        uint balance0 = IERC20(token0).balanceOf(address(this));
-        uint balance1 = IERC20(token1).balanceOf(address(this));
-        uint amount0In = balance0.add(amount0Out).sub(_reserve0);
-        uint amount1In = balance1.add(amount1Out).sub(_reserve1);
-        uint reserve0Adjusted = amount0In.mul(997).add((_reserve0 - amount0Out).mul(1000));
-        uint reserve1Adjusted = amount1In.mul(997).add((_reserve1 - amount1Out).mul(1000));
-        require(reserve0Adjusted.mul(reserve1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+        uint balance0;
+        uint balance1;
+        { // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+            balance0 = IERC20(_token0).balanceOf(address(this));
+            balance1 = IERC20(_token1).balanceOf(address(this));
+        }
+        uint amount0In = balance0 > _reserve0 ? balance0 - _reserve0 : 0; // captures net positive changes only
+        uint amount1In = balance1 > _reserve1 ? balance1 - _reserve1 : 0; // captures net positive changes only
+        require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+            uint reserve0Adjusted;
+            if (amount0In > 0) { // net deposit, charge fees on the gross
+                uint amount0Base = _reserve0 - amount0Out; // safe because amount0Out is in (0, _reserve0)
+                uint amount0Gross = amount0Out.add(amount0In);
+                reserve0Adjusted = amount0Base.mul(1000).add(amount0Gross.mul(997));
+            } else { // net withdrawal, no fees are charged
+                reserve0Adjusted = balance0;
+            }
+            uint reserve1Adjusted;
+            if (amount1In > 0) { // net deposit, charge fees on the gross
+                uint amount1Base = _reserve1 - amount1Out; // safe because amount1Out is in (0, _reserve1)
+                uint amount1Gross = amount1Out.add(amount1In);
+                reserve1Adjusted = amount1Base.mul(1000).add(amount1Gross.mul(997));
+            } else { // net withdrawal, no fees are charged
+                reserve1Adjusted = balance1;
+            }
+            uint factor = amount0In > 0 && amount1In > 0 ? 1000**2 : 1000;
+            require(reserve0Adjusted.mul(reserve1Adjusted) >= factor.mul(_reserve0).mul(_reserve1), 'UniswapV2: K');
+        }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0Out, amount1Out, to);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
     // force balances to match reserves

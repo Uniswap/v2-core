@@ -104,7 +104,7 @@ describe('UniswapV2Exchange', () => {
       .to.emit(exchange, 'Sync')
       .withArgs(token0Amount.add(swapAmount), token1Amount.sub(expectedOutputAmount))
       .to.emit(exchange, 'Swap')
-      .withArgs(wallet.address, 0, expectedOutputAmount, wallet.address)
+      .withArgs(wallet.address, swapAmount, 0, 0, expectedOutputAmount, wallet.address)
 
     const reserves = await exchange.getReserves()
     expect(reserves[0]).to.eq(token0Amount.add(swapAmount))
@@ -131,7 +131,7 @@ describe('UniswapV2Exchange', () => {
       .to.emit(exchange, 'Sync')
       .withArgs(token0Amount.sub(expectedOutputAmount), token1Amount.add(swapAmount))
       .to.emit(exchange, 'Swap')
-      .withArgs(wallet.address, expectedOutputAmount, 0, wallet.address)
+      .withArgs(wallet.address, 0, swapAmount, expectedOutputAmount, 0, wallet.address)
 
     const reserves = await exchange.getReserves()
     expect(reserves[0]).to.eq(token0Amount.sub(expectedOutputAmount))
