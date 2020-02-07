@@ -260,7 +260,7 @@ describe('UniswapV2Exchange', () => {
 
     // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...
     // ...because the initial liquidity amounts were equal
-    expect(await token0.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('249501683697446'))
-    expect(await token1.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('250000187312968'))
+    expect(await token0.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('249501683697445'))
+    expect(await token1.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('250000187312969'))
   })
 })
