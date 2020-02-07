@@ -255,10 +255,12 @@ describe('UniswapV2Exchange', () => {
     const expectedLiquidity = expandTo18Decimals(1000)
     await exchange.transfer(exchange.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
     await exchange.burn(wallet.address, overrides)
-    expect(await exchange.totalSupply()).to.eq(MINIMUM_LIQUIDITY.add('299700614071741'))
-    expect(await exchange.balanceOf(other.address)).to.eq('299700614071741')
+    expect(await exchange.totalSupply()).to.eq(MINIMUM_LIQUIDITY.add('249750499251388'))
+    expect(await exchange.balanceOf(other.address)).to.eq('249750499251388')
 
-    expect(await token0.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('299402020436934'))
-    expect(await token1.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('300000224775563'))
+    // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...
+    // ...because the initial liquidity amounts were equal
+    expect(await token0.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('249501683697446'))
+    expect(await token1.balanceOf(exchange.address)).to.eq(bigNumberify(1000).add('250000187312968'))
   })
 })
