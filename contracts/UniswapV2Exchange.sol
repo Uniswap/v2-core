@@ -170,27 +170,17 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
             balance0 = IERC20(_token0).balanceOf(address(this));
             balance1 = IERC20(_token1).balanceOf(address(this));
         }
-        uint amount0InNet = balance0 > _reserve0 ? balance0 - _reserve0 : 0; // captures net positive changes only
-        uint amount1InNet = balance1 > _reserve1 ? balance1 - _reserve1 : 0; // captures net positive changes only
-        require(amount0InNet > 0 || amount1InNet > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
-        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint reserve0Next;
-            {
-                uint amount0Base = amount0InNet > 0 ? uint(_reserve0).sub(amount0Out) : balance0;
-                uint amount0Gross = amount0InNet > 0 ? amount0Out.add(amount0InNet) : 0;
-                reserve0Next = amount0Base.mul(1000).add(amount0Gross.mul(997));
-            }
-            uint reserve1Next;
-            {
-                uint amount1Base = amount1InNet > 0 ? uint(_reserve1).sub(amount1Out) : balance1;
-                uint amount1Gross = amount1InNet > 0 ? amount1Out.add(amount1InNet) : 0;
-                reserve1Next = amount1Base.mul(1000).add(amount1Gross.mul(997));
-            }
+        uint amount0In = balance0 >= _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+        uint amount1In = balance1 >= _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+        { // scope for reserve{0,1}Next, avoids stack too deep errors
+            uint reserve0Next = balance0.sub(amount0In).mul(1000).add(amount0In.mul(997));
+            uint reserve1Next = balance1.sub(amount1In).mul(1000).add(amount1In.mul(997));
             require(reserve0Next.mul(reserve1Next) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0InNet, amount1InNet, amount0Out, amount1Out, to);
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
     // force balances to match reserves
