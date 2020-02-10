@@ -174,8 +174,8 @@ contract UniswapV2Exchange is IUniswapV2Exchange, UniswapV2ERC20 {
         uint amount1In = balance1 >= _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Next, avoids stack too deep errors
-            uint reserve0Next = balance0.sub(amount0In).mul(1000).add(amount0In.mul(997));
-            uint reserve1Next = balance1.sub(amount1In).mul(1000).add(amount1In.mul(997));
+            uint reserve0Next = (balance0 - amount0In).mul(1000).add(amount0In.mul(997));
+            uint reserve1Next = (balance1 - amount1In).mul(1000).add(amount1In.mul(997));
             require(reserve0Next.mul(reserve1Next) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
         }
 
