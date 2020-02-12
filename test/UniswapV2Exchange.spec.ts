@@ -68,7 +68,7 @@ describe('UniswapV2Exchange', () => {
     await token1.transfer(exchange.address, token1Amount)
     await exchange.mint(wallet.address, overrides)
   }
-  const testCases: BigNumber[][] = [
+  const swapTestCases: BigNumber[][] = [
     [1, 5, 10, '1662497915624478906'],
     [1, 10, 5, '453305446940074565'],
 
@@ -78,15 +78,34 @@ describe('UniswapV2Exchange', () => {
     [1, 10, 10, '906610893880149131'],
     [1, 100, 100, '987158034397061298'],
     [1, 1000, 1000, '996006981039903216']
-  ].map(a => a.map((n, i) => (i === 3 ? bigNumberify(n) : expandTo18Decimals(n as number))))
-  testCases.forEach((testCase, i) => {
+  ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
+  swapTestCases.forEach((swapTestCase, i) => {
     it(`getInputPrice:${i}`, async () => {
-      await addLiquidity(testCase[1], testCase[2])
-      await token0.transfer(exchange.address, testCase[0])
-      await expect(exchange.swap(0, testCase[3].add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
+      const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] = swapTestCase
+      await addLiquidity(token0Amount, token1Amount)
+      await token0.transfer(exchange.address, swapAmount)
+      await expect(exchange.swap(0, expectedOutputAmount.add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
         'UniswapV2: K'
       )
-      await exchange.swap(0, testCase[3], wallet.address, '0x', overrides)
+      await exchange.swap(0, expectedOutputAmount, wallet.address, '0x', overrides)
+    })
+  })
+
+  const optimisticTestCases: BigNumber[][] = [
+    ['997000000000000000', 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .997)
+    ['997000000000000000', 10, 5, 1],
+    ['997000000000000000', 5, 5, 1],
+    [1, 5, 5, '1003009027081243732'] // given amountOut, amountIn = ceiling(amountOut / .997)
+  ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
+  optimisticTestCases.forEach((optimisticTestCase, i) => {
+    it(`optimistic:${i}`, async () => {
+      const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase
+      await addLiquidity(token0Amount, token1Amount)
+      await token0.transfer(exchange.address, inputAmount)
+      await expect(exchange.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
+        'UniswapV2: K'
+      )
+      await exchange.swap(outputAmount, 0, wallet.address, '0x', overrides)
     })
   })
 
