@@ -190,8 +190,10 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     function skim(address to) external lock {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
-        _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
+        uint balance0 = IERC20(_token0).balanceOf(address(this));
+        uint balance1 = IERC20(_token1).balanceOf(address(this));
+        if (balance0 > uint112(-1)) _safeTransfer(_token0, to, balance0.sub(reserve0));
+        if (balance1 > uint112(-1)) _safeTransfer(_token1, to, balance1.sub(reserve1));
     }
 
     // force reserves to match balances
