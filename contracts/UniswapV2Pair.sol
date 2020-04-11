@@ -192,8 +192,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         address _token1 = token1; // gas savings
         uint balance0 = IERC20(_token0).balanceOf(address(this));
         uint balance1 = IERC20(_token1).balanceOf(address(this));
-        if (balance0 > uint112(-1)) _safeTransfer(_token0, to, balance0.sub(reserve0));
-        if (balance1 > uint112(-1)) _safeTransfer(_token1, to, balance1.sub(reserve1));
+        if (balance0 > uint112(-1)) _safeTransfer(_token0, to, balance0 - reserve0);
+        if (balance1 > uint112(-1)) _safeTransfer(_token1, to, balance1 - reserve1);
     }
 
     // force reserves to match balances
