@@ -11,6 +11,10 @@ library SafeMath {
         require((z = x - y) <= x, 'ds-math-sub-underflow');
     }
 
+    function sub(uint x, uint y, string memory reason) internal pure returns (uint z) {
+        require((z = x - y) <= x, reason);
+    }
+
     function mul(uint x, uint y) internal pure returns (uint z) {
         require(y == 0 || (z = x * y) / y == x, 'ds-math-mul-overflow');
     }

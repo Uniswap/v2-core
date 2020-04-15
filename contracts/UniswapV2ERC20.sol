@@ -44,7 +44,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function _burn(address from, uint value) internal {
-        balanceOf[from] = balanceOf[from].sub(value);
+        balanceOf[from] = balanceOf[from].sub(value, "UniswapV2ERC20(_burn): balance is not enough");
         totalSupply = totalSupply.sub(value);
         emit Transfer(from, address(0), value);
     }
@@ -55,7 +55,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function _transfer(address from, address to, uint value) private {
-        balanceOf[from] = balanceOf[from].sub(value);
+        balanceOf[from] = balanceOf[from].sub(value, "UniswapV2ERC20(_transfer): balance is not enough");
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(from, to, value);
     }
@@ -72,7 +72,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
     function transferFrom(address from, address to, uint value) external returns (bool) {
         if (allowance[from][msg.sender] != uint(-1)) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value, "UniswapV2ERC20(transferFrom): allowance is not enough");
         }
         _transfer(from, to, value);
         return true;
