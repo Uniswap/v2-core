@@ -3,7 +3,10 @@
   "version": "1.0.0-beta.0",
   "files": [
     "contracts",
-    "build"
+    "build",
+    "!contracts/interfaces/IERC20.sol",
+    "!contracts/test",
+    "!contracts/libraries"
   ],
   "engines": {
     "node": ">=10"
