@@ -15,7 +15,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     uint public constant override MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = 0xa9059cbb; // transfer(address,uint256)
 
-    address public override factory;
+    address public immutable override factory;
     address public override token0;
     address public override token1;
 
