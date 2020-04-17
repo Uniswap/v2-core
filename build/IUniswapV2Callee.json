@@ -1,7 +1,6 @@
 {
   "abi": [
     {
-      "constant": false,
       "inputs": [
         {
           "internalType": "address",
@@ -26,7 +25,6 @@
       ],
       "name": "uniswapV2Call",
       "outputs": [],
-      "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
     }
@@ -39,6 +37,7 @@
       "sourceMap": ""
     },
     "deployedBytecode": {
+      "immutableReferences": {},
       "linkReferences": {},
       "object": "",
       "opcodes": "",
@@ -47,7 +46,6 @@
   },
   "interface": [
     {
-      "constant": false,
       "inputs": [
         {
           "internalType": "address",
@@ -72,7 +70,6 @@
       ],
       "name": "uniswapV2Call",
       "outputs": [],
-      "payable": false,
       "stateMutability": "nonpayable",
       "type": "function"
     }
