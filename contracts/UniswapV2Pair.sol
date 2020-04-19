@@ -16,8 +16,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     bytes4 private constant SELECTOR = 0xa9059cbb; // transfer(address,uint256)
 
     address public immutable override factory;
-    address public override token0;
-    address public override token1;
+    address public immutable override token0;
+    address public immutable override token1;
 
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
@@ -46,16 +46,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
     }
 
-    constructor() public {
+    constructor(address token0_, address token1_) public {
         require(SELECTOR == IERC20(0).transfer.selector);
         factory = msg.sender;
-    }
-
-    // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external override {
-        require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
-        token0 = _token0;
-        token1 = _token1;
+        token0 = token0_;
+        token1 = token1_;
     }
 
     // update reserves and, on the first call per block, price accumulators

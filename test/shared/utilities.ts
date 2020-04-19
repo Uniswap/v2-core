@@ -1,5 +1,5 @@
-import { Contract } from 'ethers'
-import { Web3Provider } from 'ethers/providers'
+import {Contract} from 'ethers'
+import {Web3Provider} from 'ethers/providers'
 import {
   BigNumber,
   bigNumberify,
@@ -7,7 +7,8 @@ import {
   keccak256,
   defaultAbiCoder,
   toUtf8Bytes,
-  solidityPack
+  solidityPack,
+  AbiCoder
 } from 'ethers/utils'
 
 const PERMIT_TYPEHASH = keccak256(
@@ -39,11 +40,14 @@ export function getCreate2Address(
   bytecode: string
 ): string {
   const [token0, token1] = tokenA < tokenB ? [tokenA, tokenB] : [tokenB, tokenA]
+  const constructorArgumentsEncoded = new AbiCoder().encode(['address', 'address'], [token0, token1])
   const create2Inputs = [
     '0xff',
     factoryAddress,
+    // salt
     keccak256(solidityPack(['address', 'address'], [token0, token1])),
-    keccak256(bytecode)
+    // init code. bytecode + constructor arguments
+    keccak256(bytecode + constructorArgumentsEncoded.substr(2))
   ]
   const sanitizedInputs = `0x${create2Inputs.map(i => i.slice(2)).join('')}`
   return getAddress(`0x${keccak256(sanitizedInputs).slice(-40)}`)
@@ -82,7 +86,7 @@ export async function getApprovalDigest(
 export async function mineBlock(provider: Web3Provider, timestamp: number): Promise<void> {
   await new Promise(async (resolve, reject) => {
     ;(provider._web3Provider.sendAsync as any)(
-      { jsonrpc: '2.0', method: 'evm_mine', params: [timestamp] },
+      {jsonrpc: '2.0', method: 'evm_mine', params: [timestamp]},
       (error: any, result: any): void => {
         if (error) {
           reject(error)
