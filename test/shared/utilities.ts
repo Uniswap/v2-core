@@ -10,6 +10,7 @@ import {
   solidityPack,
   AbiCoder
 } from 'ethers/utils'
+import {HashZero} from 'ethers/constants'
 
 const PERMIT_TYPEHASH = keccak256(
   toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)')
@@ -45,7 +46,7 @@ export function getCreate2Address(
     '0xff',
     factoryAddress,
     // salt
-    keccak256(solidityPack(['address', 'address'], [token0, token1])),
+    HashZero,
     // init code. bytecode + constructor arguments
     keccak256(bytecode + constructorArgumentsEncoded.substr(2))
   ]

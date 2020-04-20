@@ -23,7 +23,8 @@ contract UniswapV2Factory is IUniswapV2Factory {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
         require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient
-        bytes32 salt = keccak256(abi.encodePacked(token0, token1));
+        // salt is empty bytes32 since token0 and token1 are already included in the hash
+        bytes32 salt = bytes32(0);
         pair = address(new UniswapV2Pair{salt: salt}(token0, token1));
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
