@@ -7,6 +7,13 @@
     "type": "git",
     "url": "https://github.com/Uniswap/uniswap-v2-core"
   },
+  "keywords": [
+    "uniswap",
+    "ethereum",
+    "v2",
+    "core",
+    "uniswap-v2"
+  ],
   "files": [
     "contracts",
     "build"
