@@ -1,6 +1,6 @@
 {
   "name": "@uniswap/v2-core",
-  "description": "Core contracts for the UniswapV2 protocol",
+  "description": "🎛 Core contracts for the UniswapV2 protocol",
   "version": "1.0.0",
   "homepage": "https://uniswap.org",
   "repository": {
