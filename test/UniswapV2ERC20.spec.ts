@@ -51,7 +51,7 @@ describe('UniswapV2ERC20', () => {
       )
     )
     expect(await token.PERMIT_TYPEHASH()).to.eq(
-      keccak256(toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)'))
+      keccak256(toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 deadline)'))
     )
   })
 
