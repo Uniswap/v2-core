@@ -24,6 +24,8 @@
   "devDependencies": {
     "@types/chai": "^4.2.6",
     "@types/mocha": "^5.2.7",
+    "@eth-optimism/rollup-full-node": "latest",
+    "@eth-optimism/solc-transpiler": "latest",
     "chai": "^4.2.0",
     "ethereum-waffle": "^2.4.1",
     "ethereumjs-util": "^6.2.0",
@@ -39,7 +41,8 @@
     "lint:fix": "yarn prettier ./test/*.ts --write",
     "clean": "rimraf ./build/",
     "precompile": "yarn clean",
-    "compile": "waffle .waffle.json",
+    "compile": "waffle .waffle-ovm.json",
+    "compile:regular": "waffle .waffle.json",
     "pretest": "yarn compile",
     "test": "mocha",
     "prepublishOnly": "yarn test"

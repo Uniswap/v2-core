@@ -1,0 +1,18 @@
+{
+  "compilerVersion": "./node_modules/@eth-optimism/solc-transpiler",
+  "outputType": "all",
+  "compilerOptions": {
+    "outputSelection": {
+      "*": {
+        "*": ["*"],
+        "": ["ast"]
+      }
+    },
+    "evmVersion": "istanbul",
+    "optimizer": {
+      "enabled": true,
+      "runs": 999999
+    },
+    "executionManagerAddress": "0xA193E42526F1FEA8C99AF609dcEabf30C1c29fAA"
+  }
+}
