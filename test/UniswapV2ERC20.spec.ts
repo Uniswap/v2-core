@@ -41,29 +41,29 @@ describe('UniswapV2ERC20', () => {
     }
   })
 
-  it.only('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
+  it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
     const name = await token.name()
     expect(name).to.eq('Uniswap V2')
     expect(await token.symbol()).to.eq('UNI-V2')
     expect(await token.decimals()).to.eq(18)
     expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
     expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)
-    // expect(await token.DOMAIN_SEPARATOR()).to.eq(
-    //   keccak256(
-    //     defaultAbiCoder.encode(
-    //       ['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'],
-    //       [
-    //         keccak256(
-    //           toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
-    //         ),
-    //         keccak256(toUtf8Bytes(name)),
-    //         keccak256(toUtf8Bytes('1')),
-    //         1,
-    //         token.address
-    //       ]
-    //     )
-    //   )
-    // )
+    expect(await token.DOMAIN_SEPARATOR()).to.eq(
+      keccak256(
+        defaultAbiCoder.encode(
+          ['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'],
+          [
+            keccak256(
+              toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+            ),
+            keccak256(toUtf8Bytes(name)),
+            keccak256(toUtf8Bytes('1')),
+            1, // TODO REPLACE WITH 108 WHEN CHAINID TRANSPILES
+            token.address
+          ]
+        )
+      )
+    )
     expect(await token.PERMIT_TYPEHASH()).to.eq(
       keccak256(toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)'))
     )

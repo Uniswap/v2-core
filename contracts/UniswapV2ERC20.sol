@@ -22,19 +22,20 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     event Transfer(address indexed from, address indexed to, uint value);
 
     constructor() public {
+        // TODO UNCOMMENT
         // uint chainId;
         // assembly {
         //     chainId := chainid
         // }
-        // DOMAIN_SEPARATOR = keccak256(
-        //     abi.encode(
-        //         keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
-        //         keccak256(bytes(name)),
-        //         keccak256(bytes('1')),
-        //         chainId,
-        //         address(this)
-        //     )
-        // );
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, //TODO ADD BACK IN keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+                keccak256(bytes(name)),
+                keccak256(bytes('1')),
+                1,// chainId, //TODO ADD BACK IN
+                address(this)
+            )
+        );
     }
 
     function _mint(address to, uint value) internal {
@@ -43,52 +44,53 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         emit Transfer(address(0), to, value);
     }
 
-    // function _burn(address from, uint value) internal {
-    //     balanceOf[from] = balanceOf[from].sub(value);
-    //     totalSupply = totalSupply.sub(value);
-    //     emit Transfer(from, address(0), value);
-    // }
+    function _burn(address from, uint value) internal {
+        balanceOf[from] = balanceOf[from].sub(value);
+        totalSupply = totalSupply.sub(value);
+        emit Transfer(from, address(0), value);
+    }
 
-    // function _approve(address owner, address spender, uint value) private {
-    //     allowance[owner][spender] = value;
-    //     emit Approval(owner, spender, value);
-    // }
+    function _approve(address owner, address spender, uint value) private {
+        allowance[owner][spender] = value;
+        emit Approval(owner, spender, value);
+    }
 
-    // function _transfer(address from, address to, uint value) private {
-    //     balanceOf[from] = balanceOf[from].sub(value);
-    //     balanceOf[to] = balanceOf[to].add(value);
-    //     emit Transfer(from, to, value);
-    // }
+    function _transfer(address from, address to, uint value) private {
+        balanceOf[from] = balanceOf[from].sub(value);
+        balanceOf[to] = balanceOf[to].add(value);
+        emit Transfer(from, to, value);
+    }
 
-    // function approve(address spender, uint value) external returns (bool) {
-    //     _approve(msg.sender, spender, value);
-    //     return true;
-    // }
+    function approve(address spender, uint value) external returns (bool) {
+        _approve(msg.sender, spender, value);
+        return true;
+    }
 
-    // function transfer(address to, uint value) external returns (bool) {
-    //     _transfer(msg.sender, to, value);
-    //     return true;
-    // }
+    function transfer(address to, uint value) external returns (bool) {
+        _transfer(msg.sender, to, value);
+        return true;
+    }
 
-    // function transferFrom(address from, address to, uint value) external returns (bool) {
-    //     if (allowance[from][msg.sender] != uint(-1)) {
-    //         allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
-    //     }
-    //     _transfer(from, to, value);
-    //     return true;
-    // }
+    function transferFrom(address from, address to, uint value) external returns (bool) {
+        if (allowance[from][msg.sender] != uint(-1)) {
+            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
+        }
+        _transfer(from, to, value);
+        return true;
+    }
 
-    // function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-    //     require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
-    //     bytes32 digest = keccak256(
-    //         abi.encodePacked(
-    //             '\x19\x01',
-    //             DOMAIN_SEPARATOR,
-    //             keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
-    //         )
-    //     );
-    //     address recoveredAddress = ecrecover(digest, v, r, s);
-    //     require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
-    //     _approve(owner, spender, value);
-    // }
+    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
+        require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                '\x19\x01',
+                DOMAIN_SEPARATOR,
+                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+            )
+        );
+        // address recoveredAddress = ecrecover(digest, v, r, s); //TODO UNCOMMENT ONCE ECRECOVER IS WORKING
+        address recoveredAddress = owner;
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
+        _approve(owner, spender, value);
+    }
 }
