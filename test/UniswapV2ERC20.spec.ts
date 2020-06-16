@@ -2,10 +2,10 @@ import chai, { expect } from 'chai'
 import { Contract, Wallet } from 'ethers'
 import { MaxUint256 } from 'ethers/constants'
 import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from 'ethers/utils'
-import { solidity, MockProvider, deployContract } from 'ethereum-waffle'
-import { createMockProvider, getWallets, deployContract as ovmDeployContract } from '@eth-optimism/rollup-full-node'
+import { solidity } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
+import { deployContract, getProvider, getWallets } from './shared/setup'
 import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
 
 import ERC20 from '../build/ERC20.json'
@@ -22,23 +22,11 @@ describe('UniswapV2ERC20', () => {
 
   let token: Contract
   beforeEach(async () => {
-    if (process.env.MODE === 'OVM') {
-      provider = await createMockProvider()
-      const wallets = getWallets(provider)
-      wallet = wallets[0]
-      other = wallets[1]
-      token = await ovmDeployContract(wallet, ERC20, [TOTAL_SUPPLY])
-    } else {
-      provider = new MockProvider({
-        hardfork: 'istanbul',
-        mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-        gasLimit: 9999999
-      })
-      const wallets = provider.getWallets()
-      wallet = wallets[0]
-      other = wallets[1]
-      token = await deployContract(wallet, ERC20, [TOTAL_SUPPLY])
-    }
+    provider = await getProvider()
+    const wallets = getWallets(provider)
+    wallet = wallets[0]
+    other = wallets[1]
+    token = await deployContract(wallet, ERC20, [TOTAL_SUPPLY])
   })
 
   it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
