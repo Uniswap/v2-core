@@ -1,8 +1,10 @@
 // import chai, { expect } from 'chai'
-// import { Contract } from 'ethers'
-// import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
+// import { Contract, Wallet } from 'ethers'
+// import { Web3Provider } from 'ethers/providers'
+// import { solidity, createFixtureLoader, MockProvider } from 'ethereum-waffle'
 // import { BigNumber, bigNumberify } from 'ethers/utils'
 
+// import { deployContract, getProvider } from './shared/setup'
 // import { expandTo18Decimals, mineBlock, encodePrice } from './shared/utilities'
 // import { pairFixture } from './shared/fixtures'
 // import { AddressZero } from 'ethers/constants'
@@ -16,19 +18,19 @@
 // }
 
 // describe('UniswapV2Pair', () => {
-//   const provider = new MockProvider({
-//     hardfork: 'istanbul',
-//     mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-//     gasLimit: 9999999
-//   })
-//   const [wallet, other] = provider.getWallets()
-//   const loadFixture = createFixtureLoader(provider, [wallet])
-
+// 	let provider: MockProvider
+//   let wallet: Wallet
+//   let other: Wallet
 //   let factory: Contract
 //   let token0: Contract
 //   let token1: Contract
 //   let pair: Contract
 //   beforeEach(async () => {
+//   	provider = await getProvider()
+//   	const wallets = provider.getWallets()
+//   	wallet = wallets[0]
+//   	other = wallets[1]
+//   	const loadFixture = createFixtureLoader(provider, [wallet])
 //     const fixture = await loadFixture(pairFixture)
 //     factory = fixture.factory
 //     token0 = fixture.token0

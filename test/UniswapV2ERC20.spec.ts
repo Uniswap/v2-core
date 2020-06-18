@@ -5,7 +5,7 @@ import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from '
 import { solidity } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
-import { deployContract, getProvider, getWallets } from './shared/setup'
+import { deployContract, getProvider } from './shared/setup'
 import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
 
 import ERC20 from '../build/ERC20.json'
@@ -15,7 +15,7 @@ chai.use(solidity)
 const TOTAL_SUPPLY = expandTo18Decimals(10000)
 const TEST_AMOUNT = expandTo18Decimals(10)
 
-describe('UniswapV2ERC20', () => {
+describe.only('UniswapV2ERC20', () => {
   let provider
   let wallet: Wallet
   let other: Wallet
@@ -23,7 +23,7 @@ describe('UniswapV2ERC20', () => {
   let token: Contract
   beforeEach(async () => {
     provider = await getProvider()
-    const wallets = getWallets(provider)
+    const wallets = provider.getWallets()
     wallet = wallets[0]
     other = wallets[1]
     token = await deployContract(wallet, ERC20, [TOTAL_SUPPLY])

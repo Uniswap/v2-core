@@ -1,28 +1,18 @@
 import { MockProvider, deployContract as evmDeployContract } from 'ethereum-waffle'
-import { createMockProvider, getWallets as ovmGetWallets, deployContract as ovmDeployContract } from '@eth-optimism/rollup-full-node'
+import { addHandlerToProvider, deployContract as ovmDeployContract } from '@eth-optimism/rollup-full-node'
 
 const deployContract = (process.env.MODE === 'OVM') ? ovmDeployContract : evmDeployContract
 
 const getProvider = async () => {
-	let provider
+	let provider = new MockProvider({
+    hardfork: 'istanbul',
+    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
+    gasLimit: 9999999
+ 	})
 	if (process.env.MODE === 'OVM') {
-		provider = await createMockProvider()
-	} else {
-		provider = new MockProvider({
-	    hardfork: 'istanbul',
-	    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-	    gasLimit: 9999999
-	 	})
+		provider = await addHandlerToProvider(provider)
 	}
 	return provider
 }
 
-const getWallets = (provider: any) => {
-	if (process.env.MODE === 'OVM') {
-		return ovmGetWallets(provider)
-	} else {
-		return provider.getWallets()
-	}
-}
-
-export { deployContract, getProvider, getWallets }
+export { deployContract, getProvider }
