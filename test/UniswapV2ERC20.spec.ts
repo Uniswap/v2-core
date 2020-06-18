@@ -15,7 +15,7 @@ chai.use(solidity)
 const TOTAL_SUPPLY = expandTo18Decimals(10000)
 const TEST_AMOUNT = expandTo18Decimals(10)
 
-describe.only('UniswapV2ERC20', () => {
+describe('UniswapV2ERC20', () => {
   let provider
   let wallet: Wallet
   let other: Wallet
