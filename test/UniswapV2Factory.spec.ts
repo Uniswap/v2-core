@@ -17,14 +17,14 @@ const TEST_ADDRESSES: [string, string] = [
   '0x2000000000000000000000000000000000000000'
 ]
 
-describe.only('UniswapV2Factory', () => {
-	let provider
+describe('UniswapV2Factory', () => {
+	let provider: MockProvider
 	let wallet: Wallet
 	let other: Wallet
   let loadFixture 
   let factory: Contract
   beforeEach(async () => {
-  	const provider = await getProvider()
+    provider = await getProvider()
     const wallets = provider.getWallets()
     wallet = wallets[0]
     other = wallets[1]
@@ -39,25 +39,24 @@ describe.only('UniswapV2Factory', () => {
     expect(await factory.allPairsLength()).to.eq(0)
   })
 
-  // async function createPair(tokens: [string, string]) {
-  //   const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
-  //   const create2Address = getCreate2Address(factory.address, tokens, bytecode)
-  //   await expect(factory.createPair(...tokens))
-  //     .to.emit(factory, 'PairCreated')
-  //     .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, bigNumberify(1))
+  async function createPair(tokens: [string, string]) {
+    const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
+    const create2Address = getCreate2Address(factory.address, tokens, bytecode)
+    await expect(factory.createPair(...tokens))
+      .to.emit(factory, 'PairCreated')
+      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, bigNumberify(1))
+    await expect(factory.createPair(...tokens)).to.be.reverted // UniswapV2: PAIR_EXISTS
+    await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // UniswapV2: PAIR_EXISTS
+    expect(await factory.getPair(...tokens)).to.eq(create2Address)
+    expect(await factory.getPair(...tokens.slice().reverse())).to.eq(create2Address)
+    expect(await factory.allPairs(0)).to.eq(create2Address)
+    expect(await factory.allPairsLength()).to.eq(1)
 
-  //   await expect(factory.createPair(...tokens)).to.be.reverted // UniswapV2: PAIR_EXISTS
-  //   await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // UniswapV2: PAIR_EXISTS
-  //   expect(await factory.getPair(...tokens)).to.eq(create2Address)
-  //   expect(await factory.getPair(...tokens.slice().reverse())).to.eq(create2Address)
-  //   expect(await factory.allPairs(0)).to.eq(create2Address)
-  //   expect(await factory.allPairsLength()).to.eq(1)
-
-  //   const pair = new Contract(create2Address, JSON.stringify(UniswapV2Pair.abi), provider)
-  //   expect(await pair.factory()).to.eq(factory.address)
-  //   expect(await pair.token0()).to.eq(TEST_ADDRESSES[0])
-  //   expect(await pair.token1()).to.eq(TEST_ADDRESSES[1])
-  // }
+    const pair = new Contract(create2Address, JSON.stringify(UniswapV2Pair.abi), provider)
+    expect(await pair.factory()).to.eq(factory.address)
+    expect(await pair.token0()).to.eq(TEST_ADDRESSES[0])
+    expect(await pair.token1()).to.eq(TEST_ADDRESSES[1])
+  }
 
   // it('createPair', async () => {
   //   await createPair(TEST_ADDRESSES)
