@@ -1,7 +1,5 @@
-import { MockProvider, deployContract as evmDeployContract } from 'ethereum-waffle'
-import { addHandlerToProvider, deployContract as ovmDeployContract } from '@eth-optimism/rollup-full-node'
-
-const deployContract = (process.env.MODE === 'OVM') ? ovmDeployContract : evmDeployContract
+import { MockProvider, deployContract } from 'ethereum-waffle'
+import { addHandlerToProvider } from '@eth-optimism/rollup-full-node'
 
 const getProvider = async () => {
 	let provider = new MockProvider({
