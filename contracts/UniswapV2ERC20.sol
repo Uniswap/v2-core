@@ -29,7 +29,8 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         // }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, //TODO ADD BACK IN keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+                0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f, // comment out when testing the below line
+                // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'), //TODO ADD BACK IN
                 keccak256(bytes(name)),
                 keccak256(bytes('1')),
                 1,// chainId, //TODO ADD BACK IN

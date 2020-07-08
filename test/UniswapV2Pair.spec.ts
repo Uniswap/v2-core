@@ -1,10 +1,10 @@
 import chai, { expect } from 'chai'
 import { Contract, Wallet } from 'ethers'
 import { Web3Provider } from 'ethers/providers'
-import { solidity, createFixtureLoader, MockProvider } from 'ethereum-waffle'
+import { solidity, createFixtureLoader, deployContract, MockProvider } from 'ethereum-waffle'
 import { BigNumber, bigNumberify } from 'ethers/utils'
 
-import { deployContract, getProvider } from './shared/setup'
+import { getProvider } from './shared/setup'
 import { expandTo18Decimals, mineBlock, encodePrice } from './shared/utilities'
 import { pairFixture } from './shared/fixtures'
 import { AddressZero } from 'ethers/constants'

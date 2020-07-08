@@ -1,4 +1,4 @@
-import { MockProvider, deployContract } from 'ethereum-waffle'
+import { MockProvider } from 'ethereum-waffle'
 import { addHandlerToProvider } from '@eth-optimism/rollup-full-node'
 
 const getProvider = async () => {
@@ -13,4 +13,4 @@ const getProvider = async () => {
 	return provider
 }
 
-export { deployContract, getProvider }
+export { getProvider }

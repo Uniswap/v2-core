@@ -2,10 +2,10 @@ import chai, { expect } from 'chai'
 import { Contract, Wallet } from 'ethers'
 import { MaxUint256 } from 'ethers/constants'
 import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from 'ethers/utils'
-import { solidity } from 'ethereum-waffle'
+import { solidity, deployContract } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
-import { deployContract, getProvider } from './shared/setup'
+import { getProvider } from './shared/setup'
 import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
 
 import ERC20 from '../build/ERC20.json'
