@@ -35,7 +35,7 @@ contract('Factory', (accounts) => {
   it('createPair', async () => {
     var file = path.join(__dirname, '../build/contracts/UniswapV2Pair.json');
     const bytecode = JSON.parse(fs.readFileSync(file)).bytecode;
-    assert.equal(ethers.utils.keccak256(bytecode),'0x0775be267ceacf495974e7416fa6733ccb99bb85f279e1271cbc867d299bfe18');
+    assert.equal(ethers.utils.keccak256(bytecode),'0x9e412b0c43545320c5ffd072573387d3d24b01790dea161731c0e56efd7a76a2');
     const create2Inputs = [
       '0xff',
       uniswapV2Factory.address,
