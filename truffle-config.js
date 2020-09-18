@@ -91,13 +91,16 @@ module.exports = {
       provider: function() { 
         return new HDWalletProvider("toe ripple waste flavor allow girl few because sketch witness disorder fitness", 'https://rpc2.newchain.cloud.diynova.com', "testnet", 0, 4)
       },
-      network_id: "1007" // newchain testnet id
+      network_id: "1007", // newchain testnet id
+      gasPrice: 1000000000000000
     },
     devnet: {
       provider: function() {
+        // return new HDWalletProvider("0x98cee03ee4d0a69359da5eae0599c479fcf0d49075afedd381cce8733fb09964", 'https://devnet.newchain.cloud.diynova.com', "devnet")
         return new HDWalletProvider("deputy hour tail summer people attack elevator fame veteran margin office popular", 'https://devnet.newchain.cloud.diynova.com', "devnet", 0, 4)
       },
-      network_id: "1002" // newchain devnet id
+      network_id: "1002", // newchain devnet id
+      gasPrice: 1000000000000000
     },
     mainnet: {
       provider: function() {
