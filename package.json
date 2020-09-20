@@ -1,19 +1,12 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "@twswap/core",
+  "description": "🎛 Core contracts for the TWSwap protocol",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://twswap.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/twswap/core"
   },
-  "keywords": [
-    "uniswap",
-    "ethereum",
-    "v2",
-    "core",
-    "uniswap-v2"
-  ],
   "files": [
     "contracts",
     "build"
