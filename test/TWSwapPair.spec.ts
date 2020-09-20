@@ -101,9 +101,7 @@ describe('TWSwapPair', () => {
       const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase
       await addLiquidity(token0Amount, token1Amount)
       await token0.transfer(pair.address, inputAmount)
-      await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
-        'TWSwap: K'
-      )
+      await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith('TWSwap: K')
       await pair.swap(outputAmount, 0, wallet.address, '0x', overrides)
     })
   })
