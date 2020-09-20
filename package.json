@@ -1,7 +1,7 @@
 {
   "name": "@twswap/core",
   "description": "🎛 Core contracts for the TWSwap protocol",
-  "version": "1.0.1",
+  "version": "0.1.0",
   "homepage": "https://twswap.org",
   "repository": {
     "type": "git",
