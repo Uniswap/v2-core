@@ -4,10 +4,10 @@ const BN = web3.utils.BN;
 const {precisionUnits, MINIMUM_LIQUIDITY} = require('./helper');
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
 
-const UniswapV2Router = artifacts.require('UniswapV2Router01');
-const UniswapV2Factory = artifacts.require('UniswapV2Factory');
-const IUniswapV2Pair = artifacts.require('IUniswapV2Pair');
-const UniswapV2Pair = artifacts.require('UniswapV2Pair');
+const XYZSwapRouter = artifacts.require('XYZSwapRouter01');
+const XYZSwapFactory = artifacts.require('XYZSwapFactory');
+const IXYZSwapPair = artifacts.require('IXYZSwapPair');
+const XYZSwapPair = artifacts.require('XYZSwapPair');
 const TestToken = artifacts.require('TestToken');
 const WETH9 = artifacts.require('WETH9');
 
@@ -27,14 +27,14 @@ let router;
 let pair;
 let initTokenAmount = Helper.expandTo18Decimals(1000);
 
-contract('UniswapV2Router', function (accounts) {
+contract('XYZSwapRouter', function (accounts) {
   beforeEach('setup', async () => {
     trader = accounts[1];
     app = accounts[2];
     liquidityProvider = accounts[3];
     feeTo = accounts[4];
 
-    factory = await UniswapV2Factory.new(accounts[0]);
+    factory = await XYZSwapFactory.new(accounts[0]);
     let tokenA = await TestToken.new('test token A', 'A', Helper.expandTo18Decimals(10000));
     let tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
     tokenA.transfer(trader, initTokenAmount);
@@ -42,7 +42,7 @@ contract('UniswapV2Router', function (accounts) {
 
     await factory.createPair(tokenA.address, tokenB.address);
     const pairAddr = await factory.getPair(tokenA.address, tokenB.address);
-    pair = await UniswapV2Pair.at(pairAddr);
+    pair = await XYZSwapPair.at(pairAddr);
 
     WETH = await WETH9.new();
     WETHPartner = await TestToken.new('WETH Partner', 'WETH-P', Helper.expandTo18Decimals(10000));
@@ -52,11 +52,11 @@ contract('UniswapV2Router', function (accounts) {
     token0 = tokenA.address === token0Address ? tokenA : tokenB;
     token1 = tokenA.address === token0Address ? tokenB : tokenA;
 
-    router = await UniswapV2Router.new(factory.address, WETH.address);
+    router = await XYZSwapRouter.new(factory.address, WETH.address);
 
     await factory.createPair(WETH.address, WETHPartner.address);
     const wethPairAddress = await factory.getPair(WETH.address, WETHPartner.address);
-    WETHPair = await UniswapV2Pair.at(wethPairAddress);
+    WETHPair = await XYZSwapPair.at(wethPairAddress);
   });
 
   it('factory, WETH', async () => {
@@ -143,7 +143,6 @@ contract('UniswapV2Router', function (accounts) {
       bigAmount,
       {from: trader}
     );
-    console.log(pair.address, token0.address, token1.address, trader);
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: new BN(500),
       reserve1: new BN(2000),

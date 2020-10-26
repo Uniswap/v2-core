@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IUniswapV2Factory {
+interface IXYZSwapFactory {
     event PairCreated(
         address indexed token0,
         address indexed token1,

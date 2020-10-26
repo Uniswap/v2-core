@@ -2,17 +2,17 @@
 
 pragma solidity ^0.6.0;
 
-import "../UniswapV2Pair.sol";
+import "../XYZSwapPair.sol";
 
 /// @dev this is a mock contract, so tester can set fee to random value
-contract MockUniswapV2Pair is UniswapV2Pair {
+contract MockXYZSwapPair is XYZSwapPair {
     uint256 public simulationFee;
 
     constructor(
         address _factory,
         IERC20 _token0,
         IERC20 _token1
-    ) public UniswapV2Pair() {
+    ) public XYZSwapPair() {
         factory = _factory;
         token0 = _token0;
         token1 = _token1;
@@ -53,10 +53,7 @@ contract MockUniswapV2Pair is UniswapV2Pair {
         uint256 balance1Adjusted = (
             _balance1.mul(MathExt.PRECISION).sub(_amount1In.mul(fee)).div(MathExt.PRECISION)
         );
-        require(
-            balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1),
-            "UniswapV2: K"
-        );
+        require(balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1), "XYZSwap: K");
         uint256 volume = _reserve0.mul(_amount1In).div(_reserve1).add(_amount0In);
         updateVolume(volume, skipWindow, now);
     }

@@ -3,7 +3,7 @@ pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IUniswapV2Router {
+interface IXYZSwapRouter {
     function addLiquidity(
         IERC20 tokenA,
         IERC20 tokenB,

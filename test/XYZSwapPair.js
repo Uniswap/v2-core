@@ -1,6 +1,6 @@
 const TestToken = artifacts.require('TestToken');
-const UniswapV2Factory = artifacts.require('UniswapV2Factory');
-const UniswapV2Pair = artifacts.require('UniswapV2Pair');
+const XYZSwapFactory = artifacts.require('XYZSwapFactory');
+const XYZSwapPair = artifacts.require('XYZSwapPair');
 
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
 const BN = web3.utils.BN;
@@ -19,7 +19,7 @@ let feeTo;
 let liquidityProvider;
 let app;
 
-contract('UniswapV2Pair', function (accounts) {
+contract('XYZSwapPair', function (accounts) {
   beforeEach('setup', async () => {
     [factory, token0, token1, pair] = await setupPair(accounts[0]);
     trader = accounts[1];
@@ -41,7 +41,7 @@ contract('UniswapV2Pair', function (accounts) {
     expectEvent(result, 'Transfer', {
       from: constants.ZERO_ADDRESS,
       to: trader,
-      value: expectedLiquidity.sub(MINIMUM_LIQUIDITY)
+      value: expectedLiquidity.sub(MINIMUM_LIQUIDITY),
     });
     expectEvent(result, 'Sync', {reserve0: token0Amount, reserve1: token1Amount});
 
@@ -66,7 +66,7 @@ contract('UniswapV2Pair', function (accounts) {
 
     [1, 10, 10, '906610893880149131'],
     [1, 100, 100, '987158034397061298'],
-    [1, 1000, 1000, '996006981039903216']
+    [1, 1000, 1000, '996006981039903216'],
   ];
   swapTestCases.forEach((testCase, i) => {
     it(`getInputPrice:${i}`, async () => {
@@ -81,12 +81,12 @@ contract('UniswapV2Pair', function (accounts) {
         expandTo18Decimals(token1Amount),
         result.feeInPrecision
       );
-      await expectRevert(pair.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'UniswapV2: K');
+      await expectRevert(pair.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'XYZSwap: K');
       await pair.swap(0, new BN(expectedOutputAmount), trader, '0x');
     });
   });
 
-  function getExpectedOutputAmount (amountIn, reserveIn, reserveOut, fee) {
+  function getExpectedOutputAmount(amountIn, reserveIn, reserveOut, fee) {
     let amountInWithFee = amountIn.mul(precisionUnits.sub(fee)).div(precisionUnits);
     let numerator = reserveIn.mul(reserveOut);
     let denominator = reserveIn.add(amountInWithFee);
@@ -97,7 +97,7 @@ contract('UniswapV2Pair', function (accounts) {
     [new BN('997000000000000000'), expandTo18Decimals(5), expandTo18Decimals(10), expandTo18Decimals(1)], // given amountIn, amountOut = floor(amountIn * .997)
     [new BN('997000000000000000'), expandTo18Decimals(10), expandTo18Decimals(5), expandTo18Decimals(1)],
     [new BN('997000000000000000'), expandTo18Decimals(5), expandTo18Decimals(5), expandTo18Decimals(1)],
-    [expandTo18Decimals(1), expandTo18Decimals(5), expandTo18Decimals(5), new BN('1003009027081243732')] // given amountOut, amountIn = ceiling(amountOut / .997)
+    [expandTo18Decimals(1), expandTo18Decimals(5), expandTo18Decimals(5), new BN('1003009027081243732')], // given amountOut, amountIn = ceiling(amountOut / .997)
   ];
   optimisticTestCases.forEach((testCase, i) => {
     it(`optimistic:${i}`, async () => {
@@ -107,10 +107,8 @@ contract('UniswapV2Pair', function (accounts) {
 
       let result = await pair.getTradeInfo();
 
-      let outputAmount = inputAmount
-        .mul(precisionUnits.sub(result.feeInPrecision))
-        .div(precisionUnits);
-      await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'UniswapV2: K');
+      let outputAmount = inputAmount.mul(precisionUnits.sub(result.feeInPrecision)).div(precisionUnits);
+      await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'XYZSwap: K');
       await pair.swap(outputAmount, 0, trader, '0x');
     });
   });
@@ -137,7 +135,7 @@ contract('UniswapV2Pair', function (accounts) {
 
     expectEvent(result, 'Sync', {
       reserve0: token0Amount.add(swapAmount),
-      reserve1: token1Amount.sub(expectedOutputAmount)
+      reserve1: token1Amount.sub(expectedOutputAmount),
     });
 
     expectEvent(result, 'Swap', {
@@ -146,7 +144,7 @@ contract('UniswapV2Pair', function (accounts) {
       amount1In: new BN(0),
       amount0Out: new BN(0),
       amount1Out: expectedOutputAmount,
-      to: trader
+      to: trader,
     });
 
     const reserves = await pair.getReserves();
@@ -181,7 +179,7 @@ contract('UniswapV2Pair', function (accounts) {
 
     expectEvent(result, 'Sync', {
       reserve0: token0Amount.sub(expectedOutputAmount),
-      reserve1: token1Amount.add(swapAmount)
+      reserve1: token1Amount.add(swapAmount),
     });
 
     expectEvent(result, 'Swap', {
@@ -190,7 +188,7 @@ contract('UniswapV2Pair', function (accounts) {
       amount1In: swapAmount,
       amount0Out: expectedOutputAmount,
       amount1Out: new BN(0),
-      to: trader
+      to: trader,
     });
 
     const reserves = await pair.getReserves();
@@ -240,18 +238,18 @@ contract('UniswapV2Pair', function (accounts) {
     expectEvent(result, 'Transfer', {
       from: pair.address,
       to: constants.ZERO_ADDRESS,
-      value: expectedLiquidity.sub(MINIMUM_LIQUIDITY)
+      value: expectedLiquidity.sub(MINIMUM_LIQUIDITY),
     });
 
     expectEvent(result, 'Burn', {
       sender: app,
       amount0: token0Amount.sub(new BN(1000)),
-      amount1: token1Amount.sub(new BN(1000))
+      amount1: token1Amount.sub(new BN(1000)),
     });
 
     expectEvent(result, 'Sync', {
       reserve0: new BN(1000),
-      reserve1: new BN(1000)
+      reserve1: new BN(1000),
     });
 
     Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
@@ -328,24 +326,24 @@ contract('UniswapV2Pair', function (accounts) {
   });
 });
 
-async function addLiquidity (liquidityProvider, token0Amount, token1Amount) {
+async function addLiquidity(liquidityProvider, token0Amount, token1Amount) {
   await token0.transfer(pair.address, token0Amount);
   await token1.transfer(pair.address, token1Amount);
   await pair.mint(liquidityProvider);
 }
 
-async function setupFactory (admin) {
-  return await UniswapV2Factory.new(admin);
+async function setupFactory(admin) {
+  return await XYZSwapFactory.new(admin);
 }
 
-async function setupPair (admin) {
+async function setupPair(admin) {
   let factory = await setupFactory(admin);
   let tokenA = await TestToken.new('test token A', 'A', Helper.expandTo18Decimals(10000));
   let tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
 
   await factory.createPair(tokenA.address, tokenB.address);
   const pairAddr = await factory.getPair(tokenA.address, tokenB.address);
-  const pair = await UniswapV2Pair.at(pairAddr);
+  const pair = await XYZSwapPair.at(pairAddr);
 
   const token0Address = await pair.token0();
   const token0 = tokenA.address === token0Address ? tokenA : tokenB;

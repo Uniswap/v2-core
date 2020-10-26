@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "../interfaces/IUniswapV2Pair.sol";
+import "../interfaces/IXYZSwapPair.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-library UniswapV2Library {
+library XYZSwapLibrary {
     using SafeMath for uint256;
 
     uint256 public constant PRECISION = (10**18);
@@ -16,9 +16,9 @@ library UniswapV2Library {
         pure
         returns (IERC20 token0, IERC20 token1)
     {
-        require(tokenA != tokenB, "UniswapV2Library: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "XYZSwapLibrary: IDENTICAL_ADDRESSES");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(address(token0) != address(0), "UniswapV2Library: ZERO_ADDRESS");
+        require(address(token0) != address(0), "XYZSwapLibrary: ZERO_ADDRESS");
     }
 
     // calculates the CREATE2 address for a pair without making any external calls
@@ -35,7 +35,7 @@ library UniswapV2Library {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"1ed32d7ceba2ec9673b1c9699f15169af01eae41c769ca65dca0982107f78b9b" // init code hash
+                        hex"6a5184855ab2956af33fbeeb7891bf9cafd924d611e98c61c195eab024920b11" // init code hash
                     )
                 )
             )
@@ -57,8 +57,7 @@ library UniswapV2Library {
         )
     {
         (IERC20 token0, ) = sortTokens(tokenA, tokenB);
-        (reserveA, reserveB, fee) = IUniswapV2Pair(pairFor(factory, tokenA, tokenB))
-            .getTradeInfo();
+        (reserveA, reserveB, fee) = IXYZSwapPair(pairFor(factory, tokenA, tokenB)).getTradeInfo();
         (reserveA, reserveB) = tokenA == token0 ? (reserveA, reserveB) : (reserveB, reserveA);
     }
 
@@ -68,8 +67,8 @@ library UniswapV2Library {
         uint256 reserveA,
         uint256 reserveB
     ) internal pure returns (uint256 amountB) {
-        require(amountA > 0, "UniswapV2Library: INSUFFICIENT_AMOUNT");
-        require(reserveA > 0 && reserveB > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
+        require(amountA > 0, "XYZSwapLibrary: INSUFFICIENT_AMOUNT");
+        require(reserveA > 0 && reserveB > 0, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
         amountB = amountA.mul(reserveB) / reserveA;
     }
 
@@ -80,8 +79,8 @@ library UniswapV2Library {
         uint256 reserveOut,
         uint256 fee
     ) internal pure returns (uint256 amountOut) {
-        require(amountIn > 0, "UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
+        require(amountIn > 0, "XYZSwapLibrary: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
         uint256 amountInWithFee = amountIn.mul(PRECISION - fee).div(PRECISION);
         uint256 numerator = amountInWithFee.mul(reserveOut);
         uint256 denominator = reserveIn.add(amountInWithFee);
@@ -95,8 +94,8 @@ library UniswapV2Library {
         uint256 reserveOut,
         uint256 fee
     ) internal pure returns (uint256 amountIn) {
-        require(amountOut > 0, "UniswapV2Library: INSUFFICIENT_OUTPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "UniswapV2Library: INSUFFICIENT_LIQUIDITY");
+        require(amountOut > 0, "XYZSwapLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
         uint256 numerator = reserveIn.mul(amountOut);
         uint256 denominator = reserveOut.sub(amountOut);
         amountIn = (numerator / denominator).add(1);
@@ -109,7 +108,7 @@ library UniswapV2Library {
         uint256 amountIn,
         IERC20[] memory path
     ) internal view returns (uint256[] memory amounts) {
-        require(path.length >= 2, "UniswapV2Library: INVALID_PATH");
+        require(path.length >= 2, "XYZSwapLibrary: INVALID_PATH");
         amounts = new uint256[](path.length);
         amounts[0] = amountIn;
         for (uint256 i; i < path.length - 1; i++) {
@@ -128,7 +127,7 @@ library UniswapV2Library {
         uint256 amountOut,
         IERC20[] memory path
     ) internal view returns (uint256[] memory amounts) {
-        require(path.length >= 2, "UniswapV2Library: INVALID_PATH");
+        require(path.length >= 2, "XYZSwapLibrary: INVALID_PATH");
         amounts = new uint256[](path.length);
         amounts[amounts.length - 1] = amountOut;
         for (uint256 i = path.length - 1; i > 0; i--) {

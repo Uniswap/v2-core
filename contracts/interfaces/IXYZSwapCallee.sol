@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-interface IUniswapV2Callee {
-    function uniswapV2Call(
+interface IXYZSwapCallee {
+    function xyzSwapCall(
         address sender,
         uint256 amount0,
         uint256 amount1,
