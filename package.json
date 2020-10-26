@@ -1,48 +1,36 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
-  "version": "1.0.1",
-  "homepage": "https://uniswap.org",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+  "scripts": {
+    "compile": "yarn buidler compile && yarn buidler size-contracts",
+    "test": "yarn buidler test --no-compile",
+    "solhint": "./node_modules/.bin/solhint -f table --ignore-path contracts/mocks/*.sol",
+    "prettier": "./node_modules/.bin/prettier --write contracts/",
+    "lint": "./node_modules/.bin/solhint 'contracts/**/*.sol'"
   },
-  "keywords": [
-    "uniswap",
-    "ethereum",
-    "v2",
-    "core",
-    "uniswap-v2"
-  ],
-  "files": [
-    "contracts",
-    "build"
-  ],
-  "engines": {
-    "node": ">=10"
+  "author": "",
+  "license": "MIT",
+  "directories": {
+    "test": "test"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.6",
-    "@types/mocha": "^5.2.7",
+    "@nomiclabs/buidler": "1.4.0",
+    "@nomiclabs/buidler-ganache": "^1.3.3",
+    "@nomiclabs/buidler-truffle5": "1.3.4",
+    "@nomiclabs/buidler-web3": "1.3.4",
+    "@openzeppelin/test-helpers": "0.5.6",
+    "buidler-contract-sizer": "^1.0.2",
     "chai": "^4.2.0",
-    "ethereum-waffle": "^2.4.1",
-    "ethereumjs-util": "^6.2.0",
-    "mocha": "^6.2.2",
-    "prettier": "^1.19.1",
-    "rimraf": "^3.0.0",
-    "solc": "0.5.16",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "chai-as-promised": "7.1.1",
+    "chai-bn": "0.2.1",
+    "prettier": "2.0.2",
+    "prettier-plugin-solidity": "1.0.0-alpha.54",
+    "solhint": "3.2.0",
+    "solhint-plugin-prettier": "0.0.4",
+    "solidity-coverage": "0.7.0-beta.3",
+    "typescript": "^3.9.7",
+    "web3": "1.2.6"
   },
-  "scripts": {
-    "lint": "yarn prettier ./test/*.ts --check",
-    "lint:fix": "yarn prettier ./test/*.ts --write",
-    "clean": "rimraf ./build/",
-    "precompile": "yarn clean",
-    "compile": "waffle .waffle.json",
-    "pretest": "yarn compile",
-    "test": "mocha",
-    "prepublishOnly": "yarn test"
-  },
-  "license": "GPL-3.0-or-later"
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.2.0",
+    "web3-eth-abi": "^1.2.11"
+  }
 }

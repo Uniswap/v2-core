@@ -1,2 +1,13 @@
-node_modules/
-build/
+#Buidler files
+cache
+artifacts
+node_modules
+build
+
+#coverage file
+coverage
+coverage.json
+
+
+#vs code files
+.vscode
