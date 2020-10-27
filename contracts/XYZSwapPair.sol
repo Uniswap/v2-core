@@ -171,7 +171,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
-        uint256 rFactor = rFactor(block.timestamp);
+        uint256 rFactor = rFactor(block.number);
         feeInPrecision = FeeFomula.getFee(rFactor);
     }
 
