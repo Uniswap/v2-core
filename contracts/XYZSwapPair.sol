@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./libraries/Math.sol";
 import "./libraries/MathExt.sol";
+import "./libraries/FeeFomula.sol";
 import "./interfaces/IXYZSwapPair.sol";
 import "./interfaces/IXYZSwapFactory.sol";
 import "./interfaces/IXYZSwapCallee.sol";
@@ -170,7 +171,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         uint256 rFactor = rFactor(block.timestamp);
-        feeInPrecision = getFee(rFactor);
+        feeInPrecision = FeeFomula.getFee(rFactor);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -221,9 +222,9 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         uint256 _balance0,
         uint256 _balance1
     ) internal virtual {
-        uint256 skipWindow = getSkipWindow(now);
-        uint256 rFactor = updateEMA(skipWindow);
-        uint256 fee = getFee(rFactor);
+        uint256 skipBlock = block.number - lastTradeBlock;
+        uint256 rFactor = updateEMA(skipBlock);
+        uint256 fee = FeeFomula.getFee(rFactor);
         uint256 balance0Adjusted = (
             _balance0.mul(MathExt.PRECISION).sub(_amount0In.mul(fee)).div(MathExt.PRECISION)
         );
@@ -232,38 +233,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         );
         require(balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1), "XYZSwap: K");
         uint256 volume = _reserve0.mul(_amount1In).div(_reserve1).add(_amount0In);
-        updateVolume(volume, skipWindow, now);
-    }
-
-    uint256 private constant B = 1567600000000000000; // 1.5676 * 10^18
-    uint256 private constant C0 = uint256(10**18 * 30);
-    uint256 private constant C1 = uint256(10**18 * 10000) / 27;
-    uint256 private constant C2 = uint256(10**18 * 275) / 9;
-    uint256 private constant C3 = uint256(10**18 * 455) / 54;
-
-    uint256 private constant A = 9975124378110000000; // 9.97512437811 * 10^18
-
-    function getFee(uint256 rFactor) internal pure returns (uint256) {
-        if (rFactor >= B) {
-            return (60 * MathExt.PRECISION) / 10000;
-        } else if (rFactor >= MathExt.PRECISION) {
-            uint256 tmp = rFactor - (MathExt.PRECISION * 5) / 4;
-            return
-                (C0 +
-                    C1.unsafeMulInPercision(tmp.unsafeExpInPercision(3)) +
-                    C2.unsafeMulInPercision(tmp) +
-                    C3) / 10000;
-        } else {
-            uint256 tmp = (MathExt.PRECISION * 4) / 5;
-            uint256 tmp2 = (rFactor > tmp ? (rFactor - tmp) : (tmp - rFactor))
-                .unsafeExpInPercision(2);
-            tmp2 = MathExt.PRECISION.mul(tmp2 * 50000).div(10000 * tmp2 + 2 * MathExt.PRECISION);
-            if (rFactor > tmp) {
-                return (C0 + tmp2 - A) / 10000;
-            } else {
-                return (C0 - tmp2 - A) / 10000;
-            }
-        }
+        updateVolume(volume, skipBlock, block.number);
     }
 
     // force balances to match reserves

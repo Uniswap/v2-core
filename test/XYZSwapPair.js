@@ -3,6 +3,7 @@ const XYZSwapFactory = artifacts.require('XYZSwapFactory');
 const XYZSwapPair = artifacts.require('XYZSwapPair');
 
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
+const { assert } = require('chai');
 const BN = web3.utils.BN;
 
 const Helper = require('./helper');

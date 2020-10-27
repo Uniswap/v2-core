@@ -12,21 +12,19 @@ contract VolumeTrendRecorder {
     using SafeMath for uint256;
 
     uint256 internal constant MAX_UINT128 = 1 << (128 - 1);
-
-    uint256 public constant LONG_ALPHA = 74074074074074074; // precision * 2 / 27
-    uint256 public constant SHORT_ALPHA = 153846153846153846; // precision * 2/ 13
-    uint256 public constant TIME_WINDOW_SIZE = 2 hours;
+    uint256 public constant SHORT_ALPHA = (2 * uint256(10)**18) / 5401;
+    uint256 public constant LONG_ALPHA = (2 * uint256(10)**18) / 10801;
 
     uint128 internal shortEMA;
     uint128 internal longEMA;
-    // total volume in current time window
-    uint128 internal currentEpochVolume;
-    uint128 internal lastTimeStamp;
+    // total volume in current block
+    uint128 internal currentBlockVolume;
+    uint128 internal lastTradeBlock;
 
     constructor(uint128 _emaInit) public {
         shortEMA = _emaInit;
         longEMA = _emaInit;
-        lastTimeStamp = safeUint128((block.timestamp / TIME_WINDOW_SIZE) * TIME_WINDOW_SIZE);
+        lastTradeBlock = safeUint128(block.number);
     }
 
     function getVolumeRecorder()
@@ -35,37 +33,32 @@ contract VolumeTrendRecorder {
         returns (
             uint128 _shortEMA,
             uint128 _longEMA,
-            uint128 _currentEpochVolume,
-            uint128 _lastTimeStamp
+            uint128 _currentBlockVolume,
+            uint128 _lastTradeBlock
         )
     {
         _shortEMA = shortEMA;
         _longEMA = longEMA;
-        _currentEpochVolume = currentEpochVolume;
-        _lastTimeStamp = lastTimeStamp;
+        _currentBlockVolume = currentBlockVolume;
+        _lastTradeBlock = lastTradeBlock;
     }
 
-    function getSkipWindow(uint256 timeStamp) internal view returns (uint256 skipWindow) {
-        uint256 normalizedTimestamp = (timeStamp / TIME_WINDOW_SIZE) * TIME_WINDOW_SIZE;
-        skipWindow = (normalizedTimestamp - lastTimeStamp) / TIME_WINDOW_SIZE;
-    }
-
-    function updateEMA(uint256 skipWindow) internal returns (uint256 _rFactor) {
-        if (skipWindow == 0) {
+    function updateEMA(uint256 skipBlock) internal returns (uint256 _rFactor) {
+        if (skipBlock == 0) {
             if (longEMA == 0) {
                 return 0;
             }
             return (uint256(shortEMA) * MathExt.PRECISION) / uint256(longEMA);
         }
-        uint256 _currentEpochVolume = uint256(currentEpochVolume);
-        uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentEpochVolume);
-        uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentEpochVolume);
-        // ema = ema * (1-aplha) ^(skipWindow -1)
+        uint256 _currentBlockVolume = uint256(currentBlockVolume);
+        uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentBlockVolume);
+        uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentBlockVolume);
+        // ema = ema * (1-aplha) ^(skipBlock -1)
         _shortEMA = _shortEMA.unsafeMulInPercision(
-            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipWindow - 1)
+            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipBlock - 1)
         );
         _longEMA = _longEMA.unsafeMulInPercision(
-            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipWindow - 1)
+            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipBlock - 1)
         );
         shortEMA = safeUint128(_shortEMA);
         longEMA = safeUint128(_longEMA);
@@ -78,37 +71,39 @@ contract VolumeTrendRecorder {
 
     function updateVolume(
         uint256 value,
-        uint256 skipWindow,
-        uint256 timeStamp
+        uint256 skipBlock,
+        uint256 blockNumber
     ) internal {
-        if (skipWindow == 0) {
-            currentEpochVolume = safeUint128(value.add(uint256(currentEpochVolume)));
+        if (skipBlock == 0) {
+            currentBlockVolume = safeUint128(value.add(uint256(currentBlockVolume)));
         } else {
-            currentEpochVolume = safeUint128(value);
-            uint256 normalizedTimestamp = (timeStamp / TIME_WINDOW_SIZE) * TIME_WINDOW_SIZE;
-            lastTimeStamp = safeUint128(normalizedTimestamp);
+            currentBlockVolume = safeUint128(value);
+            lastTradeBlock = safeUint128(blockNumber);
         }
     }
 
-    function rFactor(uint256 timeStamp) internal view returns (uint256) {
-        uint256 normalizedTimestamp = (timeStamp / TIME_WINDOW_SIZE) * TIME_WINDOW_SIZE;
-        uint256 skipWindow = (normalizedTimestamp - lastTimeStamp) / TIME_WINDOW_SIZE;
-
-        if (skipWindow == 0) {
-            if (longEMA == 0) {
-                return 0;
-            }
-            return (uint256(shortEMA) * MathExt.PRECISION) / uint256(longEMA);
+    function rFactor(uint256 blockNumber) internal view returns (uint256) {
+        uint256 skipBlock = blockNumber - lastTradeBlock;
+        if (skipBlock == 0) {
+            return calculateRFactor(shortEMA, longEMA);
         }
-        uint256 _currentEpochVolume = currentEpochVolume;
-        uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentEpochVolume);
-        uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentEpochVolume);
+        uint256 _currentBlockVolume = currentBlockVolume;
+        uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentBlockVolume);
+        uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentBlockVolume);
         _shortEMA = uint256(_shortEMA).unsafeMulInPercision(
-            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipWindow - 1)
+            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipBlock - 1)
         );
         _longEMA = uint256(_longEMA).unsafeMulInPercision(
-            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipWindow - 1)
+            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipBlock - 1)
         );
+        return calculateRFactor(_shortEMA, _longEMA);
+    }
+
+    function calculateRFactor(uint256 _shortEMA, uint256 _longEMA)
+        internal
+        pure
+        returns (uint256)
+    {
         if (_longEMA == 0) {
             return 0;
         }

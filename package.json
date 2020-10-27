@@ -2,9 +2,9 @@
   "scripts": {
     "compile": "yarn buidler compile && yarn buidler size-contracts",
     "test": "yarn buidler test --no-compile",
-    "solhint": "./node_modules/.bin/solhint -f table --ignore-path contracts/mocks/*.sol",
+    "solhint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'",
     "prettier": "./node_modules/.bin/prettier --write contracts/",
-    "lint": "./node_modules/.bin/solhint 'contracts/**/*.sol'"
+    "lint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'"
   },
   "author": "",
   "license": "MIT",
