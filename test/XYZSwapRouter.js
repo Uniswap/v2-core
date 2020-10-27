@@ -9,9 +9,9 @@ const XYZSwapFactory = artifacts.require('XYZSwapFactory');
 const IXYZSwapPair = artifacts.require('IXYZSwapPair');
 const XYZSwapPair = artifacts.require('XYZSwapPair');
 const TestToken = artifacts.require('TestToken');
-const WETH9 = artifacts.require('WETH9');
 
 const bigAmount = new BN(2).pow(new BN(250));
+const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 let trader;
 let feeTo;
@@ -20,9 +20,8 @@ let app;
 let factory;
 let token0;
 let token1;
-let WETH;
-let WETHPartner;
-let WETHPair;
+let ethPartner;
+let ethPair;
 let router;
 let pair;
 let initTokenAmount = Helper.expandTo18Decimals(1000);
@@ -44,24 +43,22 @@ contract('XYZSwapRouter', function (accounts) {
     const pairAddr = await factory.getPair(tokenA.address, tokenB.address);
     pair = await XYZSwapPair.at(pairAddr);
 
-    WETH = await WETH9.new();
-    WETHPartner = await TestToken.new('WETH Partner', 'WETH-P', Helper.expandTo18Decimals(10000));
-    await WETHPartner.transfer(trader, initTokenAmount);
-
     const token0Address = await pair.token0();
     token0 = tokenA.address === token0Address ? tokenA : tokenB;
     token1 = tokenA.address === token0Address ? tokenB : tokenA;
 
-    router = await XYZSwapRouter.new(factory.address, WETH.address);
+    ethPartner = await TestToken.new('WETH Partner', 'WETH-P', Helper.expandTo18Decimals(10000));
+    await ethPartner.transfer(trader, initTokenAmount);
+    await factory.createPair(ethAddress, ethPartner.address);
+    const ethPairAddress = await factory.getPair(ethAddress, ethPartner.address);
+    ethPair = await XYZSwapPair.at(ethPairAddress);
 
-    await factory.createPair(WETH.address, WETHPartner.address);
-    const wethPairAddress = await factory.getPair(WETH.address, WETHPartner.address);
-    WETHPair = await XYZSwapPair.at(wethPairAddress);
+    router = await XYZSwapRouter.new(factory.address);
   });
 
-  it('factory, WETH', async () => {
+  it('factory, ETH', async () => {
     Helper.assertEqual(await router.factory(), factory.address);
-    Helper.assertEqual(await router.WETH(), WETH.address);
+    Helper.assertEqual(await router.ETH_ADDRESS(), ethAddress);
   });
 
   it('addLiquidity', async () => {
@@ -84,44 +81,48 @@ contract('XYZSwapRouter', function (accounts) {
       bigAmount,
       {from: trader}
     );
+    console.log('gas used', result.receipt.gasUsed);
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: token0Amount,
-      reserve1: token1Amount,
+      reserve1: token1Amount
     });
     await expectEvent.inTransaction(result.tx, pair, 'Mint', {
       sender: router.address,
       amount0: token0Amount,
-      amount1: token1Amount,
+      amount1: token1Amount
     });
   });
 
-  it('addLiquidityETH', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(1);
-    const ETHAmount = Helper.expandTo18Decimals(4);
+  it('addLiquidity with ETH', async () => {
+    const ethPartnerAmount = Helper.expandTo18Decimals(1);
+    const ethAmount = Helper.expandTo18Decimals(4);
 
     const expectedLiquidity = Helper.expandTo18Decimals(2);
-    const WETHPairToken0 = await WETHPair.token0();
-    await WETHPartner.approve(router.address, bigAmount, {from: trader});
+    const ethPairToken0 = await ethPair.token0();
+    await ethPartner.approve(router.address, bigAmount, {from: trader});
 
-    let result = await router.addLiquidityETH(
-      WETHPartner.address,
-      WETHPartnerAmount,
-      WETHPartnerAmount,
-      ETHAmount,
+    let result = await router.addLiquidity(
+      ethPartner.address,
+      ethAddress,
+      ethPartnerAmount,
+      ethAmount,
+      ethPartnerAmount,
+      ethAmount,
       trader,
       bigAmount,
-      {from: trader, value: ETHAmount}
+      {from: trader, value: ethAmount}
     );
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
-      reserve0: WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
-      reserve1: WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount,
+    console.log('gas used', result.receipt.gasUsed);
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
+      reserve0: ethPairToken0 === ethPartner.address ? ethPartnerAmount : ethAmount,
+      reserve1: ethPairToken0 === ethPartner.address ? ethAmount : ethPartnerAmount
     });
     await expectEvent.inTransaction(result.tx, pair, 'Mint', {
       sender: router.address,
-      amount0: WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount : ETHAmount,
-      amount1: WETHPairToken0 === WETHPartner.address ? ETHAmount : WETHPartnerAmount,
+      amount0: ethPairToken0 === ethPartner.address ? ethPartnerAmount : ethAmount,
+      amount1: ethPairToken0 === ethPartner.address ? ethAmount : ethPartnerAmount
     });
-    Helper.assertEqual(await WETHPair.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
+    Helper.assertEqual(await ethPair.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
   });
 
   it('removeLiquidity', async () => {
@@ -143,15 +144,16 @@ contract('XYZSwapRouter', function (accounts) {
       bigAmount,
       {from: trader}
     );
+    console.log('gas used', result.receipt.gasUsed);
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: new BN(500),
-      reserve1: new BN(2000),
+      reserve1: new BN(2000)
     });
     await expectEvent.inTransaction(result.tx, pair, 'Burn', {
       sender: router.address,
       amount0: token0Amount.sub(new BN(500)),
       amount1: token1Amount.sub(new BN(2000)),
-      to: trader,
+      to: trader
     });
 
     Helper.assertEqual(await pair.balanceOf(trader), new BN(0));
@@ -159,239 +161,247 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await token1.balanceOf(trader), initTokenAmount.sub(new BN(2000)));
   });
 
-  it('removeLiquidityETH', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(1);
-    const ETHAmount = Helper.expandTo18Decimals(4);
-    await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount, {from: trader});
-    await WETH.deposit({from: trader, value: ETHAmount});
-    await WETH.transfer(WETHPair.address, ETHAmount, {from: trader});
-    await WETHPair.mint(trader);
+  it('removeLiquidity with ETH', async () => {
+    const ethPartnerAmount = Helper.expandTo18Decimals(1);
+    const ethAmount = Helper.expandTo18Decimals(4);
+
+    await ethPartner.transfer(ethPair.address, ethPartnerAmount, {from: trader});
+    await Helper.sendEtherWithPromise(trader, ethPair.address, ethAmount);
+    await ethPair.mint(trader);
 
     const expectedLiquidity = Helper.expandTo18Decimals(2);
-    const WETHPairToken0 = await WETHPair.token0();
-    await WETHPair.approve(router.address, bigAmount, {from: trader});
-    let result = await router.removeLiquidityETH(
-      WETHPartner.address,
+    const ethPairToken0 = await ethPair.token0();
+    await ethPair.approve(router.address, bigAmount, {from: trader});
+    let initEthAmount = await Helper.getBalancePromise(trader);
+    let result = await router.removeLiquidity(
+      ethAddress,
+      ethPartner.address,
       expectedLiquidity.sub(MINIMUM_LIQUIDITY),
       0,
       0,
       trader,
       bigAmount,
-      {from: trader}
+      {from: trader, gasPrice: new BN(0)}
     );
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
-      reserve0: WETHPairToken0 === WETHPartner.address ? new BN(500) : new BN(2000),
-      reserve1: WETHPairToken0 === WETHPartner.address ? new BN(2000) : new BN(500),
+    console.log('gas used', result.receipt.gasUsed);
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
+      reserve0: ethPairToken0 === ethPartner.address ? new BN(500) : new BN(2000),
+      reserve1: ethPairToken0 === ethPartner.address ? new BN(2000) : new BN(500)
     });
 
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Burn', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Burn', {
       sender: router.address,
-      amount0:
-        WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount.sub(new BN(500)) : ETHAmount.sub(new BN(2000)),
-      amount1:
-        WETHPairToken0 === WETHPartner.address ? ETHAmount.sub(new BN(2000)) : WETHPartnerAmount.sub(new BN(500)),
-      to: router.address,
+      amount0: ethPairToken0 === ethPartner.address ? ethPartnerAmount.sub(new BN(500)) : ethAmount.sub(new BN(2000)),
+      amount1: ethPairToken0 === ethPartner.address ? ethAmount.sub(new BN(2000)) : ethPartnerAmount.sub(new BN(500)),
+      to: trader
     });
-    Helper.assertEqual(await WETHPair.balanceOf(trader), new BN(0));
-    Helper.assertEqual(await WETHPartner.balanceOf(trader), initTokenAmount.sub(new BN(500)));
+    Helper.assertEqual(await ethPair.balanceOf(trader), new BN(0));
+    Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.sub(new BN(500)));
+    Helper.assertEqual(await Helper.getBalancePromise(trader), initEthAmount.add(ethAmount).sub(new BN(2000)));
   });
 
   it('swapETHForExactTokens', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(10);
-    const ETHAmount = Helper.expandTo18Decimals(5);
+    const ethPartnerAmount = Helper.expandTo18Decimals(10);
+    const ethAmount = Helper.expandTo18Decimals(5);
     const outputAmount = Helper.expandTo18Decimals(1);
     const swapAmount = new BN('565227237267357629');
     // init pair
-    await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount);
-    await WETH.deposit({value: ETHAmount});
-    await WETH.transfer(WETHPair.address, ETHAmount);
-    await WETHPair.mint(trader);
-    const WETHPairToken0 = await WETHPair.token0();
-    let tradeInfo = await WETHPair.getTradeInfo();
-    let reserveIn = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
-    let reserveOut = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
+    await ethPartner.transfer(ethPair.address, ethPartnerAmount);
+    await Helper.sendEtherWithPromise(trader, ethPair.address, ethAmount);
+    await ethPair.mint(trader);
+
+    const ethPairToken0 = await ethPair.token0();
+    let tradeInfo = await ethPair.getTradeInfo();
+    let reserveIn = ethPairToken0 == ethPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
+    let reserveOut = ethPairToken0 == ethPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
     let expectAmountIn = await router.getAmountIn(outputAmount, reserveIn, reserveOut, tradeInfo.feeInPrecision);
     let ethBalance = await Helper.getBalancePromise(trader);
 
-    let result = await router.swapETHForExactTokens(
+    let result = await router.swapTokensForExactTokens(
       outputAmount,
-      [WETH.address, WETHPartner.address],
+      swapAmount,
+      [ethAddress, ethPartner.address],
       trader,
       bigAmount,
       {
         from: trader,
         value: swapAmount,
-        gasPrice: new BN(0),
+        gasPrice: new BN(0)
       }
     );
+    console.log('gas used', result.receipt.gasUsed);
 
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Swap', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Swap', {
       sender: router.address,
-      amount0In: WETHPairToken0 === WETHPartner.address ? new BN(0) : expectAmountIn,
-      amount1In: WETHPairToken0 === WETHPartner.address ? expectAmountIn : new BN(0),
-      amount0Out: WETHPairToken0 === WETHPartner.address ? outputAmount : new BN(0),
-      amount1Out: WETHPairToken0 === WETHPartner.address ? new BN(0) : outputAmount,
-      to: trader,
-    });
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
-      reserve0:
-        WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount.sub(outputAmount) : ETHAmount.add(expectAmountIn),
-      reserve1:
-        WETHPairToken0 === WETHPartner.address ? ETHAmount.add(expectAmountIn) : WETHPartnerAmount.sub(outputAmount),
+      amount0In: ethPairToken0 === ethPartner.address ? new BN(0) : expectAmountIn,
+      amount1In: ethPairToken0 === ethPartner.address ? expectAmountIn : new BN(0),
+      amount0Out: ethPairToken0 === ethPartner.address ? outputAmount : new BN(0),
+      amount1Out: ethPairToken0 === ethPartner.address ? new BN(0) : outputAmount,
+      to: trader
     });
 
-    Helper.assertEqual(await WETHPartner.balanceOf(trader), initTokenAmount.add(outputAmount));
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
+      reserve0:
+        ethPairToken0 === ethPartner.address ? ethPartnerAmount.sub(outputAmount) : ethAmount.add(expectAmountIn),
+      reserve1:
+        ethPairToken0 === ethPartner.address ? ethAmount.add(expectAmountIn) : ethPartnerAmount.sub(outputAmount)
+    });
+
+    Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.add(outputAmount));
     Helper.assertEqual(await Helper.getBalancePromise(trader), ethBalance.sub(expectAmountIn));
   });
 
   it('swapExactTokensForETH', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(5);
-    const ETHAmount = Helper.expandTo18Decimals(10);
+    const ethPartnerAmount = Helper.expandTo18Decimals(5);
+    const ethAmount = Helper.expandTo18Decimals(10);
     const swapAmount = Helper.expandTo18Decimals(1);
 
-    await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount);
-    await WETH.deposit({value: ETHAmount});
-    await WETH.transfer(WETHPair.address, ETHAmount);
-    await WETHPair.mint(trader);
+    await ethPartner.transfer(ethPair.address, ethPartnerAmount);
+    await Helper.sendEtherWithPromise(trader, ethPair.address, ethAmount);
+    await ethPair.mint(trader);
 
-    const WETHPairToken0 = await WETHPair.token0();
-    let tradeInfo = await WETHPair.getTradeInfo();
-    let reserveOut = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
-    let reserveIn = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
+    const ethPairToken0 = await ethPair.token0();
+    let tradeInfo = await ethPair.getTradeInfo();
+    let reserveOut = ethPairToken0 == ethPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
+    let reserveIn = ethPairToken0 == ethPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
     let expectAmountOut = await router.getAmountOut(swapAmount, reserveIn, reserveOut, tradeInfo.feeInPrecision);
 
-    await WETHPartner.approve(router.address, bigAmount, {from: trader});
+    await ethPartner.approve(router.address, bigAmount, {from: trader});
     let ethBalance = await Helper.getBalancePromise(trader);
 
-    let result = await router.swapExactTokensForETH(
+    let result = await router.swapExactTokensForTokens(
       swapAmount,
       0,
-      [WETHPartner.address, WETH.address],
+      [ethPartner.address, ethAddress],
       trader,
       bigAmount,
       {
         from: trader,
-        gasPrice: new BN(0),
+        gasPrice: new BN(0)
       }
     );
+    console.log('gas used', result.receipt.gasUsed);
 
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
       reserve0:
-        WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount.add(swapAmount) : ETHAmount.sub(expectAmountOut),
+        ethPairToken0 === ethPartner.address ? ethPartnerAmount.add(swapAmount) : ethAmount.sub(expectAmountOut),
       reserve1:
-        WETHPairToken0 === WETHPartner.address ? ETHAmount.sub(expectAmountOut) : WETHPartnerAmount.add(swapAmount),
+        ethPairToken0 === ethPartner.address ? ethAmount.sub(expectAmountOut) : ethPartnerAmount.add(swapAmount)
     });
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Swap', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Swap', {
       sender: router.address,
-      amount0In: WETHPairToken0 === WETHPartner.address ? swapAmount : new BN(0),
-      amount1In: WETHPairToken0 === WETHPartner.address ? new BN(0) : swapAmount,
-      amount0Out: WETHPairToken0 === WETHPartner.address ? new BN(0) : expectAmountOut,
-      amount1Out: WETHPairToken0 === WETHPartner.address ? expectAmountOut : new BN(0),
-      to: router.address,
+      amount0In: ethPairToken0 === ethPartner.address ? swapAmount : new BN(0),
+      amount1In: ethPairToken0 === ethPartner.address ? new BN(0) : swapAmount,
+      amount0Out: ethPairToken0 === ethPartner.address ? new BN(0) : expectAmountOut,
+      amount1Out: ethPairToken0 === ethPartner.address ? expectAmountOut : new BN(0),
+      to: trader
     });
 
-    Helper.assertEqual(await WETHPartner.balanceOf(trader), initTokenAmount.sub(swapAmount));
+    Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.sub(swapAmount));
     Helper.assertEqual(await Helper.getBalancePromise(trader), ethBalance.add(expectAmountOut));
   });
 
   it('swapTokensForExactETH', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(5);
-    const ETHAmount = Helper.expandTo18Decimals(10);
+    const ethPartnerAmount = Helper.expandTo18Decimals(5);
+    const ethAmount = Helper.expandTo18Decimals(10);
     const outputAmount = Helper.expandTo18Decimals(1);
 
-    await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount);
-    await WETH.deposit({value: ETHAmount});
-    await WETH.transfer(WETHPair.address, ETHAmount);
-    await WETHPair.mint(trader, {from: trader});
+    await ethPartner.transfer(ethPair.address, ethPartnerAmount);
+    await Helper.sendEtherWithPromise(trader, ethPair.address, ethAmount);
+    await ethPair.mint(trader, {from: trader});
 
-    await WETHPartner.approve(router.address, bigAmount, {from: trader});
-    const WETHPairToken0 = await WETHPair.token0();
+    await ethPartner.approve(router.address, bigAmount, {from: trader});
+    const ethPairToken0 = await ethPair.token0();
 
-    let tradeInfo = await WETHPair.getTradeInfo();
-    let reserveIn = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
-    let reserveOut = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
+    let tradeInfo = await ethPair.getTradeInfo();
+    let reserveIn = ethPairToken0 == ethPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
+    let reserveOut = ethPairToken0 == ethPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
     let expectAmountIn = await router.getAmountIn(outputAmount, reserveIn, reserveOut, tradeInfo.feeInPrecision);
 
     let ethBalance = await Helper.getBalancePromise(trader);
 
-    let result = await router.swapTokensForExactETH(
+    let result = await router.swapTokensForExactTokens(
       outputAmount,
       bigAmount,
-      [WETHPartner.address, WETH.address],
+      [ethPartner.address, ethAddress],
       trader,
       bigAmount,
       {
         from: trader,
-        gasPrice: new BN(0),
+        gasPrice: new BN(0)
       }
     );
+    console.log('gas used', result.receipt.gasUsed);
 
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
       reserve0:
-        WETHPairToken0 === WETHPartner.address ? WETHPartnerAmount.add(expectAmountIn) : ETHAmount.sub(outputAmount),
+        ethPairToken0 === ethPartner.address ? ethPartnerAmount.add(expectAmountIn) : ethAmount.sub(outputAmount),
       reserve1:
-        WETHPairToken0 === WETHPartner.address ? ETHAmount.sub(outputAmount) : WETHPartnerAmount.add(expectAmountIn),
+        ethPairToken0 === ethPartner.address ? ethAmount.sub(outputAmount) : ethPartnerAmount.add(expectAmountIn)
     });
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Swap', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Swap', {
       sender: router.address,
-      amount0In: WETHPairToken0 === WETHPartner.address ? expectAmountIn : new BN(0),
-      amount1In: WETHPairToken0 === WETHPartner.address ? new BN(0) : expectAmountIn,
-      amount0Out: WETHPairToken0 === WETHPartner.address ? new BN(0) : outputAmount,
-      amount1Out: WETHPairToken0 === WETHPartner.address ? outputAmount : new BN(0),
-      to: router.address,
+      amount0In: ethPairToken0 === ethPartner.address ? expectAmountIn : new BN(0),
+      amount1In: ethPairToken0 === ethPartner.address ? new BN(0) : expectAmountIn,
+      amount0Out: ethPairToken0 === ethPartner.address ? new BN(0) : outputAmount,
+      amount1Out: ethPairToken0 === ethPartner.address ? outputAmount : new BN(0),
+      to: trader
     });
 
-    Helper.assertEqual(await WETHPartner.balanceOf(trader), initTokenAmount.sub(expectAmountIn));
+    Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.sub(expectAmountIn));
     Helper.assertEqual(await Helper.getBalancePromise(trader), ethBalance.add(outputAmount));
   });
 
   it('swapExactETHForTokens', async () => {
-    const WETHPartnerAmount = Helper.expandTo18Decimals(10);
-    const ETHAmount = Helper.expandTo18Decimals(5);
+    const ethPartnerAmount = Helper.expandTo18Decimals(10);
+    const ethAmount = Helper.expandTo18Decimals(5);
     const swapAmount = Helper.expandTo18Decimals(1);
 
-    await WETHPartner.transfer(WETHPair.address, WETHPartnerAmount);
-    await WETH.deposit({value: ETHAmount});
-    await WETH.transfer(WETHPair.address, ETHAmount);
-    await WETHPair.mint(trader);
+    await ethPartner.transfer(ethPair.address, ethPartnerAmount);
+    await Helper.sendEtherWithPromise(trader, ethPair.address, ethAmount);
+    await ethPair.mint(trader);
 
     await token0.approve(router.address, bigAmount, {from: trader});
 
-    const WETHPairToken0 = await WETHPair.token0();
+    const ethPairToken0 = await ethPair.token0();
 
-    let tradeInfo = await WETHPair.getTradeInfo();
-    let reserveOut = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
-    let reserveIn = WETHPairToken0 == WETHPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
+    let tradeInfo = await ethPair.getTradeInfo();
+    let reserveOut = ethPairToken0 == ethPartner.address ? tradeInfo._reserve0 : tradeInfo._reserve1;
+    let reserveIn = ethPairToken0 == ethPartner.address ? tradeInfo._reserve1 : tradeInfo._reserve0;
     let expectedOutputAmount = await router.getAmountOut(swapAmount, reserveIn, reserveOut, tradeInfo.feeInPrecision);
 
     let ethBalance = await Helper.getBalancePromise(trader);
 
-    let result = await router.swapExactETHForTokens(0, [WETH.address, WETHPartner.address], trader, bigAmount, {
-      from: trader,
-      value: swapAmount,
-      gasPrice: 0,
-    });
+    let result = await router.swapExactTokensForTokens(
+      swapAmount,
+      0,
+      [ethAddress, ethPartner.address],
+      trader,
+      bigAmount,
+      {
+        from: trader,
+        value: swapAmount,
+        gasPrice: 0
+      }
+    );
+    console.log('gas used', result.receipt.gasUsed);
 
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Sync', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Sync', {
       reserve0:
-        WETHPairToken0 === WETHPartner.address
-          ? WETHPartnerAmount.sub(expectedOutputAmount)
-          : ETHAmount.add(swapAmount),
+        ethPairToken0 === ethPartner.address ? ethPartnerAmount.sub(expectedOutputAmount) : ethAmount.add(swapAmount),
       reserve1:
-        WETHPairToken0 === WETHPartner.address
-          ? ETHAmount.add(swapAmount)
-          : WETHPartnerAmount.sub(expectedOutputAmount),
+        ethPairToken0 === ethPartner.address ? ethAmount.add(swapAmount) : ethPartnerAmount.sub(expectedOutputAmount)
     });
-    await expectEvent.inTransaction(result.tx, WETHPair, 'Swap', {
+    await expectEvent.inTransaction(result.tx, ethPair, 'Swap', {
       sender: router.address,
-      amount0In: WETHPairToken0 === WETHPartner.address ? new BN(0) : swapAmount,
-      amount1In: WETHPairToken0 === WETHPartner.address ? swapAmount : new BN(0),
-      amount0Out: WETHPairToken0 === WETHPartner.address ? expectedOutputAmount : new BN(0),
-      amount1Out: WETHPairToken0 === WETHPartner.address ? new BN(0) : expectedOutputAmount,
-      to: trader,
+      amount0In: ethPairToken0 === ethPartner.address ? new BN(0) : swapAmount,
+      amount1In: ethPairToken0 === ethPartner.address ? swapAmount : new BN(0),
+      amount0Out: ethPairToken0 === ethPartner.address ? expectedOutputAmount : new BN(0),
+      amount1Out: ethPairToken0 === ethPartner.address ? new BN(0) : expectedOutputAmount,
+      to: trader
     });
 
-    Helper.assertEqual(await WETHPartner.balanceOf(trader), initTokenAmount.add(expectedOutputAmount));
+    Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.add(expectedOutputAmount));
     Helper.assertEqual(await Helper.getBalancePromise(trader), ethBalance.sub(swapAmount));
   });
 
@@ -421,10 +431,11 @@ contract('XYZSwapRouter', function (accounts) {
       bigAmount,
       {from: trader}
     );
+    console.log('gas used', result.receipt.gasUsed);
 
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: token0Amount.add(swapAmount),
-      reserve1: token1Amount.sub(expectedOutputAmount),
+      reserve1: token1Amount.sub(expectedOutputAmount)
     });
     await expectEvent.inTransaction(result.tx, pair, 'Swap', {
       sender: router.address,
@@ -432,7 +443,7 @@ contract('XYZSwapRouter', function (accounts) {
       amount1In: new BN(0),
       amount0Out: new BN(0),
       amount1Out: expectedOutputAmount,
-      to: trader,
+      to: trader
     });
 
     Helper.assertEqual(await token0.balanceOf(trader), initTokenAmount.sub(swapAmount));
@@ -468,7 +479,7 @@ contract('XYZSwapRouter', function (accounts) {
 
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: token0Amount.add(expectedSwapAmount),
-      reserve1: token1Amount.sub(outputAmount),
+      reserve1: token1Amount.sub(outputAmount)
     });
 
     await expectEvent.inTransaction(result.tx, pair, 'Swap', {
@@ -477,7 +488,7 @@ contract('XYZSwapRouter', function (accounts) {
       amount1In: new BN(0),
       amount0Out: new BN(0),
       amount1Out: outputAmount,
-      to: trader,
+      to: trader
     });
 
     Helper.assertEqual(await token0.balanceOf(trader), initTokenAmount.sub(expectedSwapAmount));

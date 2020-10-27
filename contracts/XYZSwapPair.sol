@@ -5,11 +5,11 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./libraries/Math.sol";
 import "./libraries/MathExt.sol";
 import "./libraries/FeeFomula.sol";
+import "./libraries/UniERC20.sol";
 import "./interfaces/IXYZSwapPair.sol";
 import "./interfaces/IXYZSwapFactory.sol";
 import "./interfaces/IXYZSwapCallee.sol";
@@ -18,10 +18,9 @@ import "./VolumeTrendRecorder.sol";
 contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorder {
     using MathExt for uint256;
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using UniERC20 for IERC20;
 
     uint256 public constant override MINIMUM_LIQUIDITY = 10**3;
-    bytes4 private constant SELECTOR = bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     address public override factory;
     IERC20 public override token0;
@@ -64,6 +63,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         factory = msg.sender;
     }
 
+    receive() external payable {}
+
     // called once by the factory at time of deployment
     function initialize(IERC20 _token0, IERC20 _token1) external override {
         require(msg.sender == factory, "XYZSwap: FORBIDDEN"); // sufficient check
@@ -105,8 +106,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external override nonReentrant returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        uint256 balance0 = IERC20(token0).balanceOf(address(this));
-        uint256 balance1 = IERC20(token1).balanceOf(address(this));
+        uint256 balance0 = token0.uniBalanceOf(address(this));
+        uint256 balance1 = token1.uniBalanceOf(address(this));
         uint256 amount0 = balance0.sub(_reserve0);
         uint256 amount1 = balance1.sub(_reserve1);
 
@@ -137,8 +138,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         returns (uint256 amount0, uint256 amount1)
     {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-        uint256 balance0 = token0.balanceOf(address(this));
-        uint256 balance1 = token1.balanceOf(address(this));
+        uint256 balance0 = token0.uniBalanceOf(address(this));
+        uint256 balance1 = token1.uniBalanceOf(address(this));
         uint256 liquidity = balanceOf(address(this));
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
@@ -147,10 +148,10 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, "XYZSwap: INSUFFICIENT_LIQUIDITY_BURNED");
         _burn(address(this), liquidity);
-        token0.safeTransfer(to, amount0);
-        token1.safeTransfer(to, amount1);
-        balance0 = token0.balanceOf(address(this));
-        balance1 = token1.balanceOf(address(this));
+        token0.uniTransfer(to, amount0);
+        token1.uniTransfer(to, amount1);
+        balance0 = token0.uniBalanceOf(address(this));
+        balance1 = token1.uniBalanceOf(address(this));
 
         _update(balance0, balance1);
         if (feeOn) kLast = uint256(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
@@ -193,12 +194,12 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         {
             // scope for _token{0,1}, avoids stack too deep errors
             require(to != address(token0) && to != address(token1), "XYZSwap: INVALID_TO");
-            if (amount0Out > 0) token0.safeTransfer(to, amount0Out); // optimistically transfer tokens
-            if (amount1Out > 0) token1.safeTransfer(to, amount1Out); // optimistically transfer tokens
+            if (amount0Out > 0) token0.uniTransfer(to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) token1.uniTransfer(to, amount1Out); // optimistically transfer tokens
             if (data.length > 0)
                 IXYZSwapCallee(to).xyzSwapCall(msg.sender, amount0Out, amount1Out, data);
-            balance0 = token0.balanceOf(address(this));
-            balance1 = token1.balanceOf(address(this));
+            balance0 = token0.uniBalanceOf(address(this));
+            balance1 = token1.uniBalanceOf(address(this));
         }
         uint256 amount0In = balance0 > _reserve0 - amount0Out
             ? balance0 - (_reserve0 - amount0Out)
@@ -239,13 +240,13 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     // force balances to match reserves
     // TODO: review later
     function skim(address to) external override nonReentrant {
-        token0.safeTransfer(to, token0.balanceOf(address(this)).sub(reserve0));
-        token1.safeTransfer(to, token1.balanceOf(address(this)).sub(reserve1));
+        token0.uniTransfer(to, token0.uniBalanceOf(address(this)).sub(reserve0));
+        token1.uniTransfer(to, token1.uniBalanceOf(address(this)).sub(reserve1));
     }
 
     // force reserves to match balances
     // TODO: when do token rebase like AMPL, we should also update EMA.
     function sync() external override nonReentrant {
-        _update(token0.balanceOf(address(this)), token1.balanceOf(address(this)));
+        _update(token0.uniBalanceOf(address(this)), token1.uniBalanceOf(address(this)));
     }
 }
