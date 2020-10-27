@@ -45,7 +45,7 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         if (pair == address(0)) {
             pair = IXYZSwapFactory(factory).createPair(tokenA, tokenB);
         }
-        (uint256 reserveA, uint256 reserveB, ) = IXYZSwapPair(pair).getTradeInfo();
+        (uint256 reserveA, uint256 reserveB, ) = IXYZSwapPair(pair).getReserves();
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
