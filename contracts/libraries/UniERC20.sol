@@ -39,7 +39,7 @@ library UniERC20 {
         }
 
         if (isETH(token)) {
-            (bool success,) = to.call{value: amount}("");
+            (bool success, ) = to.call{value: amount}("");
             require(success, "UniERC20: failed to transfer eth to target");
         } else {
             token.safeTransfer(to, amount);
@@ -57,11 +57,11 @@ library UniERC20 {
 
         if (isETH(token)) {
             require(msg.value >= amount, "UniERC20: not enough value");
-            (bool success,) = target.call{value: amount}("");
+            (bool success, ) = target.call{value: amount}("");
             require(success, "UniERC20: failed to transfer eth to target");
             if (msg.value > amount) {
                 // Return remainder if exist
-                (success,) = msg.sender.call{value: msg.value - amount}("");
+                (success, ) = msg.sender.call{value: msg.value - amount}("");
                 require(success, "UniERC20: failed to transfer back eth");
             }
         } else {

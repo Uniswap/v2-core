@@ -68,8 +68,8 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         uint256 deadline
     )
         external
-        payable
         override
+        payable
         ensure(deadline)
         returns (
             uint256 amountA,
@@ -145,13 +145,13 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         IERC20[] calldata path,
         address to,
         uint256 deadline
-    ) external payable override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
         amounts = XYZSwapLibrary.getAmountsOut(factory, amountIn, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,
             "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
-        IERC20(path[0]).uniTransferFromSender(
+        path[0].uniTransferFromSender(
             XYZSwapLibrary.pairFor(factory, path[0], path[1]),
             amounts[0]
         );
@@ -164,10 +164,10 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         IERC20[] calldata path,
         address to,
         uint256 deadline
-    ) external payable override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
         amounts = XYZSwapLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, "XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT");
-        IERC20(path[0]).uniTransferFromSender(
+        path[0].uniTransferFromSender(
             XYZSwapLibrary.pairFor(factory, path[0], path[1]),
             amounts[0]
         );
