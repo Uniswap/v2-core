@@ -1,4 +1,6 @@
 usePlugin('@nomiclabs/buidler-truffle5');
+usePlugin('@nomiclabs/buidler-ethers');
+usePlugin('@nomiclabs/buidler-web3');
 usePlugin('buidler-contract-sizer');
 
 task('accounts', 'Prints the list of accounts', async () => {
@@ -11,20 +13,31 @@ task('accounts', 'Prints the list of accounts', async () => {
 
 module.exports = {
   solc: {
-    version: '0.6.12', // Fetch exact version from solc-bin (default: truffle's version)
-    docker: true, // Use "0.5.1" you've installed locally with docker (default: false)
-    settings: {
-      // See the solidity docs for advice about optimization and evmVersion
-      optimizer: {
-        enabled: true,
-        runs: 999999,
-      },
-      evmVersion: 'istanbul',
+    version: '0.6.12',
+    optimizer: {
+      enabled: true,
+      runs: 999999,
     },
   },
-  network: {
+  defaultNetwork: 'buidlerevm',
+  networks: {
     buidlerevm: {
       blockGasLimit: 12500000,
+    },
+    kovan: {
+      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY],
+      timeout: 20000,
+    },
+    ropsten: {
+      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY],
+      timeout: 20000,
+    },
+    mainnet: {
+      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY],
+      timeout: 20000,
     },
   },
   mocha: {
