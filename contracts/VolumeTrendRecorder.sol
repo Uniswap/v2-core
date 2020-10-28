@@ -45,10 +45,7 @@ contract VolumeTrendRecorder {
 
     function updateEMA(uint256 skipBlock) internal returns (uint256 _rFactor) {
         if (skipBlock == 0) {
-            if (longEMA == 0) {
-                return 0;
-            }
-            return (uint256(shortEMA) * MathExt.PRECISION) / uint256(longEMA);
+            return calculateRFactor(uint256(shortEMA), uint256(longEMA));
         }
         uint256 _currentBlockVolume = uint256(currentBlockVolume);
         uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentBlockVolume);
@@ -62,11 +59,7 @@ contract VolumeTrendRecorder {
         );
         shortEMA = safeUint128(_shortEMA);
         longEMA = safeUint128(_longEMA);
-        if (_longEMA == 0) {
-            return 0;
-        }
-
-        return (_shortEMA * MathExt.PRECISION) / _longEMA;
+        return calculateRFactor(_shortEMA, _longEMA);
     }
 
     function updateVolume(
