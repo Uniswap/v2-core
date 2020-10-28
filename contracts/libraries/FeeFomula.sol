@@ -9,20 +9,20 @@ library FeeFomula {
     using MathExt for uint256;
 
     uint256 private constant PRECISION = 10**18;
-    uint256 private constant R0 = (135 * PRECISION) / 100;
+    uint256 private constant R0 = 1477405064814996100; // 1.4774050648149961
 
     uint256 private constant C0 = (60 * PRECISION) / 10000;
 
-    uint256 private constant A = uint256(PRECISION * 5000) / 3;
-    uint256 private constant B = uint256(PRECISION * 275) / 6;
-    uint256 private constant C1 = uint256(PRECISION * 75) / 2;
-    uint256 private constant U = (115 * PRECISION) / 100;
+    uint256 private constant A = uint256(PRECISION * 20000) / 27;
+    uint256 private constant B = uint256(PRECISION * 250) / 9;
+    uint256 private constant C1 = uint256(PRECISION * 985) / 27;
+    uint256 private constant U = (120 * PRECISION) / 100;
 
-    uint256 private constant G = (886 * PRECISION) / 1000;
+    uint256 private constant G = (836 * PRECISION) / 1000;
     uint256 private constant F = 5 * PRECISION;
     uint256 private constant L = (2 * PRECISION) / 10000;
     // C2 = 25 * PRECISION - (F * (PRECISION - G)**2) / ((PRECISION - G)**2 + L * PRECISION)
-    uint256 private constant C2 = 20075780539557441649;
+    uint256 private constant C2 = 20036905816356657810;
 
     function getFee(uint256 rFactor) internal pure returns (uint256) {
         if (rFactor >= R0) {
