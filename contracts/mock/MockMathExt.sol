@@ -11,7 +11,7 @@ contract MockMathExt {
         return x.unsafeMulInPercision(y);
     }
 
-    function expInPercision(uint256 x, uint256 k) external pure returns (uint256) {
-        return x.unsafeExpInPercision(k);
+    function powInPercision(uint256 x, uint256 k) external pure returns (uint256) {
+        return x.unsafePowInPercision(k);
     }
 }

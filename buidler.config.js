@@ -3,6 +3,8 @@ usePlugin('@nomiclabs/buidler-ethers');
 usePlugin('@nomiclabs/buidler-web3');
 usePlugin('buidler-contract-sizer');
 
+require('dotenv').config();
+
 task('accounts', 'Prints the list of accounts', async () => {
   const accounts = await web3.eth.getAccounts();
 

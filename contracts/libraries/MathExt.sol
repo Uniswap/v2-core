@@ -9,9 +9,20 @@ library MathExt {
 
     uint256 public constant PRECISION = (10**18);
 
+    /// @dev Returns x*y in precision
+    function mulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
+        return x.mul(y).div(PRECISION);
+    }
+
+    /// @dev Returns x*y in precision
+    /// Assume x < 2 **128 -1 and y < precision this can not overflow
+    function unsafeMulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
+        return (x * y) / PRECISION;
+    }
+
     /// @dev Returns x^y in percision
     /// @dev source: dsMath
-    function expInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
+    function powInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
         z = k % 2 != 0 ? x : PRECISION;
 
         for (k /= 2; k != 0; k /= 2) {
@@ -23,14 +34,9 @@ library MathExt {
         }
     }
 
-    /// @dev Returns x*y in precision
-    function mulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x.mul(y).div(PRECISION);
-    }
-
     /// @dev Returns x^y in percision
     /// Assume that x < PRECISION, so this can not overflow
-    function unsafeExpInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
+    function unsafePowInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
         z = k % 2 != 0 ? x : PRECISION;
 
         for (k /= 2; k != 0; k /= 2) {
@@ -40,11 +46,5 @@ library MathExt {
                 z = unsafeMulInPercision(z, x);
             }
         }
-    }
-
-    /// @dev Returns x*y in precision
-    /// Assume x < 2 **128 -1 and y < precision this can not overflow
-    function unsafeMulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
-        return (x * y) / PRECISION;
     }
 }

@@ -171,7 +171,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
-        uint256 rFactor = rFactor(block.number);
+        uint256 rFactor = getRFactor(block.number);
         feeInPrecision = FeeFomula.getFee(rFactor);
     }
 
@@ -222,19 +222,19 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         uint256 _reserve1,
         uint256 _balance0,
         uint256 _balance1
-    ) internal virtual {
-        uint256 skipBlock = block.number - lastTradeBlock;
-        uint256 rFactor = updateEMA(skipBlock);
-        uint256 fee = FeeFomula.getFee(rFactor);
-        uint256 balance0Adjusted = (
-            _balance0.mul(MathExt.PRECISION).sub(_amount0In.mul(fee)).div(MathExt.PRECISION)
+    ) internal virtual returns (uint256 fee) {
+        // volume will be normalized into amount in token 0
+        uint256 volume = _reserve0.mul(_amount1In).div(_reserve1).add(_amount0In);
+        uint256 rFactor = recordNewTrade(block.number, volume);
+        fee = FeeFomula.getFee(rFactor);
+        //verify balance update is match with fomula
+        uint256 balance0Adjusted = _balance0.mul(MathExt.PRECISION).sub(_amount0In.mul(fee)).div(
+            MathExt.PRECISION
         );
-        uint256 balance1Adjusted = (
-            _balance1.mul(MathExt.PRECISION).sub(_amount1In.mul(fee)).div(MathExt.PRECISION)
+        uint256 balance1Adjusted = _balance1.mul(MathExt.PRECISION).sub(_amount1In.mul(fee)).div(
+            MathExt.PRECISION
         );
         require(balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1), "XYZSwap: K");
-        uint256 volume = _reserve0.mul(_amount1In).div(_reserve1).add(_amount0In);
-        updateVolume(volume, skipBlock, block.number);
     }
 
     // force balances to match reserves
@@ -245,8 +245,13 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     }
 
     // force reserves to match balances
-    // TODO: when do token rebase like AMPL, we should also update EMA.
     function sync() external override nonReentrant {
-        _update(token0.uniBalanceOf(address(this)), token1.uniBalanceOf(address(this)));
+        // in case of token like AMPL, we should also update EMA.
+        uint256 _reserve0 = reserve0;
+        uint256 _newReserve0 = token0.uniBalanceOf(address(this));
+        shortEMA = safeUint128(uint256(shortEMA).mul(_newReserve0).div(_reserve0));
+        longEMA = safeUint128(uint256(longEMA).mul(_newReserve0).div(_reserve0));
+
+        _update(_newReserve0, token1.uniBalanceOf(address(this)));
     }
 }

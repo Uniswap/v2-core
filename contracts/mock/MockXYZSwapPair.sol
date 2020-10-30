@@ -43,10 +43,8 @@ contract MockXYZSwapPair is XYZSwapPair {
         uint256 _reserve1,
         uint256 _balance0,
         uint256 _balance1
-    ) internal override {
-        uint256 skipBlock = block.number - lastTradeBlock;
-        updateEMA(skipBlock);
-        uint256 fee = simulationFee;
+    ) internal override returns (uint256 fee) {
+        fee = simulationFee;
         uint256 balance0Adjusted = (
             _balance0.mul(MathExt.PRECISION).sub(_amount0In.mul(fee)).div(MathExt.PRECISION)
         );
@@ -54,7 +52,5 @@ contract MockXYZSwapPair is XYZSwapPair {
             _balance1.mul(MathExt.PRECISION).sub(_amount1In.mul(fee)).div(MathExt.PRECISION)
         );
         require(balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1), "XYZSwap: K");
-        uint256 volume = _reserve0.mul(_amount1In).div(_reserve1).add(_amount0In);
-        updateVolume(volume, skipBlock, block.number);
     }
 }

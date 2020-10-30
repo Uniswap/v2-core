@@ -7,20 +7,12 @@ import "../VolumeTrendRecorder.sol";
 contract MockVolumeTrendRecorder is VolumeTrendRecorder {
     constructor(uint128 _emaInit) public VolumeTrendRecorder(_emaInit) {}
 
-    function mockUpdateEma(uint256 skipBlock) external {
-        updateEMA(skipBlock);
-    }
-
-    function mockUpdateVolume(
-        uint256 value,
-        uint256 skipBlock,
-        uint256 blockNumber
-    ) external {
-        updateVolume(value, skipBlock, blockNumber);
+    function mockUpdateVolume(uint256 value, uint256 blockNumber) external {
+        recordNewTrade(blockNumber, value);
     }
 
     function mockGetRFactor(uint256 blockNumber) external view returns (uint256) {
-        return rFactor(blockNumber);
+        return getRFactor(blockNumber);
     }
 
     function mockGetInfo()

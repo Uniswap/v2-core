@@ -21,18 +21,18 @@ contract(MathExt, function (accounts) {
 
   it('test powInPercision', async () => {
     let x = precisionUnits.div(new BN(2));
-    Helper.assertEqual(await mathExt.expInPercision(x, new BN(0)), precisionUnits, 'unexpected expInPercision');
-    Helper.assertEqual(await mathExt.expInPercision(x, new BN(1)), x, 'unexpected expInPercision');
+    Helper.assertEqual(await mathExt.powInPercision(x, new BN(0)), precisionUnits, 'unexpected powInPercision');
+    Helper.assertEqual(await mathExt.powInPercision(x, new BN(1)), x, 'unexpected powInPercision');
     Helper.assertEqual(
-      await mathExt.expInPercision(x, new BN(2)),
+      await mathExt.powInPercision(x, new BN(2)),
       precisionUnits.div(new BN(4)),
-      'unexpected expInPercision'
+      'unexpected powInPercision'
     );
     
     Helper.assertEqual(
-      await mathExt.expInPercision(x, new BN(5)),
+      await mathExt.powInPercision(x, new BN(5)),
       precisionUnits.div(new BN(32)),
-      'unexpected expInPercision'
+      'unexpected powInPercision'
     );
   });
 });

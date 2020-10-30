@@ -24,26 +24,28 @@ library FeeFomula {
     // C2 = 25 * PRECISION - (F * (PRECISION - G)**2) / ((PRECISION - G)**2 + L * PRECISION)
     uint256 private constant C2 = 20036905816356657810;
 
+    /// @dev calculate fee from rFactor with resolution = 10 ^ 18
     function getFee(uint256 rFactor) internal pure returns (uint256) {
         if (rFactor >= R0) {
             return C0;
         } else if (rFactor >= PRECISION) {
+            // C1 + A * (r-U)^3 + b * (r -U)
             if (rFactor > U) {
                 uint256 tmp = rFactor - U;
                 return
                     (C1 +
-                        A.unsafeMulInPercision(tmp.unsafeExpInPercision(3)) +
+                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) +
                         B.unsafeMulInPercision(tmp)) / 10000;
             } else {
                 uint256 tmp = U - rFactor;
                 return
                     (C1 -
-                        A.unsafeMulInPercision(tmp.unsafeExpInPercision(3)) -
+                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) -
                         B.unsafeMulInPercision(tmp)) / 10000;
             }
         } else {
             uint256 tmp = (rFactor > G ? (rFactor - G) : (G - rFactor));
-            tmp = tmp.expInPercision(2);
+            tmp = tmp.powInPercision(2);
             uint256 tmp2 = F.mul(tmp).div(tmp.add(L));
             if (rFactor > G) {
                 return (C2 + tmp2) / 10000;

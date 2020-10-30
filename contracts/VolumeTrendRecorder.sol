@@ -43,39 +43,38 @@ contract VolumeTrendRecorder {
         _lastTradeBlock = lastTradeBlock;
     }
 
-    function updateEMA(uint256 skipBlock) internal returns (uint256 _rFactor) {
+    /// @dev records a new trade, update ema and returns current rFactor for this trade
+    function recordNewTrade(uint256 blockNumber, uint256 value)
+        internal
+        returns (uint256 _rFactor)
+    {
+        // this can not be underflow because block.number always increases
+        uint256 skipBlock = blockNumber - lastTradeBlock;
         if (skipBlock == 0) {
+            currentBlockVolume = safeUint128(uint256(currentBlockVolume).add(value));
             return calculateRFactor(uint256(shortEMA), uint256(longEMA));
         }
+
         uint256 _currentBlockVolume = uint256(currentBlockVolume);
         uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentBlockVolume);
         uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentBlockVolume);
         // ema = ema * (1-aplha) ^(skipBlock -1)
         _shortEMA = _shortEMA.unsafeMulInPercision(
-            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipBlock - 1)
+            (MathExt.PRECISION - SHORT_ALPHA).unsafePowInPercision(skipBlock - 1)
         );
         _longEMA = _longEMA.unsafeMulInPercision(
-            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipBlock - 1)
+            (MathExt.PRECISION - LONG_ALPHA).unsafePowInPercision(skipBlock - 1)
         );
         shortEMA = safeUint128(_shortEMA);
         longEMA = safeUint128(_longEMA);
+        currentBlockVolume = safeUint128(value);
+        lastTradeBlock = safeUint128(blockNumber);
+
         return calculateRFactor(_shortEMA, _longEMA);
     }
 
-    function updateVolume(
-        uint256 value,
-        uint256 skipBlock,
-        uint256 blockNumber
-    ) internal {
-        if (skipBlock == 0) {
-            currentBlockVolume = safeUint128(value.add(uint256(currentBlockVolume)));
-        } else {
-            currentBlockVolume = safeUint128(value);
-            lastTradeBlock = safeUint128(blockNumber);
-        }
-    }
-
-    function rFactor(uint256 blockNumber) internal view returns (uint256) {
+    function getRFactor(uint256 blockNumber) internal view returns (uint256) {
+        // this can not be underflow because block.number always increases
         uint256 skipBlock = blockNumber - lastTradeBlock;
         if (skipBlock == 0) {
             return calculateRFactor(shortEMA, longEMA);
@@ -84,10 +83,10 @@ contract VolumeTrendRecorder {
         uint256 _shortEMA = newEMA(uint256(shortEMA), SHORT_ALPHA, _currentBlockVolume);
         uint256 _longEMA = newEMA(uint256(longEMA), LONG_ALPHA, _currentBlockVolume);
         _shortEMA = uint256(_shortEMA).unsafeMulInPercision(
-            (MathExt.PRECISION - SHORT_ALPHA).unsafeExpInPercision(skipBlock - 1)
+            (MathExt.PRECISION - SHORT_ALPHA).unsafePowInPercision(skipBlock - 1)
         );
         _longEMA = uint256(_longEMA).unsafeMulInPercision(
-            (MathExt.PRECISION - LONG_ALPHA).unsafeExpInPercision(skipBlock - 1)
+            (MathExt.PRECISION - LONG_ALPHA).unsafePowInPercision(skipBlock - 1)
         );
         return calculateRFactor(_shortEMA, _longEMA);
     }
