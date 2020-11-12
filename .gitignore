@@ -11,3 +11,11 @@ coverage.json
 
 #vs code files
 .vscode
+
+contracts/libraries/XYZSwapLibrary.sol.original
+
+#environment file
+.env
+
+#notebook file
+simulation/.ipynb_checkpoints/

@@ -61,6 +61,44 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await router.ETH_ADDRESS(), ethAddress);
   });
 
+  it('addLiquidity with pair is not created', async () => {
+    let factory = await XYZSwapFactory.new(accounts[0]);
+    let router = await XYZSwapRouter.new(factory.address);
+
+    let tokenA = await TestToken.new('test token A', 'A', Helper.expandTo18Decimals(10000));
+    let tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
+    tokenA.transfer(trader, initTokenAmount);
+    tokenB.transfer(trader, initTokenAmount);
+
+    await token0.approve(router.address, bigAmount, {from: trader});
+    await token1.approve(router.address, bigAmount, {from: trader});
+
+    const token0Amount = Helper.expandTo18Decimals(1);
+    const token1Amount = Helper.expandTo18Decimals(4);
+
+    let result = await router.addLiquidity(
+      token0.address,
+      token1.address,
+      token0Amount,
+      token1Amount,
+      0,
+      0,
+      trader,
+      bigAmount,
+      {from: trader}
+    );
+    console.log('gas used', result.receipt.gasUsed);
+    await expectEvent.inTransaction(result.tx, pair, 'Sync', {
+      reserve0: token0Amount,
+      reserve1: token1Amount
+    });
+    await expectEvent.inTransaction(result.tx, pair, 'Mint', {
+      sender: router.address,
+      amount0: token0Amount,
+      amount1: token1Amount
+    });
+  });
+
   it('addLiquidity', async () => {
     const token0Amount = Helper.expandTo18Decimals(1);
     const token1Amount = Helper.expandTo18Decimals(4);
@@ -90,6 +128,78 @@ contract('XYZSwapRouter', function (accounts) {
       sender: router.address,
       amount0: token0Amount,
       amount1: token1Amount
+    });
+    // when call add Liquidity, the router will add token to the pool with the current ratio
+    let updateAmount = Helper.expandTo18Decimals(2);
+    let expectedToken0Amount = Helper.expandTo18Decimals(1).div(new BN(2));
+    Helper.assertEqual(await router.quote(updateAmount, token1Amount, token0Amount), expectedToken0Amount);
+
+    await expectRevert(
+      router.addLiquidity(
+        token0.address,
+        token1.address,
+        Helper.expandTo18Decimals(2),
+        Helper.expandTo18Decimals(2),
+        expectedToken0Amount.add(new BN(1)),
+        0,
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
+    );
+
+    result = await router.addLiquidity(
+      token0.address,
+      token1.address,
+      Helper.expandTo18Decimals(2),
+      Helper.expandTo18Decimals(2),
+      0,
+      0,
+      trader,
+      bigAmount,
+      {from: trader}
+    );
+    await expectEvent.inTransaction(result.tx, pair, 'Mint', {
+      sender: router.address,
+      amount0: expectedToken0Amount,
+      amount1: updateAmount
+    });
+
+    // similar test with token 1
+    updateAmount = Helper.expandTo18Decimals(1);
+    let expectedToken1Amount = Helper.expandTo18Decimals(4);
+    Helper.assertEqual(await router.quote(updateAmount, token0Amount, token1Amount), expectedToken1Amount);
+    await expectRevert(
+      router.addLiquidity(
+        token0.address,
+        token1.address,
+        updateAmount,
+        Helper.expandTo18Decimals(5),
+        0,
+        expectedToken1Amount.add(new BN(1)),
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+    );
+
+    result = await router.addLiquidity(
+      token0.address,
+      token1.address,
+      updateAmount,
+      Helper.expandTo18Decimals(5),
+      0,
+      0,
+      trader,
+      bigAmount,
+      {from: trader}
+    );
+    await expectEvent.inTransaction(result.tx, pair, 'Mint', {
+      sender: router.address,
+      amount0: updateAmount,
+      amount1: expectedToken1Amount
     });
   });
 
@@ -134,6 +244,35 @@ contract('XYZSwapRouter', function (accounts) {
 
     const expectedLiquidity = Helper.expandTo18Decimals(2);
     await pair.approve(router.address, bigAmount, {from: trader});
+    // revert if amount is smaller than amountMin
+    await expectRevert(
+      router.removeLiquidity(
+        token0.address,
+        token1.address,
+        expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+        token0Amount.sub(new BN(499)),
+        0,
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
+    );
+
+    await expectRevert(
+      router.removeLiquidity(
+        token0.address,
+        token1.address,
+        expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+        0,
+        token1Amount.sub(new BN(1999)),
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+    );
+
     let result = await router.removeLiquidity(
       token0.address,
       token1.address,
@@ -409,6 +548,7 @@ contract('XYZSwapRouter', function (accounts) {
     const token0Amount = Helper.expandTo18Decimals(5);
     const token1Amount = Helper.expandTo18Decimals(10);
     const swapAmount = Helper.expandTo18Decimals(1);
+    const path = [token0.address, token1.address];
 
     await token0.transfer(pair.address, token0Amount);
     await token1.transfer(pair.address, token1Amount);
@@ -422,15 +562,24 @@ contract('XYZSwapRouter', function (accounts) {
       tradeInfo._reserve1,
       tradeInfo.feeInPrecision
     );
-
-    let result = await router.swapExactTokensForTokens(
-      swapAmount,
-      0,
-      [token0.address, token1.address],
-      trader,
-      bigAmount,
-      {from: trader}
+    let amountsOut = await router.getAmountsOut(swapAmount, path);
+    Helper.assertEqual(amountsOut[1], expectedOutputAmount);
+    // revert if amountDesired < amountOut
+    await expectRevert(
+      router.swapExactTokensForTokens(swapAmount, expectedOutputAmount.add(new BN(1)), path, trader, bigAmount, {
+        from: trader
+      }),
+      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
+
+    // revert if over deadline
+    let expiredTimeStamp = (await Helper.getCurrentBlockTime()) - 1;
+    await expectRevert(
+      router.swapExactTokensForTokens(swapAmount, 0, path, trader, expiredTimeStamp, {from: trader}),
+      'XYZSwapRouter: EXPIRED'
+    );
+
+    let result = await router.swapExactTokensForTokens(swapAmount, 0, path, trader, bigAmount, {from: trader});
     console.log('gas used', result.receipt.gasUsed);
 
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
@@ -454,6 +603,7 @@ contract('XYZSwapRouter', function (accounts) {
     const token0Amount = Helper.expandTo18Decimals(5);
     const token1Amount = Helper.expandTo18Decimals(10);
     const outputAmount = Helper.expandTo18Decimals(1);
+    const path = [token0.address, token1.address];
 
     await token0.transfer(pair.address, token0Amount);
     await token1.transfer(pair.address, token1Amount);
@@ -467,15 +617,27 @@ contract('XYZSwapRouter', function (accounts) {
       tradeInfo._reserve1,
       tradeInfo.feeInPrecision
     );
-
-    let result = await router.swapTokensForExactTokens(
-      outputAmount,
-      bigAmount,
-      [token0.address, token1.address],
-      trader,
-      bigAmount,
-      {from: trader}
+    let amountsIn = await router.getAmountsIn(outputAmount, path);
+    Helper.assertEqual(amountsIn[0], expectedSwapAmount);
+    // revert if amountDesired > amountIn
+    await expectRevert(
+      router.swapTokensForExactTokens(outputAmount, expectedSwapAmount.sub(new BN(1)), path, trader, bigAmount, {
+        from: trader
+      }),
+      'XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT'
     );
+    // revert if over deadline
+    let expiredTimeStamp = (await Helper.getCurrentBlockTime()) - 1;
+    await expectRevert(
+      router.swapTokensForExactTokens(outputAmount, bigAmount, path, trader, expiredTimeStamp, {
+        from: trader
+      }),
+      'XYZSwapRouter: EXPIRED'
+    );
+
+    let result = await router.swapTokensForExactTokens(outputAmount, bigAmount, path, trader, bigAmount, {
+      from: trader
+    });
 
     await expectEvent.inTransaction(result.tx, pair, 'Sync', {
       reserve0: token0Amount.add(expectedSwapAmount),

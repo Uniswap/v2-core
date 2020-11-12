@@ -3,26 +3,30 @@ const MINIMUM_LIQUIDITY = new BN(10).pow(new BN(3));
 
 const precisionUnits = new BN(10).pow(new BN(18));
 const zeroBN = new BN(0);
+const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bn')(BN))
   .should();
 
-module.exports = {precisionUnits, assertEqual, assertApproximate, zeroBN, MINIMUM_LIQUIDITY};
+module.exports = {precisionUnits, assertEqual, assertApproximate, zeroBN, ethAddress, MINIMUM_LIQUIDITY};
 
 function assertEqual (val1, val2, errorStr) {
   assert(new BN(val1).should.be.a.bignumber.that.equals(new BN(val2)), errorStr);
 }
 
 function assertApproximate (val1, val2, errorStr) {
-  if (new BN(val2).lt(new BN(10).pow(new BN(12)))) assertEqual(val1, val2, errorStr);
-  else {
-    if (new BN(val1).gt(new BN(val2))) {
-      assert(new BN(val1).sub(new BN(val2)).lt(new BN(val1).div(new BN(10000))), errorStr);
-    } else {
-      assert(new BN(val2).sub(new BN(val1)).lt(new BN(val2).div(new BN(10000))), errorStr);
-    }
+  if (new BN(val1).gt(new BN(val2))) {
+    assert(
+      new BN(val1).sub(new BN(val2)).should.be.a.bignumber.that.lessThan(new BN(val1).div(new BN(10000))),
+      errorStr
+    );
+  } else {
+    assert(
+      new BN(val2).sub(new BN(val1)).should.be.a.bignumber.that.lessThan(new BN(val2).div(new BN(10000))),
+      errorStr
+    );
   }
 }
 

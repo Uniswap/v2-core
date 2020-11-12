@@ -35,7 +35,7 @@ library XYZSwapLibrary {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"fc30a99a4d0dfe8ca6408b799de8ab095334666ccc688012f32d6bc4a4a83181" // init code hash
+                        hex"deb892c32a4aaad45df074ed26362c3ca3f7e2289da80a207ece6cf205604825" // init code hash
                     )
                 )
             )

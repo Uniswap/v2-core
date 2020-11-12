@@ -30,8 +30,15 @@ contract('XYZSwapPair', function (accounts) {
   });
 
   // this test is for print bytecode hash for xyzSwapLibrary
-  it('test', async () => {
+  it('print bytecode hash', async () => {
     console.log(web3.utils.sha3(XYZSwapPair.bytecode));
+  });
+
+  it('can not initialize not by factory', async () => {
+    const token0Amount = expandTo18Decimals(5);
+    const token1Amount = expandTo18Decimals(10);
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+    await expectRevert(pair.initialize(token0.address, token1.address), 'XYZSwap: FORBIDDEN');
   });
 
   it('mint', async () => {
@@ -60,6 +67,25 @@ contract('XYZSwapPair', function (accounts) {
     const reserves = await pair.getReserves();
     Helper.assertEqual(reserves._reserve0, token0Amount);
     Helper.assertEqual(reserves._reserve1, token1Amount);
+
+    const updateToken0Amount = Helper.expandTo18Decimals(2);
+    const updateToken1Amount = Helper.expandTo18Decimals(2);
+    await token0.transfer(pair.address, updateToken0Amount);
+    // if transfer only 1 token, trade will revert
+    await expectRevert(pair.mint(trader, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_MINTED');
+
+    await token1.transfer(pair.address, updateToken1Amount);
+    result = await pair.mint(trader, {from: app});
+    // the amount mint will be the min ratio with reserve0 and reserve1
+    expectEvent(result, 'Transfer', {
+      from: constants.ZERO_ADDRESS,
+      to: trader,
+      value: expectedLiquidity.div(new BN(2))
+    });
+    Helper.assertEqual(
+      await pair.balanceOf(trader),
+      expectedLiquidity.sub(MINIMUM_LIQUIDITY).add(expectedLiquidity.div(new BN(2)))
+    );
   });
 
   /// [swapAmount, token0Amount, token1Amount, expectedOutputAmount]
@@ -117,6 +143,44 @@ contract('XYZSwapPair', function (accounts) {
       await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'XYZSwap: K');
       await pair.swap(outputAmount, 0, trader, '0x');
     });
+  });
+
+  it('swap:validating', async () => {
+    const token0Amount = expandTo18Decimals(5);
+    const token1Amount = expandTo18Decimals(10);
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+
+    const swapAmount = expandTo18Decimals(1);
+    let tradeInfo = await pair.getTradeInfo();
+    let expectedOutputAmount = getExpectedOutputAmount(
+      swapAmount,
+      token0Amount,
+      token1Amount,
+      tradeInfo.feeInPrecision
+    );
+    // when amountIn = 0 -> revert
+    await expectRevert(
+      pair.swap(new BN(0), expectedOutputAmount, trader, '0x', {from: app}),
+      'XYZSwap: INSUFFICIENT_INPUT_AMOUNT'
+    );
+    // when amountOut = 0 -> revert
+    await token0.transfer(pair.address, swapAmount);
+    await expectRevert(
+      pair.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
+      'XYZSwap: INSUFFICIENT_OUTPUT_AMOUNT'
+    );
+    // when amountOut > liquidity -> revert
+    await expectRevert(
+      pair.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
+      'XYZSwap: INSUFFICIENT_LIQUIDITY'
+    );
+    // revert when destAddres is token0 or token1
+    await expectRevert(
+      pair.swap(new BN(0), expectedOutputAmount, token0.address, '0x', {from: app}),
+      'XYZSwap: INVALID_TO'
+    );
+    // normal swap if everything is valid
+    pair.swap(new BN(0), expectedOutputAmount, trader, '0x', {from: app});
   });
 
   it('swap:token0', async () => {
@@ -234,6 +298,9 @@ contract('XYZSwapPair', function (accounts) {
     const token1Amount = expandTo18Decimals(3);
     await addLiquidity(liquidityProvider, token0Amount, token1Amount);
 
+    // revert if liquidity burn is 0
+    await expectRevert(pair.burn(liquidityProvider, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_BURNED');
+
     const expectedLiquidity = expandTo18Decimals(3);
     let beforeAmountToken0 = await token0.balanceOf(liquidityProvider);
     let beforeAmountToken1 = await token1.balanceOf(liquidityProvider);
@@ -325,10 +392,38 @@ contract('XYZSwapPair', function (accounts) {
     Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
     Helper.assertEqual(await pair.balanceOf(feeTo), fee);
 
-    // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...
-    // ...because the initial liquidity amounts were equal
-    // Helper.assertEqual(await token0.balanceOf(pair.address), new BN(1000).add(new BN('249501683697445')));
-    // Helper.assertEqual(await token1.balanceOf(pair.address), new BN(1000).add(new BN('250000187312969')));
+    // add liquidity will not be charged fee
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+    Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+  });
+
+  it('sync', async () => {
+    const token0Amount = expandTo18Decimals(1000);
+    const token1Amount = expandTo18Decimals(1000);
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+
+    token0.transfer(pair.address, expandTo18Decimals(1));
+    await pair.sync();
+
+    let reserves = await pair.getReserves();
+    Helper.assertEqual(reserves._reserve0, expandTo18Decimals(1001));
+    Helper.assertEqual(reserves._reserve1, expandTo18Decimals(1000));
+  });
+
+  it('skim', async () => {
+    const token0Amount = expandTo18Decimals(1000);
+    const token1Amount = expandTo18Decimals(1000);
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+
+    token0.transfer(pair.address, expandTo18Decimals(1));
+    let beforeBalance = await token0.balanceOf(trader);
+    await pair.skim(trader);
+    let afterBalance = await token0.balanceOf(trader);
+    Helper.assertEqual(afterBalance.sub(beforeBalance), expandTo18Decimals(1));
+
+    let reserves = await pair.getReserves();
+    Helper.assertEqual(reserves._reserve0, expandTo18Decimals(1000));
+    Helper.assertEqual(reserves._reserve1, expandTo18Decimals(1000));
   });
 });
 

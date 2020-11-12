@@ -4,7 +4,8 @@
     "test": "yarn buidler test --no-compile",
     "solhint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'",
     "prettier": "./node_modules/.bin/prettier --write contracts/",
-    "lint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'"
+    "lint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'",
+    "coverage": "./coverage.sh"
   },
   "author": "",
   "license": "MIT",
@@ -28,7 +29,7 @@
     "prettier-plugin-solidity": "1.0.0-alpha.54",
     "solhint": "3.2.0",
     "solhint-plugin-prettier": "0.0.4",
-    "solidity-coverage": "0.7.0-beta.3",
+    "solidity-coverage": "0.7.11",
     "typescript": "^3.9.7",
     "web3": "1.2.6"
   },
