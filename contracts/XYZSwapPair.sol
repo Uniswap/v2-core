@@ -3,19 +3,19 @@ pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./libraries/Math.sol";
 import "./libraries/MathExt.sol";
 import "./libraries/FeeFomula.sol";
 import "./libraries/UniERC20.sol";
+import "./libraries/ERC20Permit.sol";
+
 import "./interfaces/IXYZSwapPair.sol";
 import "./interfaces/IXYZSwapFactory.sol";
 import "./interfaces/IXYZSwapCallee.sol";
 import "./VolumeTrendRecorder.sol";
 
-contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorder {
+contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder {
     using MathExt for uint256;
     using SafeMath for uint256;
     using UniERC20 for IERC20;
@@ -26,40 +26,14 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
     IERC20 public override token0;
     IERC20 public override token1;
 
-    uint112 private reserve0; // uses single storage slot, accessible via getReserves
-    uint112 private reserve1; // uses single storage slot, accessible via getReserves
-    uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
+    /// @dev uses single storage slot, accessible via getReserves
+    uint112 internal reserve0;
+    uint112 internal reserve1;
+    uint32 internal blockTimestampLast;
+    /// @dev reserve0 * reserve1, as of immediately after the most recent liquidity event
+    uint256 public override kLast;
 
-    uint256 public override kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
-
-    function getReserves()
-        public
-        override
-        view
-        returns (
-            uint112 _reserve0,
-            uint112 _reserve1,
-            uint32 _blockTimestampLast
-        )
-    {
-        _reserve0 = reserve0;
-        _reserve1 = reserve1;
-        _blockTimestampLast = blockTimestampLast;
-    }
-
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    constructor() public ERC20("XYZSwap LP", "XYZ-LP") VolumeTrendRecorder(0) {
+    constructor() public ERC20Permit("XYZSwap LP", "XYZ-LP", "1") VolumeTrendRecorder(0) {
         factory = msg.sender;
     }
 
@@ -72,38 +46,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         token1 = _token1;
     }
 
-    // update reserves and, on the first call per block, price accumulators
-    function _update(uint256 balance0, uint256 balance1) private {
-        require(balance0 <= uint112(-1) && balance1 <= uint112(-1), "XYZSwap: OVERFLOW");
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
-        reserve0 = uint112(balance0);
-        reserve1 = uint112(balance1);
-        blockTimestampLast = blockTimestamp;
-        emit Sync(reserve0, reserve1);
-    }
-
-    // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-    function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
-        address feeTo = IXYZSwapFactory(factory).feeTo();
-        feeOn = feeTo != address(0);
-        uint256 _kLast = kLast; // gas savings
-        if (feeOn) {
-            if (_kLast != 0) {
-                uint256 rootK = Math.sqrt(uint256(_reserve0).mul(_reserve1));
-                uint256 rootKLast = Math.sqrt(_kLast);
-                if (rootK > rootKLast) {
-                    uint256 numerator = totalSupply().mul(rootK.sub(rootKLast));
-                    uint256 denominator = rootK.mul(5).add(rootKLast);
-                    uint256 liquidity = numerator / denominator;
-                    if (liquidity > 0) _mint(feeTo, liquidity);
-                }
-            }
-        } else if (_kLast != 0) {
-            kLast = 0;
-        }
-    }
-
-    // this low-level function should be called from a contract which performs important safety checks
+    /// @dev this low-level function should be called from a contract
+    ///                 which performs important safety checks
     function mint(address to) external override nonReentrant returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint256 balance0 = token0.uniBalanceOf(address(this));
@@ -130,7 +74,9 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         emit Mint(msg.sender, amount0, amount1);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
+    /// @dev this low-level function should be called from a contract
+    ///           which performs important safety checks
+    /// @dev user must transfer LP token to this contract before call burn
     function burn(address to)
         external
         override
@@ -158,24 +104,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    function getTradeInfo()
-        external
-        virtual
-        override
-        view
-        returns (
-            uint112 _reserve0,
-            uint112 _reserve1,
-            uint256 feeInPrecision
-        )
-    {
-        _reserve0 = reserve0;
-        _reserve1 = reserve1;
-        uint256 rFactor = getRFactor(block.number);
-        feeInPrecision = FeeFomula.getFee(rFactor);
-    }
-
-    // this low-level function should be called from a contract which performs important safety checks
+    /// @dev this low-level function should be called from a contract
+    ///             which performs important safety checks
     function swap(
         uint256 amount0Out,
         uint256 amount1Out,
@@ -215,6 +145,58 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
+    /// @dev force balances to match reserves
+    // TODO: review later
+    function skim(address to) external override nonReentrant {
+        token0.uniTransfer(to, token0.uniBalanceOf(address(this)).sub(reserve0));
+        token1.uniTransfer(to, token1.uniBalanceOf(address(this)).sub(reserve1));
+    }
+
+    /// @dev force reserves to match balances
+    function sync() external override nonReentrant {
+        // in case of token like AMPL, we should also update EMA.
+        uint256 _reserve0 = reserve0;
+        uint256 _newReserve0 = token0.uniBalanceOf(address(this));
+        shortEMA = safeUint128(uint256(shortEMA).mul(_newReserve0).div(_reserve0));
+        longEMA = safeUint128(uint256(longEMA).mul(_newReserve0).div(_reserve0));
+
+        _update(_newReserve0, token1.uniBalanceOf(address(this)));
+    }
+
+    /// @dev returns data to calculate amountIn, amountOut
+    function getTradeInfo()
+        external
+        virtual
+        override
+        view
+        returns (
+            uint112 _reserve0,
+            uint112 _reserve1,
+            uint256 feeInPrecision
+        )
+    {
+        _reserve0 = reserve0;
+        _reserve1 = reserve1;
+        uint256 rFactor = getRFactor(block.number);
+        feeInPrecision = FeeFomula.getFee(rFactor);
+    }
+
+    /// @dev returns reserve data to calculate quote amount
+    function getReserves()
+        public
+        override
+        view
+        returns (
+            uint112 _reserve0,
+            uint112 _reserve1,
+            uint32 _blockTimestampLast
+        )
+    {
+        _reserve0 = reserve0;
+        _reserve1 = reserve1;
+        _blockTimestampLast = blockTimestampLast;
+    }
+
     function verifyBalanceAndUpdateEma(
         uint256 _amount0In,
         uint256 _amount1In,
@@ -237,21 +219,34 @@ contract XYZSwapPair is IXYZSwapPair, ERC20, ReentrancyGuard, VolumeTrendRecorde
         require(balance0Adjusted.mul(balance1Adjusted) >= _reserve0.mul(_reserve1), "XYZSwap: K");
     }
 
-    // force balances to match reserves
-    // TODO: review later
-    function skim(address to) external override nonReentrant {
-        token0.uniTransfer(to, token0.uniBalanceOf(address(this)).sub(reserve0));
-        token1.uniTransfer(to, token1.uniBalanceOf(address(this)).sub(reserve1));
+    /// @dev update reserves and, on the first call per block, price accumulators
+    function _update(uint256 balance0, uint256 balance1) internal {
+        require(balance0 <= uint112(-1) && balance1 <= uint112(-1), "XYZSwap: OVERFLOW");
+        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
+        reserve0 = uint112(balance0);
+        reserve1 = uint112(balance1);
+        blockTimestampLast = blockTimestamp;
+        emit Sync(reserve0, reserve1);
     }
 
-    // force reserves to match balances
-    function sync() external override nonReentrant {
-        // in case of token like AMPL, we should also update EMA.
-        uint256 _reserve0 = reserve0;
-        uint256 _newReserve0 = token0.uniBalanceOf(address(this));
-        shortEMA = safeUint128(uint256(shortEMA).mul(_newReserve0).div(_reserve0));
-        longEMA = safeUint128(uint256(longEMA).mul(_newReserve0).div(_reserve0));
-
-        _update(_newReserve0, token1.uniBalanceOf(address(this)));
+    /// @dev if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
+    function _mintFee(uint112 _reserve0, uint112 _reserve1) internal returns (bool feeOn) {
+        address feeTo = IXYZSwapFactory(factory).feeTo();
+        feeOn = feeTo != address(0);
+        uint256 _kLast = kLast; // gas savings
+        if (feeOn) {
+            if (_kLast != 0) {
+                uint256 rootK = Math.sqrt(uint256(_reserve0).mul(_reserve1));
+                uint256 rootKLast = Math.sqrt(_kLast);
+                if (rootK > rootKLast) {
+                    uint256 numerator = totalSupply().mul(rootK.sub(rootKLast));
+                    uint256 denominator = rootK.mul(5).add(rootKLast);
+                    uint256 liquidity = numerator / denominator;
+                    if (liquidity > 0) _mint(feeTo, liquidity);
+                }
+            }
+        } else if (_kLast != 0) {
+            kLast = 0;
+        }
     }
 }

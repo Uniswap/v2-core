@@ -8,6 +8,9 @@
     "reentrancy": "error",
     "ordering": "error",
     "not-rely-on-time": "off",
+    "reason-string": "off",
+    "avoid-low-level-calls": "off",
+    "no-inline-assembly": "off",
     "compiler-version": ["off", "^0.6.0"]
   },
   "plugins": ["prettier"]

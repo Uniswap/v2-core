@@ -3,6 +3,7 @@ const BN = web3.utils.BN;
 
 const {precisionUnits, MINIMUM_LIQUIDITY} = require('./helper');
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
+const {ecsign} = require('ethereumjs-util');
 
 const XYZSwapRouter = artifacts.require('XYZSwapRouter01');
 const XYZSwapFactory = artifacts.require('XYZSwapFactory');
@@ -16,6 +17,7 @@ const ethAddress = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
 let trader;
 let feeTo;
 let liquidityProvider;
+let liquidityProviderPkKey;
 let app;
 let factory;
 let token0;
@@ -25,12 +27,15 @@ let ethPair;
 let router;
 let pair;
 let initTokenAmount = Helper.expandTo18Decimals(1000);
+const MaxUint256 = new BN(2).pow(new BN(256)).sub(new BN(1));
 
 contract('XYZSwapRouter', function (accounts) {
   beforeEach('setup', async () => {
     trader = accounts[1];
     app = accounts[2];
     liquidityProvider = accounts[3];
+    // key from buidler.config.js
+    liquidityProviderPkKey = '0xee9d129c1997549ee09c0757af5939b2483d80ad649a0eda68e8b0357ad11131';
     feeTo = accounts[4];
 
     factory = await XYZSwapFactory.new(accounts[0]);
@@ -337,6 +342,59 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await ethPair.balanceOf(trader), new BN(0));
     Helper.assertEqual(await ethPartner.balanceOf(trader), initTokenAmount.sub(new BN(500)));
     Helper.assertEqual(await Helper.getBalancePromise(trader), initEthAmount.add(ethAmount).sub(new BN(2000)));
+  });
+
+  it('removeLiquidityWithPermit', async () => {
+    const token0Amount = Helper.expandTo18Decimals(1);
+    const token1Amount = Helper.expandTo18Decimals(4);
+    await token0.transfer(pair.address, token0Amount, {from: trader});
+    await token1.transfer(pair.address, token1Amount, {from: trader});
+    await pair.mint(liquidityProvider);
+    const expectedLiquidity = Helper.expandTo18Decimals(2);
+
+    const nonce = await pair.nonces(liquidityProvider);
+    const digest = await Helper.getApprovalDigest(
+      pair,
+      liquidityProvider,
+      router.address,
+      expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+      nonce,
+      MaxUint256
+    );
+    const {v, r, s} = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(liquidityProviderPkKey.slice(2), 'hex'));
+
+    const beforeBalance0 = await token0.balanceOf(liquidityProvider);
+    const beforeBalance1 = await token1.balanceOf(liquidityProvider);
+    let result = await router.removeLiquidityWithPermit(
+      token0.address,
+      token1.address,
+      expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+      0,
+      0,
+      liquidityProvider,
+      MaxUint256, /// deadline
+      false, /// approveMax
+      v,
+      r,
+      s,
+      {from: liquidityProvider}
+    );
+    console.log('gas used', result.receipt.gasUsed);
+    await expectEvent.inTransaction(result.tx, pair, 'Sync', {
+      reserve0: new BN(500),
+      reserve1: new BN(2000)
+    });
+    await expectEvent.inTransaction(result.tx, pair, 'Burn', {
+      sender: router.address,
+      amount0: token0Amount.sub(new BN(500)),
+      amount1: token1Amount.sub(new BN(2000)),
+      to: liquidityProvider
+    });
+
+    Helper.assertEqual(await pair.nonces(liquidityProvider), new BN(1));
+    Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
+    Helper.assertEqual(await token0.balanceOf(liquidityProvider), beforeBalance0.add(token0Amount).sub(new BN(500)));
+    Helper.assertEqual(await token1.balanceOf(liquidityProvider), beforeBalance1.add(token1Amount).sub(new BN(2000)));
   });
 
   it('swapETHForExactTokens', async () => {
@@ -657,3 +715,4 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await token1.balanceOf(trader), initTokenAmount.add(outputAmount));
   });
 });
+

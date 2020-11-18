@@ -4,10 +4,10 @@ pragma solidity ^0.6.0;
 import "./interfaces/IXYZSwapFactory.sol";
 import "./interfaces/IXYZSwapRouter.sol";
 import "./interfaces/IXYZSwapPair.sol";
+import "./interfaces/IERC20Permit.sol";
 
 import "./libraries/XYZSwapLibrary.sol";
 import "./libraries/UniERC20.sol";
-import "./interfaces/IWETH.sol";
 
 contract XYZSwapRouter01 is IXYZSwapRouter {
     using UniERC20 for IERC20;
@@ -111,6 +111,33 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         //TODO: this safe check should put at the start of the function
         require(amountA >= amountAMin, "XYZSwapRouter: INSUFFICIENT_A_AMOUNT");
         require(amountB >= amountBMin, "XYZSwapRouter: INSUFFICIENT_B_AMOUNT");
+    }
+
+    function removeLiquidityWithPermit(
+        IERC20 tokenA,
+        IERC20 tokenB,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
+        address to,
+        uint256 deadline,
+        bool approveMax,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external override returns (uint256 amountA, uint256 amountB) {
+        address pair = XYZSwapLibrary.pairFor(factory, tokenA, tokenB);
+        uint256 value = approveMax ? uint256(-1) : liquidity;
+        IERC20Permit(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        (amountA, amountB) = removeLiquidity(
+            tokenA,
+            tokenB,
+            liquidity,
+            amountAMin,
+            amountBMin,
+            to,
+            deadline
+        );
     }
 
     // **** SWAP ****
