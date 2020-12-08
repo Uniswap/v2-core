@@ -1,8 +1,9 @@
-usePlugin('@nomiclabs/buidler-truffle5');
-usePlugin('@nomiclabs/buidler-ethers');
-usePlugin('@nomiclabs/buidler-web3');
-usePlugin('buidler-contract-sizer');
-usePlugin('solidity-coverage');
+require('@nomiclabs/hardhat-truffle5');
+require('@nomiclabs/hardhat-ethers');
+require('@nomiclabs/hardhat-web3');
+require('@nomiclabs/hardhat-etherscan');
+require('hardhat-contract-sizer');
+require("solidity-coverage");
 
 require('dotenv').config();
 
@@ -15,16 +16,23 @@ task('accounts', 'Prints the list of accounts', async () => {
 });
 
 module.exports = {
-  solc: {
+  solidity: {
     version: '0.6.6',
-    optimizer: {
-      enabled: true,
-      runs: 999999
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 999999
+      }
     }
   },
-  defaultNetwork: 'buidlerevm',
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`
+  },
+  defaultNetwork: 'hardhat',
   networks: {
-    buidlerevm: {
+    hardhat: {
       blockGasLimit: 12500000,
       accounts: [
         // 20 accounts with 10^14 ETH each

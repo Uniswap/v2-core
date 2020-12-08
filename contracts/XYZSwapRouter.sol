@@ -67,7 +67,7 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         address to,
         uint256 deadline
     )
-        external
+        public
         override
         payable
         ensure(deadline)
@@ -93,6 +93,35 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         liquidity = IXYZSwapPair(pair).mint(to);
     }
 
+    function addLiquidityETH(
+        IERC20 token,
+        uint256 amountTokenDesired,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    )
+        external
+        override
+        payable
+        returns (
+            uint256 amountToken,
+            uint256 amountETH,
+            uint256 liquidity
+        )
+    {
+        (amountToken, amountETH, liquidity) = addLiquidity(
+            token,
+            ETH_ADDRESS,
+            amountTokenDesired,
+            msg.value,
+            amountTokenMin,
+            amountETHMin,
+            to,
+            deadline
+        );
+    }
+
     // **** REMOVE LIQUIDITY ****
     function removeLiquidity(
         IERC20 tokenA,
@@ -113,6 +142,25 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         require(amountB >= amountBMin, "XYZSwapRouter: INSUFFICIENT_B_AMOUNT");
     }
 
+    function removeLiquidityETH(
+        IERC20 token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline
+    ) external override returns (uint256 amountToken, uint256 amountETH) {
+        (amountToken, amountETH) = removeLiquidity(
+            token,
+            ETH_ADDRESS,
+            liquidity,
+            amountTokenMin,
+            amountETHMin,
+            to,
+            deadline
+        );
+    }
+
     function removeLiquidityWithPermit(
         IERC20 tokenA,
         IERC20 tokenB,
@@ -125,7 +173,7 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external override returns (uint256 amountA, uint256 amountB) {
+    ) public override returns (uint256 amountA, uint256 amountB) {
         address pair = XYZSwapLibrary.pairFor(factory, tokenA, tokenB);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IERC20Permit(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -137,6 +185,33 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
             amountBMin,
             to,
             deadline
+        );
+    }
+
+    function removeLiquidityETHWithPermit(
+        IERC20 token,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
+        address to,
+        uint256 deadline,
+        bool approveMax,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external override returns (uint256 amountToken, uint256 amountETH) {
+        (amountToken, amountETH) = removeLiquidityWithPermit(
+            token,
+            ETH_ADDRESS,
+            liquidity,
+            amountTokenMin,
+            amountETHMin,
+            to,
+            deadline,
+            approveMax,
+            v,
+            r,
+            s
         );
     }
 
@@ -169,10 +244,10 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        IERC20[] calldata path,
+        IERC20[] memory path,
         address to,
         uint256 deadline
-    ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
+    ) public override payable ensure(deadline) returns (uint256[] memory amounts) {
         amounts = XYZSwapLibrary.getAmountsOut(factory, amountIn, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,
@@ -188,10 +263,10 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
     function swapTokensForExactTokens(
         uint256 amountOut,
         uint256 amountInMax,
-        IERC20[] calldata path,
+        IERC20[] memory path,
         address to,
         uint256 deadline
-    ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
+    ) public override payable ensure(deadline) returns (uint256[] memory amounts) {
         amounts = XYZSwapLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, "XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT");
         path[0].uniTransferFromSender(
@@ -199,6 +274,48 @@ contract XYZSwapRouter01 is IXYZSwapRouter {
             amounts[0]
         );
         _swap(amounts, path, to);
+    }
+
+    function swapExactETHForTokens(
+        uint256 amountOutMin,
+        IERC20[] calldata path,
+        address to,
+        uint256 deadline
+    ) external override payable returns (uint256[] memory amounts) {
+        require(path[0] == ETH_ADDRESS, "XYZSwapRouter: INVALID_PATH");
+        amounts = swapExactTokensForTokens(msg.value, amountOutMin, path, to, deadline);
+    }
+
+    function swapTokensForExactETH(
+        uint256 amountOut,
+        uint256 amountInMax,
+        IERC20[] calldata path,
+        address to,
+        uint256 deadline
+    ) external override returns (uint256[] memory amounts) {
+        require(path[path.length - 1] == ETH_ADDRESS, "XYZSwapRouter: INVALID_PATH");
+        amounts = swapTokensForExactTokens(amountOut, amountInMax, path, to, deadline);
+    }
+
+    function swapExactTokensForETH(
+        uint256 amountIn,
+        uint256 amountOutMin,
+        IERC20[] calldata path,
+        address to,
+        uint256 deadline
+    ) external override returns (uint256[] memory amounts) {
+        require(path[path.length - 1] == ETH_ADDRESS, "XYZSwapRouter: INVALID_PATH");
+        amounts = swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline);
+    }
+
+    function swapETHForExactTokens(
+        uint256 amountOut,
+        IERC20[] calldata path,
+        address to,
+        uint256 deadline
+    ) external override payable returns (uint256[] memory amounts) {
+        require(path[0] == ETH_ADDRESS, "XYZSwapRouter: INVALID_PATH");
+        amounts = swapTokensForExactTokens(amountOut, msg.value, path, to, deadline);
     }
 
     function quote(
