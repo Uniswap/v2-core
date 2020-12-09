@@ -44,7 +44,7 @@ contract ERC20Permit is ERC20, IERC20Permit {
         bytes32 r,
         bytes32 s
     ) external override {
-        require(deadline >= block.timestamp, "UniswapV2: EXPIRED");
+        require(deadline >= block.timestamp, "ERC20Permit: EXPIRED");
         bytes32 digest = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -57,7 +57,7 @@ contract ERC20Permit is ERC20, IERC20Permit {
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(
             recoveredAddress != address(0) && recoveredAddress == owner,
-            "UniswapV2: INVALID_SIGNATURE"
+            "ERC20Permit: INVALID_SIGNATURE"
         );
         _approve(owner, spender, value);
     }

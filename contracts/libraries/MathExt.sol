@@ -11,39 +11,25 @@ library MathExt {
 
     /// @dev Returns x*y in precision
     function mulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
-        return x.mul(y).div(PRECISION);
+        return x.mul(y) / PRECISION;
     }
 
-    /// @dev Returns x*y in precision
-    /// Assume x < 2 **128 -1 and y < precision this can not overflow
-    function unsafeMulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
-        return (x * y) / PRECISION;
-    }
-
-    /// @dev Returns x^y in percision
     /// @dev source: dsMath
-    function powInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
-        z = k % 2 != 0 ? x : PRECISION;
+    /// @param xInPrecision should be < PRECISION, so this can not overflow
+    /// @return zInPrecision = (x/percision) ^k * percision
+    function unsafePowInPercision(uint256 xInPrecision, uint256 k)
+        internal
+        pure
+        returns (uint256 zInPrecision)
+    {
+        require(xInPrecision <= PRECISION, "MathExt: x > PRECISION");
+        zInPrecision = k % 2 != 0 ? xInPrecision : PRECISION;
 
         for (k /= 2; k != 0; k /= 2) {
-            x = mulInPercision(x, x);
+            xInPrecision = (xInPrecision * xInPrecision) / PRECISION;
 
             if (k % 2 != 0) {
-                z = mulInPercision(z, x);
-            }
-        }
-    }
-
-    /// @dev Returns x^y in percision
-    /// Assume that x < PRECISION, so this can not overflow
-    function unsafePowInPercision(uint256 x, uint256 k) internal pure returns (uint256 z) {
-        z = k % 2 != 0 ? x : PRECISION;
-
-        for (k /= 2; k != 0; k /= 2) {
-            x = unsafeMulInPercision(x, x);
-
-            if (k % 2 != 0) {
-                z = unsafeMulInPercision(z, x);
+                zInPrecision = (zInPrecision * xInPrecision) / PRECISION;
             }
         }
     }

@@ -6,6 +6,7 @@ let mathExt;
 
 const {precisionUnits} = require('../helper');
 const Helper = require('../helper');
+const {expectRevert} = require('@openzeppelin/test-helpers');
 
 contract(MathExt, function (accounts) {
   before('init contract', async () => {
@@ -28,11 +29,16 @@ contract(MathExt, function (accounts) {
       precisionUnits.div(new BN(4)),
       'unexpected powInPercision'
     );
-    
+
     Helper.assertEqual(
       await mathExt.powInPercision(x, new BN(5)),
       precisionUnits.div(new BN(32)),
       'unexpected powInPercision'
+    );
+
+    await expectRevert(
+      mathExt.powInPercision(Helper.precisionUnits.add(new BN(1)), new BN(5)),
+      'MathExt: x > PRECISION'
     );
   });
 });

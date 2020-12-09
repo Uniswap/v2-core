@@ -33,19 +33,17 @@ library FeeFomula {
             if (rFactor > U) {
                 uint256 tmp = rFactor - U;
                 return
-                    (C1 +
-                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) +
-                        B.unsafeMulInPercision(tmp)) / 10000;
+                    (C1 + A.mulInPercision(tmp.unsafePowInPercision(3)) + B.mulInPercision(tmp)) /
+                    10000;
             } else {
                 uint256 tmp = U - rFactor;
                 return
-                    (C1 -
-                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) -
-                        B.unsafeMulInPercision(tmp)) / 10000;
+                    (C1 - A.mulInPercision(tmp.unsafePowInPercision(3)) - B.mulInPercision(tmp)) /
+                    10000;
             }
         } else {
             uint256 tmp = (rFactor > G ? (rFactor - G) : (G - rFactor));
-            tmp = tmp.powInPercision(2);
+            tmp = tmp.unsafePowInPercision(2);
             uint256 tmp2 = F.mul(tmp).div(tmp.add(L));
             if (rFactor > G) {
                 return (C2 + tmp2) / 10000;

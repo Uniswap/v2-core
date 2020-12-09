@@ -154,6 +154,21 @@ contract('XYZSwapRouter', function (accounts) {
       'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
     );
 
+    await expectRevert(
+      router.addLiquidity(
+        token1.address,
+        token0.address,
+        Helper.expandTo18Decimals(2),
+        Helper.expandTo18Decimals(2),
+        0,
+        expectedToken0Amount.add(new BN(1)),
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+    );
+
     result = await router.addLiquidity(
       token0.address,
       token1.address,
@@ -188,6 +203,21 @@ contract('XYZSwapRouter', function (accounts) {
         {from: trader}
       ),
       'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+    );
+
+    await expectRevert(
+      router.addLiquidity(
+        token1.address,
+        token0.address,
+        Helper.expandTo18Decimals(5),
+        updateAmount,
+        expectedToken1Amount.add(new BN(1)),
+        0,
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
     );
 
     result = await router.addLiquidity(
@@ -331,6 +361,20 @@ contract('XYZSwapRouter', function (accounts) {
 
     await expectRevert(
       router.removeLiquidity(
+        token1.address,
+        token0.address,
+        expectedLiquidity.sub(MINIMUM_LIQUIDITY),
+        0,
+        token0Amount.sub(new BN(499)),
+        trader,
+        bigAmount,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+    );
+
+    await expectRevert(
+      router.removeLiquidity(
         token0.address,
         token1.address,
         expectedLiquidity.sub(MINIMUM_LIQUIDITY),
@@ -455,8 +499,8 @@ contract('XYZSwapRouter', function (accounts) {
     await pair.mint(liquidityProvider);
     const expectedLiquidity = Helper.expandTo18Decimals(2);
 
-    const nonce = await pair.nonces(liquidityProvider);
-    const digest = await Helper.getApprovalDigest(
+    let nonce = await pair.nonces(liquidityProvider);
+    let digest = await Helper.getApprovalDigest(
       pair,
       liquidityProvider,
       router.address,
@@ -464,7 +508,7 @@ contract('XYZSwapRouter', function (accounts) {
       nonce,
       MaxUint256
     );
-    const {v, r, s} = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(liquidityProviderPkKey.slice(2), 'hex'));
+    let signature = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(liquidityProviderPkKey.slice(2), 'hex'));
 
     const beforeBalance0 = await token0.balanceOf(liquidityProvider);
     const beforeBalance1 = await token1.balanceOf(liquidityProvider);
@@ -477,9 +521,9 @@ contract('XYZSwapRouter', function (accounts) {
       liquidityProvider,
       MaxUint256, /// deadline
       false, /// approveMax
-      v,
-      r,
-      s,
+      signature.v,
+      signature.r,
+      signature.s,
       {from: liquidityProvider}
     );
     console.log('gas used', result.receipt.gasUsed);
@@ -498,6 +542,33 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
     Helper.assertEqual(await token0.balanceOf(liquidityProvider), beforeBalance0.add(token0Amount).sub(new BN(500)));
     Helper.assertEqual(await token1.balanceOf(liquidityProvider), beforeBalance1.add(token1Amount).sub(new BN(2000)));
+
+    // test remove liquidity with approve max
+    await token0.transfer(pair.address, token0Amount, {from: trader});
+    await token1.transfer(pair.address, token1Amount, {from: trader});
+    await pair.mint(liquidityProvider);
+
+    let liquidity = await pair.balanceOf(liquidityProvider);
+
+    nonce = await pair.nonces(liquidityProvider);
+    digest = await Helper.getApprovalDigest(pair, liquidityProvider, router.address, MaxUint256, nonce, MaxUint256);
+
+    signature = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(liquidityProviderPkKey.slice(2), 'hex'));
+
+    await router.removeLiquidityWithPermit(
+      token0.address,
+      token1.address,
+      liquidity,
+      0,
+      0,
+      liquidityProvider,
+      MaxUint256, /// deadline
+      true, /// approveMax
+      signature.v,
+      signature.r,
+      signature.s,
+      {from: liquidityProvider}
+    );
   });
 
   it('removeLiquidityETHWithPermit', async () => {
@@ -548,8 +619,14 @@ contract('XYZSwapRouter', function (accounts) {
     });
 
     Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
-    Helper.assertEqual(await ethPartner.balanceOf(liquidityProvider), beforeTokenBalance.add(ethPartnerAmount).sub(new BN(500)));
-    Helper.assertEqual(await Helper.getBalancePromise(liquidityProvider), beforeEthBalance.add(ethAmount).sub(new BN(2000)));
+    Helper.assertEqual(
+      await ethPartner.balanceOf(liquidityProvider),
+      beforeTokenBalance.add(ethPartnerAmount).sub(new BN(500))
+    );
+    Helper.assertEqual(
+      await Helper.getBalancePromise(liquidityProvider),
+      beforeEthBalance.add(ethAmount).sub(new BN(2000))
+    );
   });
 
   it('swapETHForExactTokens', async () => {
@@ -606,6 +683,14 @@ contract('XYZSwapRouter', function (accounts) {
     ethPartnerAmount = ethPartnerAmount.sub(outputAmount);
     ethAmount = ethAmount.add(expectAmountIn);
 
+    await expectRevert(
+      router.swapETHForExactTokens(outputAmount, [token0.address, ethPartner.address], trader, bigAmount, {
+        from: trader,
+        value: Helper.expandTo18Decimals(1),
+        gasPrice: new BN(0)
+      }),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     result = await router.swapETHForExactTokens(outputAmount, path, trader, bigAmount, {
       from: trader,
       value: Helper.expandTo18Decimals(1),
@@ -675,6 +760,13 @@ contract('XYZSwapRouter', function (accounts) {
     initTokenAmount = initTokenAmount.sub(swapAmount);
     //using swapExactTokensForETH API
     expectAmountOut = (await router.getAmountsOut(swapAmount, path))[1];
+    await expectRevert(
+      router.swapExactTokensForETH(swapAmount, 0, [ethPartner.address, token0.address], trader, bigAmount, {
+        from: trader,
+        gasPrice: new BN(0)
+      }),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     result = await router.swapExactTokensForETH(swapAmount, 0, path, trader, bigAmount, {
       from: trader,
       gasPrice: new BN(0)
@@ -748,6 +840,21 @@ contract('XYZSwapRouter', function (accounts) {
     //using swapTokensForExactETH API
     await time.advanceBlock();
     expectAmountIn = (await router.getAmountsIn(outputAmount, path))[0];
+
+    await expectRevert(
+      router.swapTokensForExactETH(
+        outputAmount,
+        bigAmount,
+        [ethPartner.address, token0.address],
+        trader,
+        bigAmount,
+        {
+          from: trader,
+          gasPrice: new BN(0)
+        }
+      ),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     result = await router.swapTokensForExactETH(outputAmount, bigAmount, path, trader, bigAmount, {
       from: trader,
       gasPrice: new BN(0)
@@ -825,6 +932,14 @@ contract('XYZSwapRouter', function (accounts) {
 
     expectedOutputAmount = (await router.getAmountsOut(swapAmount, path))[1];
 
+    await expectRevert(
+      router.swapExactETHForTokens(0, [token0.address, ethPartner.address], trader, bigAmount, {
+        from: trader,
+        value: swapAmount,
+        gasPrice: 0
+      }),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     result = await router.swapExactETHForTokens(0, path, trader, bigAmount, {
       from: trader,
       value: swapAmount,
@@ -964,4 +1079,3 @@ contract('XYZSwapRouter', function (accounts) {
     Helper.assertEqual(await token1.balanceOf(trader), initTokenAmount.add(outputAmount));
   });
 });
-

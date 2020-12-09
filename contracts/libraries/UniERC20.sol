@@ -17,10 +17,6 @@ library UniERC20 {
         return token == ETH_ADDRESS;
     }
 
-    function eq(IERC20 tokenA, IERC20 tokenB) internal pure returns (bool) {
-        return (isETH(tokenA) && isETH(tokenB)) || (tokenA == tokenB);
-    }
-
     function uniBalanceOf(IERC20 token, address account) internal view returns (uint256) {
         if (isETH(token)) {
             return account.balance;
@@ -57,11 +53,13 @@ library UniERC20 {
 
         if (isETH(token)) {
             require(msg.value >= amount, "UniERC20: not enough value");
-            (bool success, ) = target.call{value: amount}("");
-            require(success, "UniERC20: failed to transfer eth to target");
+            if (target != address(this)) {
+                (bool success, ) = target.call{value: amount}("");
+                require(success, "UniERC20: failed to transfer eth to target");
+            }
             if (msg.value > amount) {
                 // Return remainder if exist
-                (success, ) = msg.sender.call{value: msg.value - amount}("");
+                (bool success, ) = msg.sender.call{value: msg.value - amount}("");
                 require(success, "UniERC20: failed to transfer back eth");
             }
         } else {
@@ -100,70 +98,6 @@ library UniERC20 {
         (bool success, bytes memory data) = address(token).staticcall{gas: 20000}(
             abi.encodeWithSignature("decimals()")
         );
-        if (!success) {
-            (success, data) = address(token).staticcall{gas: 20000}(
-                abi.encodeWithSignature("DECIMALS()")
-            );
-        }
-
         return success ? abi.decode(data, (uint8)) : 18;
-    }
-
-    function uniSymbol(IERC20 token) internal view returns (string memory) {
-        if (isETH(token)) {
-            return "ETH";
-        }
-
-        (bool success, bytes memory data) = address(token).staticcall{gas: 20000}(
-            abi.encodeWithSignature("symbol()")
-        );
-        if (!success) {
-            (success, data) = address(token).staticcall{gas: 20000}(
-                abi.encodeWithSignature("SYMBOL()")
-            );
-        }
-
-        if (success && data.length >= 96) {
-            (uint256 offset, uint256 len) = abi.decode(data, (uint256, uint256));
-            if (offset == 0x20 && len > 0 && len <= 256) {
-                return string(abi.decode(data, (bytes)));
-            }
-        }
-
-        if (success && data.length == 32) {
-            uint256 len = 0;
-            while (len < data.length && data[len] >= 0x20 && data[len] <= 0x7E) {
-                len++;
-            }
-
-            if (len > 0) {
-                bytes memory result = new bytes(len);
-                for (uint256 i = 0; i < len; i++) {
-                    result[i] = data[i];
-                }
-                return string(result);
-            }
-        }
-
-        return _toHex(address(token));
-    }
-
-    function _toHex(address account) private pure returns (string memory) {
-        return _toHex(abi.encodePacked(account));
-    }
-
-    function _toHex(bytes memory data) private pure returns (string memory) {
-        bytes memory str = new bytes(2 + data.length * 2);
-        str[0] = "0";
-        str[1] = "x";
-        uint256 j = 2;
-        for (uint256 i = 0; i < data.length; i++) {
-            uint256 a = uint8(data[i]) >> 4;
-            uint256 b = uint8(data[i]) & 0x0f;
-            str[j++] = bytes1(uint8(a + 48 + (a / 10) * 39));
-            str[j++] = bytes1(uint8(b + 48 + (b / 10) * 39));
-        }
-
-        return string(str);
     }
 }

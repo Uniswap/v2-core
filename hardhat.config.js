@@ -3,7 +3,7 @@ require('@nomiclabs/hardhat-ethers');
 require('@nomiclabs/hardhat-web3');
 require('@nomiclabs/hardhat-etherscan');
 require('hardhat-contract-sizer');
-require("solidity-coverage");
+require('solidity-coverage');
 
 require('dotenv').config();
 
@@ -138,21 +138,6 @@ module.exports = {
           balance: '100000000000000000000000000000000'
         }
       ]
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
-    },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
     }
   },
   mocha: {
@@ -163,3 +148,32 @@ module.exports = {
     tests: './test'
   }
 };
+
+const INFURA_API_KEY = process.env.INFURA_API_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+if (INFURA_API_KEY != undefined && PRIVATE_KEY != undefined) {
+  module.exports.networks.kovan = {
+    url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.rinkeby = {
+    url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.ropsten = {
+    url: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.mainnet = {
+    url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+}

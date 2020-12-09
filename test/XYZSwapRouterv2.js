@@ -2,13 +2,17 @@ const Helper = require('./helper');
 const {MaxUint256, ethAddress, expandTo18Decimals, MINIMUM_LIQUIDITY} = require('./helper');
 const BN = web3.utils.BN;
 const {ecsign} = require('ethereumjs-util');
+const expectRevert = require('@openzeppelin/test-helpers/src/expectRevert');
 
 const XYZSwapFactory = artifacts.require('XYZSwapFactory');
 const XYZSwapPair = artifacts.require('XYZSwapPair');
 const FeeToken = artifacts.require('MockFeeOnTransferERC20');
+const TestToken = artifacts.require('TestToken');
+
 const XYZSwapRouterv2 = artifacts.require('XYZSwapRouterv2');
 
 let feeToken;
+let normalToken;
 
 let factory;
 let pair;
@@ -28,6 +32,7 @@ contract('XYZSwapRouterv2', accounts => {
 
   beforeEach(' setup factory and router', async () => {
     feeToken = await FeeToken.new('feeOnTransfer Token', 'FOT', expandTo18Decimals(100000));
+    normalToken = await TestToken.new('test', 't1', expandTo18Decimals(100000));
 
     factory = await XYZSwapFactory.new(feeSetter);
     router = await XYZSwapRouterv2.new(factory.address);
@@ -90,8 +95,19 @@ contract('XYZSwapRouterv2', accounts => {
     const swapAmount = expandTo18Decimals(1);
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
 
-    await feeToken.transfer(trader, swapAmount.mul(new BN(2)));
-    // await feeToken.approve(router.address, MaxUint256, {from: trader});
+    await expectRevert(
+      router.swapExactETHForTokensSupportingFeeOnTransferTokens(
+        0,
+        [normalToken.address, feeToken.address],
+        trader,
+        MaxUint256,
+        {
+          from: trader,
+          value: swapAmount
+        }
+      ),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
       0,
       [ethAddress, feeToken.address],
@@ -115,6 +131,19 @@ contract('XYZSwapRouterv2', accounts => {
 
     await feeToken.transfer(trader, swapAmount.mul(new BN(2)));
     await feeToken.approve(router.address, MaxUint256, {from: trader});
+    await expectRevert(
+      router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        swapAmount,
+        0,
+        [feeToken.address, normalToken.address],
+        trader,
+        MaxUint256,
+        {
+          from: trader
+        }
+      ),
+      'XYZSwapRouter: INVALID_PATH'
+    );
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
       0,

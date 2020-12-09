@@ -30,5 +30,9 @@ contract MockUniERC20 {
         token.uniApprove(to, amount);
     }
 
+    function testDecimals(IERC20 token) external view returns (uint256) {
+        return token.uniDecimals();
+    }
+
     receive() external payable {}
 }

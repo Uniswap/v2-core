@@ -43,6 +43,12 @@ contract('UniERC20', accounts => {
     let approveAmount = Helper.expandTo18Decimals(100);
     await mockUniERC20.testApprove(token.address, target, approveAmount);
     Helper.assertEqual(await token.allowance(mockUniERC20.address, target), approveAmount);
+    // test approve not change allowance
+    await mockUniERC20.testApprove(token.address, target, approveAmount);
+    // test change approve
+    await mockUniERC20.testApprove(token.address, target, approveAmount.mul(new BN(2)));
+    // test remove approve
+    await mockUniERC20.testApprove(token.address, target, new BN(0));
   });
 
   it('approve eth - do nothing', async () => {
@@ -78,5 +84,12 @@ contract('UniERC20', accounts => {
     Helper.assertEqual(await Helper.getBalancePromise(target), beforeBalance.add(transferAmount));
     // transfer with zero amount - early return
     await mockUniERC20.testTransferFromSender(token.address, target, new BN(0));
+    // transfer from to this address
+    await mockUniERC20.testTransferFromSender(token.address, mockUniERC20.address, transferAmount, {value: transferAmount});
+  });
+
+  it('decimals', async () => {
+    Helper.assertEqual(await mockUniERC20.testDecimals(Helper.ethAddress), new BN(18));
+    Helper.assertEqual(await mockUniERC20.testDecimals(token.address), new BN(18));
   });
 });
