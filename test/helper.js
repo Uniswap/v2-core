@@ -118,7 +118,7 @@ module.exports.sendEtherWithPromise = function (sender, recv, amount) {
 const PERMIT_TYPEHASH = '0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9';
 module.exports.getApprovalDigest = getApprovalDigest;
 async function getApprovalDigest (token, owner, spender, value, nonce, deadline) {
-  const DOMAIN_SEPARATOR = await token.DOMAIN_SEPARATOR();
+  const domainSeparator = await token.domainSeparator();
 
   const tmp = web3.utils.soliditySha3(
     web3.eth.abi.encodeParameters(
@@ -130,7 +130,7 @@ async function getApprovalDigest (token, owner, spender, value, nonce, deadline)
     '0x' +
       Buffer.concat([
         Buffer.from('1901', 'hex'),
-        Buffer.from(DOMAIN_SEPARATOR.slice(2), 'hex'),
+        Buffer.from(domainSeparator.slice(2), 'hex'),
         Buffer.from(tmp.slice(2), 'hex')
       ]).toString('hex')
   );
