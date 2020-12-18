@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
-import "./IXYZSwapRouter.sol";
+import "./IXYZSwapRouter01.sol";
 
-interface IXYZSwapRouterv2 is IXYZSwapRouter {
+interface IXYZSwapRouter02 is IXYZSwapRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         IERC20 token,
         uint256 liquidity,

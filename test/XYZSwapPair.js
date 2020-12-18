@@ -338,6 +338,7 @@ contract('XYZSwapPair', function (accounts) {
       await token1.balanceOf(liquidityProvider),
       beforeAmountToken1.add(token1Amount.sub(MINIMUM_LIQUIDITY))
     );
+    console.log(`burn gas used ${result.receipt.gasUsed}`);
   });
 
   it('feeTo:off', async () => {
@@ -394,6 +395,18 @@ contract('XYZSwapPair', function (accounts) {
 
     // add liquidity will not be charged fee
     await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+    Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+
+    // disable fee again
+    await factory.setFeeTo(constants.ZERO_ADDRESS, {from: accounts[0]});
+    await addLiquidity(liquidityProvider, token0Amount, token1Amount);
+
+    tradeInfo = await pair.getTradeInfo();
+    expectedOutputAmount = getExpectedOutputAmount(swapAmount, token1Amount, token0Amount, tradeInfo.feeInPrecision);
+    await token1.transfer(pair.address, swapAmount);
+    await pair.swap(expectedOutputAmount, 0, trader, '0x');
+
+    await pair.sync();
     Helper.assertEqual(await pair.balanceOf(feeTo), fee);
   });
 

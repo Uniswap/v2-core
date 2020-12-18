@@ -8,8 +8,9 @@ const XYZSwapFactory = artifacts.require('XYZSwapFactory');
 const XYZSwapPair = artifacts.require('XYZSwapPair');
 const FeeToken = artifacts.require('MockFeeOnTransferERC20');
 const TestToken = artifacts.require('TestToken');
+const WETH = artifacts.require('WETH9');
 
-const XYZSwapRouterv2 = artifacts.require('XYZSwapRouterv2');
+const XYZSwapRouter02 = artifacts.require('XYZSwapRouter02');
 
 let feeToken;
 let normalToken;
@@ -17,17 +18,19 @@ let normalToken;
 let factory;
 let pair;
 let router;
+let weth;
 
 let feeSetter;
 let liquidityProvider;
 
-contract('XYZSwapRouterv2', accounts => {
+contract('XYZSwapRouter02', accounts => {
   before('set accounts', async () => {
     feeSetter = accounts[0];
     liquidityProvider = accounts[3];
     // key from hardhat.config.js
     liquidityProviderPkKey = '0xee9d129c1997549ee09c0757af5939b2483d80ad649a0eda68e8b0357ad11131';
     trader = accounts[2];
+    weth = await WETH.new();
   });
 
   beforeEach(' setup factory and router', async () => {
@@ -35,10 +38,10 @@ contract('XYZSwapRouterv2', accounts => {
     normalToken = await TestToken.new('test', 't1', expandTo18Decimals(100000));
 
     factory = await XYZSwapFactory.new(feeSetter);
-    router = await XYZSwapRouterv2.new(factory.address);
+    router = await XYZSwapRouter02.new(factory.address, weth.address);
     // make a DTT<>WETH pair
-    await factory.createPair(feeToken.address, ethAddress);
-    const pairAddress = await factory.getPair(feeToken.address, ethAddress);
+    await factory.createPair(feeToken.address, weth.address);
+    const pairAddress = await factory.getPair(feeToken.address, weth.address);
     pair = await XYZSwapPair.at(pairAddress);
   });
 
@@ -110,7 +113,7 @@ contract('XYZSwapRouterv2', accounts => {
     );
     await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
       0,
-      [ethAddress, feeToken.address],
+      [weth.address, feeToken.address],
       trader,
       MaxUint256,
       {
@@ -147,7 +150,7 @@ contract('XYZSwapRouterv2', accounts => {
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
       0,
-      [feeToken.address, ethAddress],
+      [feeToken.address, weth.address],
       trader,
       MaxUint256,
       {

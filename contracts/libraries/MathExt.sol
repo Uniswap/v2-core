@@ -1,6 +1,4 @@
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -10,14 +8,14 @@ library MathExt {
     uint256 public constant PRECISION = (10**18);
 
     /// @dev Returns x*y in precision
-    function mulInPercision(uint256 x, uint256 y) internal pure returns (uint256) {
+    function mulInPrecision(uint256 x, uint256 y) internal pure returns (uint256) {
         return x.mul(y) / PRECISION;
     }
 
     /// @dev source: dsMath
     /// @param xInPrecision should be < PRECISION, so this can not overflow
-    /// @return zInPrecision = (x/percision) ^k * percision
-    function unsafePowInPercision(uint256 xInPrecision, uint256 k)
+    /// @return zInPrecision = (x/PRECISION) ^k * PRECISION
+    function unsafePowInPrecision(uint256 xInPrecision, uint256 k)
         internal
         pure
         returns (uint256 zInPrecision)
@@ -31,6 +29,20 @@ library MathExt {
             if (k % 2 != 0) {
                 zInPrecision = (zInPrecision * xInPrecision) / PRECISION;
             }
+        }
+    }
+
+    // babylonian method (https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method)
+    function sqrt(uint256 y) internal pure returns (uint256 z) {
+        if (y > 3) {
+            z = y;
+            uint256 x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
         }
     }
 }

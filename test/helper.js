@@ -135,3 +135,27 @@ async function getApprovalDigest (token, owner, spender, value, nonce, deadline)
       ]).toString('hex')
   );
 }
+
+function readArtifactSync (artifactsPath) {
+  const fsExtra = require('fs-extra');
+  if (!fsExtra.pathExistsSync(artifactsPath)) {
+    throw `artifact not found ${artifactsPath}`;
+  }
+  return fsExtra.readJsonSync(artifactsPath);
+}
+module.exports.getTruffleContract = getTruffleContract;
+function getTruffleContract (artifactsPath) {
+  const artifact = readArtifactSync(artifactsPath);
+  const TruffleContractFactory = require('@nomiclabs/truffle-contract');
+  const Contract = TruffleContractFactory(artifact);
+  Contract.setProvider(web3.currentProvider);
+  return Contract;
+}
+
+module.exports.assertGreater = function(val1, val2, errorStr) {
+  assert(new BN(val1).should.be.a.bignumber.that.is.greaterThan(new BN(val2)), errorStr);
+}
+
+module.exports.assertLesser = function(val1, val2, errorStr) {
+  assert(new BN(val1).should.be.a.bignumber.that.is.lessThan(new BN(val2)), errorStr);
+}
