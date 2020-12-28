@@ -1,17 +1,51 @@
 {
-  "extends": ["solhint:recommended"],
+  "extends": [
+    "solhint:recommended"
+  ],
   "rules": {
-    "max-line-length": ["warn", 150],
-    "prettier/prettier": "error",
-    "avoid-suicide": "error",
-    "avoid-sha3": "warn",
-    "reentrancy": "error",
-    "ordering": "error",
-    "not-rely-on-time": "off",
-    "reason-string": "off",
+    "avoid-call-value": "error",
     "avoid-low-level-calls": "off",
+    "avoid-sha3": "error",
+    "avoid-suicide": "error",
+    "avoid-throw": "error",
+    "avoid-tx-origin": "off",
+    "check-send-result": "error",
+    "compiler-version": [
+      "off",
+      "0.6.6"
+    ],
+    "const-name-snakecase": "error",
+    "func-name-mixedcase": "error",
+    "ordering": "error",
+    "imports-on-top": "error",
+    "mark-callable-contracts": "off",
+    "max-line-length": [
+      "error",
+      150
+    ],
+    "max-states-count": [
+      "error",
+      20
+    ],
+    "multiple-sends": "error",
+    "no-complex-fallback": "error",
+    "no-empty-blocks": "off",
     "no-inline-assembly": "off",
-    "compiler-version": ["off", "^0.6.0"]
+    "no-unused-vars": "error",
+    "not-rely-on-block-hash": "error",
+    "not-rely-on-time": "off",
+    "payable-fallback": "error",
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "reentrancy": "error",
+    "state-visibility": "error",
+    "use-forbidden-name": "error",
+    "var-name-mixedcase": "error",
+    "visibility-modifier-order": "error"
   },
-  "plugins": ["prettier"]
+  "plugins": [
+    "prettier"
+  ]
 }

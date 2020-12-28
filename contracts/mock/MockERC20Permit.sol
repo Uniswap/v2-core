@@ -1,13 +1,14 @@
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../libraries/ERC20Permit.sol";
 
-contract TestToken is ERC20 {
+contract MockERC20Permit is ERC20Permit {
     constructor(
         string memory _name,
         string memory _symbol,
+        string memory _version,
         uint256 _totalSupply
-    ) public ERC20(_name, _symbol) {
+    ) public ERC20Permit(_name, _symbol, _version) {
         _mint(msg.sender, _totalSupply);
     }
 }

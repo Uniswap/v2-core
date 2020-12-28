@@ -1,6 +1,4 @@
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 import "./MathExt.sol";
 
@@ -24,33 +22,34 @@ library FeeFomula {
     // C2 = 25 * PRECISION - (F * (PRECISION - G)**2) / ((PRECISION - G)**2 + L * PRECISION)
     uint256 private constant C2 = 20036905816356657810;
 
-    /// @dev calculate fee from rFactor with resolution = 10 ^ 18
-    function getFee(uint256 rFactor) internal pure returns (uint256) {
-        if (rFactor >= R0) {
+    /// @dev calculate fee from rFactorInPrecision, see section 3.2 in xyzswap white paper
+    /// @dev fee in [15, 60] bps
+    /// @return fee percentage in Precision
+    function getFee(uint256 rFactorInPrecision) internal pure returns (uint256) {
+        if (rFactorInPrecision >= R0) {
             return C0;
-        } else if (rFactor >= PRECISION) {
+        } else if (rFactorInPrecision >= PRECISION) {
             // C1 + A * (r-U)^3 + b * (r -U)
-            if (rFactor > U) {
-                uint256 tmp = rFactor - U;
-                return
-                    (C1 +
-                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) +
-                        B.unsafeMulInPercision(tmp)) / 10000;
+            if (rFactorInPrecision > U) {
+                uint256 tmp = rFactorInPrecision - U;
+                uint256 tmp3 = tmp.unsafePowInPrecision(3);
+                return (C1.add(A.mulInPrecision(tmp3)).add(B.mulInPrecision(tmp))) / 10000;
             } else {
-                uint256 tmp = U - rFactor;
-                return
-                    (C1 -
-                        A.unsafeMulInPercision(tmp.unsafePowInPercision(3)) -
-                        B.unsafeMulInPercision(tmp)) / 10000;
+                uint256 tmp = U - rFactorInPrecision;
+                uint256 tmp3 = tmp.unsafePowInPrecision(3);
+                return C1.sub(A.mulInPrecision(tmp3)).sub(B.mulInPrecision(tmp)) / 10000;
             }
         } else {
-            uint256 tmp = (rFactor > G ? (rFactor - G) : (G - rFactor));
-            tmp = tmp.powInPercision(2);
+            // [ C2 + sign(r - G) *  F * (r-G) ^2 / (L + (r-G) ^2) ] / 10000
+            uint256 tmp = (
+                rFactorInPrecision > G ? (rFactorInPrecision - G) : (G - rFactorInPrecision)
+            );
+            tmp = tmp.unsafePowInPrecision(2);
             uint256 tmp2 = F.mul(tmp).div(tmp.add(L));
-            if (rFactor > G) {
-                return (C2 + tmp2) / 10000;
+            if (rFactorInPrecision > G) {
+                return C2.add(tmp2) / 10000;
             } else {
-                return (C2 - tmp2) / 10000;
+                return C2.sub(tmp2) / 10000;
             }
         }
     }

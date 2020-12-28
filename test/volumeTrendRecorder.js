@@ -2,11 +2,14 @@ const VolumeTrendRecorder = artifacts.require('MockVolumeTrendRecorder');
 
 const BN = web3.utils.BN;
 
+const {expectRevert, expectEvent} = require('@openzeppelin/test-helpers');
 const {precisionUnits} = require('./helper');
 const Helper = require('./helper');
 
 const ALPHA_SHORT = Helper.precisionUnits.mul(new BN(2)).div(new BN(5401));
 const ALPHA_LONG = Helper.precisionUnits.mul(new BN(2)).div(new BN(10801));
+const MaxUint128 = new BN(2).pow(new BN(128)).sub(new BN(1));
+
 let ema0 = new BN(200000);
 
 contract('VolumeTrendRecorder', function (accounts) {
@@ -45,9 +48,10 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(50000), block);
+    let result = await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
+    expectEvent.notEmitted(result, 'UpdateEMA');
     data = [50000, 0];
-    let record = await recorder.getVolumeRecorder();
+    let record = await recorder.getVolumeTrendData();
     Helper.assertEqual(record._shortEMA, ema0);
     Helper.assertEqual(record._longEMA, ema0);
     Helper.assertEqual(record._currentBlockVolume, new BN(50000));
@@ -58,9 +62,10 @@ contract('VolumeTrendRecorder', function (accounts) {
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
 
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(30000), block);
+    result = await recorder.mockRecordNewUpdatedVolume(new BN(30000), block);
+    expectEvent.notEmitted(result, 'UpdateEMA');
     data = [80000, 0];
-    record = await recorder.getVolumeRecorder();
+    record = await recorder.getVolumeTrendData();
     Helper.assertEqual(record._shortEMA, ema0);
     Helper.assertEqual(record._longEMA, ema0);
     Helper.assertEqual(record._currentBlockVolume, new BN(80000));
@@ -74,10 +79,17 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(9000), block);
+    result = await recorder.mockRecordNewUpdatedVolume(new BN(9000), block);
+    expectEvent(result, 'UpdateEMA', {
+      shortEMA: numerator,
+      longEMA: denominator,
+      lastBlockVolume: new BN(80000),
+      skipBlock: new BN(1)
+    });
+
     data = [80000, 9000, 0];
 
-    record = await recorder.getVolumeRecorder();
+    record = await recorder.getVolumeTrendData();
     Helper.assertEqual(record._shortEMA, numerator);
     Helper.assertEqual(record._longEMA, denominator);
     Helper.assertEqual(record._currentBlockVolume, new BN(9000));
@@ -105,9 +117,9 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(50000), block);
+    await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
     data = [50000, 0, 0];
-    let record = await recorder.getVolumeRecorder();
+    let record = await recorder.getVolumeTrendData();
     Helper.assertEqual(record._shortEMA, ema0);
     Helper.assertEqual(record._longEMA, ema0);
     Helper.assertEqual(record._currentBlockVolume, new BN(50000));
@@ -121,10 +133,10 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(30000), block);
+    await recorder.mockRecordNewUpdatedVolume(new BN(30000), block);
     data = [50000, 0, 30000, 0];
 
-    record = await recorder.getVolumeRecorder();
+    record = await recorder.getVolumeTrendData();
     Helper.assertApproximate(record._shortEMA, numerator);
     Helper.assertApproximate(record._longEMA, denominator);
     Helper.assertEqual(record._currentBlockVolume, new BN(30000));
@@ -152,9 +164,9 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertEqual(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(50000), block);
+    await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
     data = [50000, 0, 0, 0, 0];
-    let record = await recorder.getVolumeRecorder();
+    let record = await recorder.getVolumeTrendData();
     Helper.assertEqual(record._shortEMA, ema0);
     Helper.assertEqual(record._longEMA, ema0);
     Helper.assertEqual(record._currentBlockVolume, new BN(50000));
@@ -168,9 +180,9 @@ contract('VolumeTrendRecorder', function (accounts) {
     expectedRFactor = precisionUnits.mul(numerator).div(denominator);
     Helper.assertApproximate(rFactor, expectedRFactor, 'unexpected rFactor');
     //create an update volume and data
-    await recorder.mockUpdateVolume(new BN(30000), block);
+    await recorder.mockRecordNewUpdatedVolume(new BN(30000), block);
     data = [50000, 0, 0, 30000, 0];
-    record = await recorder.getVolumeRecorder();
+    record = await recorder.getVolumeTrendData();
     Helper.assertApproximate(record._shortEMA, numerator);
     Helper.assertApproximate(record._longEMA, denominator);
     Helper.assertEqual(record._currentBlockVolume, new BN(30000));
@@ -185,22 +197,47 @@ contract('VolumeTrendRecorder', function (accounts) {
     Helper.assertApproximate(rFactor, expectedRFactor, 'unexpected rFactor');
   });
 
+  it('test case volume exceeds max_uint128', async () => {
+    let recorder = await VolumeTrendRecorder.new(new BN(Helper.precisionUnits));
+    let recordInfo = await recorder.mockGetInfo();
+    let block0 = recordInfo._lastTradeBlock.toNumber();
+    await expectRevert(recorder.mockRecordNewUpdatedVolume(new BN(2).pow(new BN(128)), block0), 'volume exceeds valid range');
+    await recorder.mockRecordNewUpdatedVolume(MaxUint128, block0);
+    let record = await recorder.getVolumeTrendData();
+    Helper.assertEqual(record._currentBlockVolume, MaxUint128);
+  });
+
+  it('test safeUint128', async () => {
+    let recorder = await VolumeTrendRecorder.new(new BN(Helper.precisionUnits));
+    await expectRevert(recorder.mockSafeUint128(new BN(2).pow(new BN(128))), 'overflow uint128');
+
+    let out = await recorder.mockSafeUint128(MaxUint128);
+    Helper.assertEqual(out, MaxUint128);
+  });
+
   it('test gas for long number of block without trade', async () => {
     let recorder = await VolumeTrendRecorder.new(new BN(Helper.precisionUnits));
     let recordInfo = await recorder.mockGetInfo();
     let block0 = recordInfo._lastTradeBlock.toNumber();
 
     let block = block0;
-    let result = await recorder.mockUpdateVolume(new BN(50000), block);
-    console.log(`gasUsed ${result.receipt.gasUsed}`);
+    let result = await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
+    let readGasCost = await recorder.testGasCostGetRFactor(block);
+    console.log(`getRFactor for skipBlock=1 gasUsed=${readGasCost}`);
+    result = await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
+    console.log(`update volume skipBlock=0 gasUsed=${result.receipt.gasUsed}`);
 
-    block = block0 + 1;
-    result = await recorder.mockUpdateVolume(new BN(50000), block);
-    console.log(`gasUsed ${result.receipt.gasUsed}`);
+    block = block + 1;
+    readGasCost = await recorder.testGasCostGetRFactor(block);
+    console.log(`getRFactor for skipBlock=1 gasUsed=${readGasCost}`);
+    result = await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
+    console.log(`update volume skipBlock=1 gasUsed=${result.receipt.gasUsed}`);
 
-    block = block0 + 10000;
-    result = await recorder.mockUpdateVolume(new BN(50000), block);
-    console.log(`gasUsed ${result.receipt.gasUsed}`);
+    block = block + 10000;
+    readGasCost = await recorder.testGasCostGetRFactor(block);
+    console.log(`getRFactor for skipBlock=1 gasUsed=${readGasCost}`);
+    result = await recorder.mockRecordNewUpdatedVolume(new BN(50000), block);
+    console.log(`update volume skipBlock=9999 gasUsed=${result.receipt.gasUsed}`);
   });
 });
 

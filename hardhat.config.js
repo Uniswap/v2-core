@@ -1,8 +1,9 @@
-usePlugin('@nomiclabs/buidler-truffle5');
-usePlugin('@nomiclabs/buidler-ethers');
-usePlugin('@nomiclabs/buidler-web3');
-usePlugin('buidler-contract-sizer');
-usePlugin('solidity-coverage');
+require('@nomiclabs/hardhat-truffle5');
+require('@nomiclabs/hardhat-ethers');
+require('@nomiclabs/hardhat-web3');
+require('@nomiclabs/hardhat-etherscan');
+require('hardhat-contract-sizer');
+require('solidity-coverage');
 
 require('dotenv').config();
 
@@ -15,16 +16,18 @@ task('accounts', 'Prints the list of accounts', async () => {
 });
 
 module.exports = {
-  solc: {
+  solidity: {
     version: '0.6.6',
-    optimizer: {
-      enabled: true,
-      runs: 999999
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 999999
+      }
     }
   },
-  defaultNetwork: 'buidlerevm',
+  defaultNetwork: 'hardhat',
   networks: {
-    buidlerevm: {
+    hardhat: {
       blockGasLimit: 12500000,
       accounts: [
         // 20 accounts with 10^14 ETH each
@@ -130,21 +133,6 @@ module.exports = {
           balance: '100000000000000000000000000000000'
         }
       ]
-    },
-    kovan: {
-      url: `https://kovan.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
-    },
-    ropsten: {
-      url: `https://ropsten.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
-    },
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
-      accounts: [process.env.PRIVATE_KEY],
-      timeout: 20000
     }
   },
   mocha: {
@@ -155,3 +143,40 @@ module.exports = {
     tests: './test'
   }
 };
+
+const INFURA_API_KEY = process.env.INFURA_API_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+
+if (INFURA_API_KEY != undefined && PRIVATE_KEY != undefined) {
+  module.exports.networks.kovan = {
+    url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.rinkeby = {
+    url: `https://rinkeby.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.ropsten = {
+    url: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+
+  module.exports.networks.mainnet = {
+    url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
+    accounts: [PRIVATE_KEY],
+    timeout: 20000
+  };
+}
+
+if (process.env.ETHERSCAN_API_KEY != undefined) {
+  module.exports.etherscan = {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`
+  };
+}

@@ -1,6 +1,6 @@
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IERC20Permit is IERC20 {
     function permit(

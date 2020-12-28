@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.6.0;
+pragma solidity 0.6.6;
 
 import "./interfaces/IXYZSwapFactory.sol";
+
 import "./XYZSwapPair.sol";
 
 contract XYZSwapFactory is IXYZSwapFactory {

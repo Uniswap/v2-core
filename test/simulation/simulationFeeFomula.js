@@ -13,6 +13,7 @@ contract('FeeFomula', accounts => {
     let out = [];
     let fd;
     try {
+      fs.unlinkSync('simulation/fee.txt');
       fd = fs.openSync('simulation/fee.txt', 'a');
       fs.appendFileSync(fd, `rFactor\tfee\n`, 'utf8');
       for (let i = 0; i < 2000; i++) {
