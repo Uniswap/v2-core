@@ -25,11 +25,6 @@ module.exports = {
       }
     }
   },
-  etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: `${process.env.ETHERSCAN_API_KEY}`
-  },
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
@@ -175,5 +170,13 @@ if (INFURA_API_KEY != undefined && PRIVATE_KEY != undefined) {
     url: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
     accounts: [PRIVATE_KEY],
     timeout: 20000
+  };
+}
+
+if (process.env.ETHERSCAN_API_KEY != undefined) {
+  module.exports.etherscan = {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: `${process.env.ETHERSCAN_API_KEY}`
   };
 }

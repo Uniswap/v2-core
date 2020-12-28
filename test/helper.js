@@ -152,10 +152,10 @@ function getTruffleContract (artifactsPath) {
   return Contract;
 }
 
-module.exports.assertGreater = function(val1, val2, errorStr) {
+module.exports.assertGreater = function (val1, val2, errorStr) {
   assert(new BN(val1).should.be.a.bignumber.that.is.greaterThan(new BN(val2)), errorStr);
-}
+};
 
-module.exports.assertLesser = function(val1, val2, errorStr) {
+module.exports.assertLesser = function (val1, val2, errorStr) {
   assert(new BN(val1).should.be.a.bignumber.that.is.lessThan(new BN(val2)), errorStr);
-}
+};
