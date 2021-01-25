@@ -14,8 +14,6 @@ interface IXYZSwapPair {
         bytes calldata data
     ) external;
 
-    function initialize(IERC20, IERC20) external;
-
     function getReserves()
         external
         view
@@ -29,6 +27,8 @@ interface IXYZSwapPair {
         external
         view
         returns (
+            uint112 _vReserve0,
+            uint112 _vReserve1,
             uint112 reserve0,
             uint112 reserve1,
             uint256 feeInPrecision

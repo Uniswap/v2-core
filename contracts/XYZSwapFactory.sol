@@ -1,20 +1,27 @@
 pragma solidity 0.6.6;
 
-import "./interfaces/IXYZSwapFactory.sol";
+import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
+import "./interfaces/IXYZSwapFactory.sol";
 import "./XYZSwapPair.sol";
 
 contract XYZSwapFactory is IXYZSwapFactory {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
+    uint256 internal constant BPS = 10000;
+
     address public override feeTo;
     address public override feeToSetter;
 
-    mapping(IERC20 => mapping(IERC20 => address)) public override getPair;
+    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
+    mapping(IERC20 => mapping(IERC20 => address)) public override getNonAmpPair;
     address[] public override allPairs;
 
     event PairCreated(
-        address indexed token0,
-        address indexed token1,
+        IERC20 indexed token0,
+        IERC20 indexed token1,
         address pair,
+        uint32 ampBps,
         uint256 totalPair
     );
 
@@ -22,21 +29,32 @@ contract XYZSwapFactory is IXYZSwapFactory {
         feeToSetter = _feeToSetter;
     }
 
-    function createPair(IERC20 tokenA, IERC20 tokenB) external override returns (address pair) {
+    function createPair(
+        IERC20 tokenA,
+        IERC20 tokenB,
+        uint32 ampBps
+    ) external override returns (address pair) {
         require(tokenA != tokenB, "XYZSwap: IDENTICAL_ADDRESSES");
         (IERC20 token0, IERC20 token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(address(token0) != address(0), "XYZSwap: ZERO_ADDRESS");
-        require(getPair[token0][token1] == address(0), "XYZSwap: PAIR_EXISTS"); // single check is sufficient
-        bytes memory bytecode = type(XYZSwapPair).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(token0, token1));
-        assembly {
-            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
+        require(ampBps >= BPS, "XYZSwap: INVALID_BPS");
+        // only exist 1 non-amplificaiton pool of a pair.
+        require(
+            ampBps != BPS || getNonAmpPair[token0][token1] == address(0),
+            "XYZSwap: PAIR_EXISTS"
+        );
+        pair = address(new XYZSwapPair());
+        XYZSwapPair(pair).initialize(token0, token1, ampBps);
+        // populate mapping in the reverse direction
+        tokenPairs[token0][token1].add(pair);
+        tokenPairs[token1][token0].add(pair);
+        if (ampBps == BPS) {
+            getNonAmpPair[token0][token1] = pair;
+            getNonAmpPair[token1][token0] = pair;
         }
-        IXYZSwapPair(pair).initialize(token0, token1);
-        getPair[token0][token1] = pair;
-        getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
-        emit PairCreated(address(token0), address(token1), pair, allPairs.length);
+
+        emit PairCreated(token0, token1, pair, ampBps, allPairs.length);
     }
 
     function setFeeTo(address _feeTo) external override {
@@ -51,5 +69,38 @@ contract XYZSwapFactory is IXYZSwapFactory {
 
     function allPairsLength() external override view returns (uint256) {
         return allPairs.length;
+    }
+
+    function getPairs(IERC20 token0, IERC20 token1)
+        external
+        override
+        view
+        returns (address[] memory _tokenPairs)
+    {
+        uint256 length = tokenPairs[token0][token1].length();
+        _tokenPairs = new address[](length);
+        for (uint256 i = 0; i < length; i++) {
+            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
+        }
+    }
+
+    function getPairsLength(IERC20 token0, IERC20 token1) external view returns (uint256) {
+        return tokenPairs[token0][token1].length();
+    }
+
+    function getPairAtIndex(
+        IERC20 token0,
+        IERC20 token1,
+        uint256 index
+    ) external view returns (address _tokenPair) {
+        return tokenPairs[token0][token1].at(index);
+    }
+
+    function isPair(
+        IERC20 token0,
+        IERC20 token1,
+        address pair
+    ) external override view returns (bool) {
+        return tokenPairs[token0][token1].contains(pair);
     }
 }

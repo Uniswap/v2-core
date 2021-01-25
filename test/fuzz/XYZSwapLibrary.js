@@ -16,7 +16,7 @@ let pair;
 contract('XYZSwapLibrary', function (accounts) {
   beforeEach('set up', async function () {
     library = await XYZSwapLibrary.new();
-    [factory, token0, token1, pair] = await setupPair(accounts[0], library);
+    [factory, token0, token1, pair] = await setupPair(accounts[0], library, false);
     liquidityProvider = accounts[1];
   });
   const minReserve = new BN(10).pow(new BN(10));
@@ -36,7 +36,7 @@ contract('XYZSwapLibrary', function (accounts) {
       let amountIn = genRandomBN(reserve0.div(new BN(20)), reserve0.div(new BN(10)));
       await token0.transfer(pair.address, amountIn);
 
-      let amountOut = await library.getAmountOut(amountIn, reserve0, reserve1, fee);
+      let amountOut = await library.getAmountOut(amountIn, reserve0, reserve1, reserve0, reserve1, fee);
       await expectRevert(pair.swap(0, amountOut.add(new BN(1)), accounts[0], '0x'), 'XYZSwap: K');
       await pair.swap(0, amountOut, accounts[0], '0x');
     });
@@ -51,7 +51,7 @@ contract('XYZSwapLibrary', function (accounts) {
       await pair.setFee(fee);
 
       let amountOut = genRandomBN(reserve0.div(new BN(20)), reserve0.div(new BN(10)));
-      let amountIn = await library.getAmountIn(amountOut, reserve0, reserve1, fee);
+      let amountIn = await library.getAmountIn(amountOut, reserve0, reserve1, reserve0, reserve1, fee);
       await token0.transfer(pair.address, amountIn.sub(new BN(1)));
       await expectRevert(pair.swap(0, amountOut, accounts[0], '0x'), 'XYZSwap: K');
       await token0.transfer(pair.address, new BN(1));
@@ -60,17 +60,21 @@ contract('XYZSwapLibrary', function (accounts) {
   }
 });
 
-function genRandomSeed(base) {
+function genRandomSeed (base) {
   return Math.floor(Math.random() * base) % base;
 }
 
-function genRandomBN(minBN, maxBN) {
+function genRandomBN (minBN, maxBN) {
   let seed = new BN(genRandomSeed(1000000000000000));
   // normalise seed
-  return maxBN.sub(minBN).mul(seed).div(new BN(1000000000000000)).add(minBN);
+  return maxBN
+    .sub(minBN)
+    .mul(seed)
+    .div(new BN(1000000000000000))
+    .add(minBN);
 }
 
-async function setupPair(admin) {
+async function setupPair (admin, library, isAmpPool) {
   let factory = await XYZSwapFactory.new(admin);
   let tokenA = await TestToken.new('test token A', 'A', Helper.expandTo18Decimals(10000));
   let tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
@@ -79,11 +83,11 @@ async function setupPair(admin) {
   const token0 = tokenA.address === result.token0 ? tokenA : tokenB;
   const token1 = tokenA.address === result.token0 ? tokenB : tokenA;
 
-  const pair = await XYZSwapPair.new(factory.address, token0.address, token1.address);
+  const pair = await XYZSwapPair.new(factory.address, token0.address, token1.address, isAmpPool);
   return [factory, token0, token1, pair];
 }
 
-async function addLiquidity(liquidityProvider, token0Amount, token1Amount) {
+async function addLiquidity (liquidityProvider, token0Amount, token1Amount) {
   await token0.transfer(pair.address, token0Amount);
   await token1.transfer(pair.address, token1Amount);
   await pair.mint(liquidityProvider);

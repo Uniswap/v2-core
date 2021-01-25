@@ -7,18 +7,38 @@ contract MockXYZSwapLibrary {
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut,
+        uint256 vReserveIn,
+        uint256 vReserveOut,
         uint256 fee
     ) external pure returns (uint256 amountOut) {
-        return XYZSwapLibrary.getAmountOut(amountIn, reserveIn, reserveOut, fee);
+        return
+            XYZSwapLibrary.getAmountOut(
+                amountIn,
+                reserveIn,
+                reserveOut,
+                vReserveIn,
+                vReserveOut,
+                fee
+            );
     }
 
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
         uint256 reserveOut,
+        uint256 vReserveIn,
+        uint256 vReserveOut,
         uint256 fee
     ) external pure returns (uint256 amountIn) {
-        return XYZSwapLibrary.getAmountIn(amountOut, reserveIn, reserveOut, fee);
+        return
+            XYZSwapLibrary.getAmountIn(
+                amountOut,
+                reserveIn,
+                reserveOut,
+                vReserveIn,
+                vReserveOut,
+                fee
+            );
     }
 
     function sortTokens(IERC20 tokenA, IERC20 tokenB)

@@ -5,6 +5,7 @@ import "./IXYZSwapRouter01.sol";
 interface IXYZSwapRouter02 is IXYZSwapRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         IERC20 token,
+        address pair,
         uint256 liquidity,
         uint256 amountTokenMin,
         uint256 amountETHMin,
@@ -14,6 +15,7 @@ interface IXYZSwapRouter02 is IXYZSwapRouter01 {
 
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
         IERC20 token,
+        address pair,
         uint256 liquidity,
         uint256 amountTokenMin,
         uint256 amountETHMin,
@@ -28,6 +30,7 @@ interface IXYZSwapRouter02 is IXYZSwapRouter01 {
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint256 amountIn,
         uint256 amountOutMin,
+        address[] calldata pairsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline
@@ -35,6 +38,7 @@ interface IXYZSwapRouter02 is IXYZSwapRouter01 {
 
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint256 amountOutMin,
+        address[] calldata pairsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline
@@ -43,6 +47,7 @@ interface IXYZSwapRouter02 is IXYZSwapRouter01 {
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
         uint256 amountIn,
         uint256 amountOutMin,
+        address[] calldata pairsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline

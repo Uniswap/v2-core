@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "../interfaces/IXYZSwapCallee.sol";
+import "../interfaces/IXYZSwapFactory.sol";
 import "../interfaces/IWETH.sol";
 import "../libraries/XYZSwapLibrary.sol";
 
@@ -37,6 +38,8 @@ contract ExampleFlashSwap is IXYZSwapCallee {
     ) external override {
         IERC20[] memory path = new IERC20[](2);
         address[] memory path2 = new address[](2);
+        address[] memory pairsPath = new address[](1);
+        pairsPath[0] = msg.sender;
 
         uint256 amountToken;
         uint256 amountETH;
@@ -44,7 +47,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
             // scope for token{0,1}, avoids stack too deep errors
             IERC20 token0 = IXYZSwapPairExtended(msg.sender).token0();
             IERC20 token1 = IXYZSwapPairExtended(msg.sender).token1();
-            assert(msg.sender == XYZSwapLibrary.pairFor(factory, token0, token1)); // ensure that msg.sender is actually a V2 pair
+            assert(IXYZSwapFactory(factory).isPair(token0, token1, msg.sender));
             assert(amount0 == 0 || amount1 == 0); // this strategy is unidirectional
             path[0] = amount0 == 0 ? token0 : token1;
             path[1] = amount0 == 0 ? token1 : token0;
@@ -58,7 +61,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
 
         if (amountToken > 0) {
             uint256 minETH = abi.decode(data, (uint256)); // slippage parameter for V1, passed in by caller
-            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(factory, amountToken, path)[0];
+            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(amountToken, pairsPath, path)[0];
             path[1].safeApprove(address(uniswapRounter02), amountToken);
             uint256[] memory amounts = uniswapRounter02.swapExactTokensForTokens(
                 amountToken,
@@ -76,7 +79,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
             require(success, "transfer eth failed");
         } else {
             weth.withdraw(amountETH);
-            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(factory, amountETH, path)[0];
+            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(amountETH, pairsPath, path)[0];
             uint256[] memory amounts = uniswapRounter02.swapETHForExactTokens{value: amountETH}(
                 amountRequired,
                 path2,

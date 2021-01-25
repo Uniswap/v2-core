@@ -40,9 +40,9 @@ contract('XYZSwapRouter02', accounts => {
     factory = await XYZSwapFactory.new(feeSetter);
     router = await XYZSwapRouter02.new(factory.address, weth.address);
     // make a DTT<>WETH pair
-    await factory.createPair(feeToken.address, weth.address);
-    const pairAddress = await factory.getPair(feeToken.address, weth.address);
-    pair = await XYZSwapPair.at(pairAddress);
+    await factory.createPair(feeToken.address, weth.address, new BN(10000));
+    const pairAddresses = await factory.getPairs(feeToken.address, weth.address);
+    pair = await XYZSwapPair.at(pairAddresses[0]);
   });
 
   afterEach(async function () {
@@ -53,6 +53,7 @@ contract('XYZSwapRouter02', accounts => {
     await feeToken.approve(router.address, MaxUint256);
     await router.addLiquidityETH(
       feeToken.address,
+      pair.address,
       feeTokenAmount,
       feeTokenAmount,
       ethAmount,
@@ -78,6 +79,7 @@ contract('XYZSwapRouter02', accounts => {
     await pair.approve(router.address, MaxUint256, {from: liquidityProvider});
     await router.removeLiquidityETHSupportingFeeOnTransferTokens(
       feeToken.address,
+      pair.address,
       liquidity,
       feeTokenExpected,
       ethExpected,
@@ -101,6 +103,7 @@ contract('XYZSwapRouter02', accounts => {
     await expectRevert(
       router.swapExactETHForTokensSupportingFeeOnTransferTokens(
         0,
+        [pair.address],
         [normalToken.address, feeToken.address],
         trader,
         MaxUint256,
@@ -113,6 +116,7 @@ contract('XYZSwapRouter02', accounts => {
     );
     await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
       0,
+      [pair.address],
       [weth.address, feeToken.address],
       trader,
       MaxUint256,
@@ -138,6 +142,7 @@ contract('XYZSwapRouter02', accounts => {
       router.swapExactTokensForETHSupportingFeeOnTransferTokens(
         swapAmount,
         0,
+        [pair.address],
         [feeToken.address, normalToken.address],
         trader,
         MaxUint256,
@@ -150,6 +155,7 @@ contract('XYZSwapRouter02', accounts => {
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
       0,
+      [pair.address],
       [feeToken.address, weth.address],
       trader,
       MaxUint256,
@@ -162,6 +168,11 @@ contract('XYZSwapRouter02', accounts => {
   it('swapExactTokensForTokensSupportingFeeOnTransferTokens', async () => {
     const feeToken2 = await FeeToken.new('feeOnTransfer Token2', 'FOT2', expandTo18Decimals(100000));
 
+    /// create pair
+    await factory.createPair(feeToken.address, feeToken2.address, new BN(10000));
+    const pairAddresses = await factory.getPairs(feeToken.address, feeToken2.address);
+    tokenPair = await XYZSwapPair.at(pairAddresses[0]);
+
     const feeTokenAmount = expandTo18Decimals(5)
       .mul(new BN(100))
       .div(new BN(99));
@@ -173,6 +184,7 @@ contract('XYZSwapRouter02', accounts => {
     await router.addLiquidity(
       feeToken.address,
       feeToken2.address,
+      tokenPair.address,
       feeTokenAmount,
       feeTokenAmount2,
       feeTokenAmount,
@@ -187,6 +199,7 @@ contract('XYZSwapRouter02', accounts => {
     await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
       amountIn,
       0,
+      [tokenPair.address],
       [feeToken.address, feeToken2.address],
       trader,
       MaxUint256,
@@ -220,6 +233,7 @@ contract('XYZSwapRouter02', accounts => {
     await pair.approve(router.address, MaxUint256, {from: liquidityProvider});
     await router.removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
       feeToken.address,
+      pair.address,
       liquidity,
       feeTokenExpected,
       ethExpected,

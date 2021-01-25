@@ -4,7 +4,7 @@
 [![Build Status](https://api.travis-ci.com/xyzswap/smart-contracts.svg?branch=master&status=passed)](https://travis-ci.com/github/KyberNetwork/kyber_reserves_sc)
 
 This repository contains the xyzswap smart contracts.
-For more details, please visit [the white paper](https://github.com/xyzswap/xyz-protocol/blob/main/xyz.pdf) and our [change log](CHANGELOG.md) (compared to uniswap)
+For more details, please visit the white paper([dynamic fee](https://github.com/xyzswap/xyz-protocol/blob/main/xyz.pdf)  and [amplfication algorithm](https://github.com/xyzswap/xyz-protocol/blob/main/apr_v2.pdf))and our [change log](CHANGELOG.md) (compared to uniswap)
 
 ## Package Manager
 We use `yarn` as the package manager. You may use `npm` and `npx` instead, but commands in bash scripts may have to be changed accordingly.
