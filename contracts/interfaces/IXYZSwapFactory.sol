@@ -9,11 +9,11 @@ interface IXYZSwapFactory {
         uint32 ampBps
     ) external returns (address pair);
 
-    function setFeeTo(address) external;
+    function setFeeConfiguration(address feeTo, uint16 governmentFeeBps) external;
 
     function setFeeToSetter(address) external;
 
-    function feeTo() external view returns (address);
+    function getFeeConfiguration() external view returns (address feeTo, uint16 governmentFeeBps);
 
     function feeToSetter() external view returns (address);
 

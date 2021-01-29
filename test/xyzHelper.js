@@ -28,10 +28,13 @@ module.exports.getAmountIn = async (amountOut, tokenIn, pair) => {
   return (amountIn = numerator.add(denominator.sub(new BN(1))).div(denominator));
 };
 
-module.exports.getFee = (totalSuppy, k, kLast) => {
+module.exports.getFee = (totalSuppy, k, kLast, governmentFeeBps) => {
   const rootK = Helper.sqrt(k);
   const rootKLast = Helper.sqrt(kLast);
-  return totalSuppy.mul(rootK.sub(rootKLast)).div(rootK.mul(new BN(5)).add(rootKLast));
+  return totalSuppy
+    .mul(rootK.sub(rootKLast))
+    .mul(governmentFeeBps)
+    .div(rootK.add(rootKLast).mul(new BN(5000)));
 };
 
 // get price range of token1 / token0

@@ -502,13 +502,14 @@ contract('XYZSwapPair', function (accounts) {
     it('feeTo:on non-amp pair', async () => {
       const token0Amount = expandTo18Decimals(1000);
       const token1Amount = expandTo18Decimals(1000);
+      const governmentFeeBps = new BN(1000);
 
       [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
-      await factory.setFeeTo(feeTo, {from: accounts[0]});
+      await factory.setFeeConfiguration(feeTo, governmentFeeBps, {from: accounts[0]});
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
       let totalSuppy = await pair.totalSupply();
 
-      const rootKLast = Helper.sqrt(token1Amount.mul(token0Amount));
+      const kLast = token1Amount.mul(token0Amount);
       Helper.assertEqual(await pair.kLast(), token1Amount.mul(token0Amount));
 
       const swapAmount = expandTo18Decimals(1);
@@ -521,8 +522,8 @@ contract('XYZSwapPair', function (accounts) {
       await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
       await pair.burn(liquidityProvider);
 
-      const rootK = Helper.sqrt(token1Amount.add(swapAmount).mul(token0Amount.sub(amountOut)));
-      let fee = totalSuppy.mul(rootK.sub(rootKLast)).div(rootK.mul(new BN(5)).add(rootKLast));
+      const k = token1Amount.add(swapAmount).mul(token0Amount.sub(amountOut));
+      let fee = await XyzHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
       Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
@@ -532,7 +533,7 @@ contract('XYZSwapPair', function (accounts) {
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
 
       // disable fee again
-      await factory.setFeeTo(constants.ZERO_ADDRESS, {from: accounts[0]});
+      await factory.setFeeConfiguration(constants.ZERO_ADDRESS, governmentFeeBps, {from: accounts[0]});
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       tradeInfo = await pair.getTradeInfo();
@@ -550,9 +551,10 @@ contract('XYZSwapPair', function (accounts) {
       const token1Amount = expandTo18Decimals(1000);
       const vToken0Amount = token0Amount.mul(ampBps).div(Helper.BPS);
       const vToken1Amount = token1Amount.mul(ampBps).div(Helper.BPS);
+      const governmentFeeBps = new BN(1000);
 
       [factory, pair] = await setupPair(admin, token0, token1, ampBps);
-      await factory.setFeeTo(feeTo, {from: accounts[0]});
+      await factory.setFeeConfiguration(feeTo, governmentFeeBps, {from: accounts[0]});
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
       let totalSuppy = await pair.totalSupply();
 
@@ -570,7 +572,7 @@ contract('XYZSwapPair', function (accounts) {
       await pair.burn(liquidityProvider);
 
       const k = vToken1Amount.add(swapAmount).mul(vToken0Amount.sub(amountOut));
-      let fee = XyzHelper.getFee(totalSuppy, k, kLast);
+      let fee = XyzHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
       Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
@@ -580,7 +582,7 @@ contract('XYZSwapPair', function (accounts) {
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
 
       // disable fee again
-      await factory.setFeeTo(constants.ZERO_ADDRESS, {from: accounts[0]});
+      await factory.setFeeConfiguration(constants.ZERO_ADDRESS, governmentFeeBps, {from: accounts[0]});
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       tradeInfo = await pair.getTradeInfo();
@@ -609,6 +611,12 @@ contract('XYZSwapPair', function (accounts) {
       await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
       await pair.burn(liquidityProvider);
       Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY);
+      Helper.assertEqual(await pair.kLast(), new BN(0));
+      // turn on fee.
+      await factory.setFeeConfiguration(feeTo, new BN(1000));
+      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      Helper.assertGreater(await pair.kLast(), new BN(0));
+      Helper.assertEqual(await pair.balanceOf(feeTo), new BN(0));
     });
 
     it('feeTo:off amp pair', async () => {
@@ -687,6 +695,10 @@ contract('XYZSwapPair', function (accounts) {
     Helper.assertEqual(tradeInfo._reserve1, expandTo18Decimals(1000));
     Helper.assertEqual(tradeInfo._vReserve0, expandTo18Decimals(2000));
     Helper.assertEqual(tradeInfo._vReserve1, expandTo18Decimals(2000));
+    // test case overflow
+    await token0.transfer(pair.address, new BN(2).pow(new BN(112)));
+    await expectRevert(pair.sync(), 'XYZSwap: OVERFLOW');
+    await pair.skim(trader);
   });
 });
 

@@ -10,7 +10,8 @@ contract XYZSwapFactory is IXYZSwapFactory {
 
     uint256 internal constant BPS = 10000;
 
-    address public override feeTo;
+    address private feeTo;
+    uint16 private governmentFeeBps;
     address public override feeToSetter;
 
     mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
@@ -24,6 +25,8 @@ contract XYZSwapFactory is IXYZSwapFactory {
         uint32 ampBps,
         uint256 totalPair
     );
+    event SetFeeConfiguration(address feeTo, uint16 governmentFeeBps);
+    event SetFeeToSetter(address feeToSetter);
 
     constructor(address _feeToSetter) public {
         feeToSetter = _feeToSetter;
@@ -38,7 +41,7 @@ contract XYZSwapFactory is IXYZSwapFactory {
         (IERC20 token0, IERC20 token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(address(token0) != address(0), "XYZSwap: ZERO_ADDRESS");
         require(ampBps >= BPS, "XYZSwap: INVALID_BPS");
-        // only exist 1 non-amplificaiton pool of a pair.
+        // only exist 1 non-amplification pool of a pair.
         require(
             ampBps != BPS || getNonAmpPair[token0][token1] == address(0),
             "XYZSwap: PAIR_EXISTS"
@@ -57,14 +60,30 @@ contract XYZSwapFactory is IXYZSwapFactory {
         emit PairCreated(token0, token1, pair, ampBps, allPairs.length);
     }
 
-    function setFeeTo(address _feeTo) external override {
+    function setFeeConfiguration(address _feeTo, uint16 _governmentFeeBps) external override {
         require(msg.sender == feeToSetter, "XYZSwap: FORBIDDEN");
+        require(_governmentFeeBps > 0 && _governmentFeeBps < 2000, "XYZSwap: INVALID FEE");
         feeTo = _feeTo;
+        governmentFeeBps = _governmentFeeBps;
+
+        emit SetFeeConfiguration(_feeTo, _governmentFeeBps);
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
         require(msg.sender == feeToSetter, "XYZSwap: FORBIDDEN");
         feeToSetter = _feeToSetter;
+
+        emit SetFeeToSetter(_feeToSetter);
+    }
+
+    function getFeeConfiguration()
+        external
+        override
+        view
+        returns (address _feeTo, uint16 _governmentFeeBps)
+    {
+        _feeTo = feeTo;
+        _governmentFeeBps = governmentFeeBps;
     }
 
     function allPairsLength() external override view returns (uint256) {

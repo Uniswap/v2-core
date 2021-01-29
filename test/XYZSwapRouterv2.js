@@ -98,6 +98,8 @@ contract('XYZSwapRouter02', accounts => {
       .div(new BN(99));
     const ethAmount = expandTo18Decimals(5);
     const swapAmount = expandTo18Decimals(1);
+    const pairsPath = [pair.address];
+    const path = [weth.address, feeToken.address];
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
 
     await expectRevert(
@@ -114,17 +116,26 @@ contract('XYZSwapRouter02', accounts => {
       ),
       'XYZSwapRouter: INVALID_PATH'
     );
-    await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
-      0,
-      [pair.address],
-      [weth.address, feeToken.address],
-      trader,
-      MaxUint256,
-      {
-        from: trader,
-        value: swapAmount
-      }
+
+    const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
+    await expectRevert(
+      router.swapExactETHForTokensSupportingFeeOnTransferTokens(
+        amounts[amounts.length - 1],
+        pairsPath,
+        path,
+        trader,
+        MaxUint256,
+        {
+          from: trader,
+          value: swapAmount
+        }
+      ),
+      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
+    await router.swapExactETHForTokensSupportingFeeOnTransferTokens(0, pairsPath, path, trader, MaxUint256, {
+      from: trader,
+      value: swapAmount
+    });
   });
 
   // DTT -> ETH
@@ -132,6 +143,8 @@ contract('XYZSwapRouter02', accounts => {
     const feeTokenAmount = expandTo18Decimals(5)
       .mul(new BN(100))
       .div(new BN(99));
+    const path = [feeToken.address, weth.address];
+    const pairsPath = [pair.address];
     const ethAmount = expandTo18Decimals(10);
     const swapAmount = expandTo18Decimals(1);
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
@@ -142,7 +155,7 @@ contract('XYZSwapRouter02', accounts => {
       router.swapExactTokensForETHSupportingFeeOnTransferTokens(
         swapAmount,
         0,
-        [pair.address],
+        pairsPath,
         [feeToken.address, normalToken.address],
         trader,
         MaxUint256,
@@ -152,11 +165,26 @@ contract('XYZSwapRouter02', accounts => {
       ),
       'XYZSwapRouter: INVALID_PATH'
     );
+    const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
+    await expectRevert(
+      router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        swapAmount,
+        amounts[amounts.length - 1],
+        pairsPath,
+        path,
+        trader,
+        MaxUint256,
+        {
+          from: trader
+        }
+      ),
+      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+    );
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
       0,
-      [pair.address],
-      [feeToken.address, weth.address],
+      pairsPath,
+      path,
       trader,
       MaxUint256,
       {
@@ -195,6 +223,20 @@ contract('XYZSwapRouter02', accounts => {
 
     await feeToken.approve(router.address, MaxUint256, {from: trader});
     await feeToken.transfer(trader, amountIn.mul(new BN(2)));
+
+    const amounts = await router.getAmountsOut(amountIn, [tokenPair.address], [feeToken.address, feeToken2.address]);
+    await expectRevert(
+      router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        amountIn,
+        amounts[amounts.length - 1],
+        [tokenPair.address],
+        [feeToken.address, feeToken2.address],
+        trader,
+        MaxUint256,
+        {from: trader}
+      ),
+      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+    );
 
     await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
       amountIn,

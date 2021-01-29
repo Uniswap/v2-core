@@ -47,8 +47,14 @@ contract('XYZSwapFactory', function (accounts) {
   });
 
   it('set FeeTo', async () => {
-    await expectRevert(factory.setFeeTo(feeTo), 'XYZSwap: FORBIDDEN');
-    await factory.setFeeTo(feeTo, {from: feeToSetter});
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(1000)), 'XYZSwap: FORBIDDEN');
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(2000), {from: feeToSetter}), 'XYZSwap: INVALID FEE');
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(0), {from: feeToSetter}), 'XYZSwap: INVALID FEE');
+    await factory.setFeeConfiguration(feeTo, new BN(1000), {from: feeToSetter});
+
+    let config = await factory.getFeeConfiguration();
+    assert(config[0] == feeTo, 'unexpected feTo');
+    Helper.assertEqual(config[1], new BN(1000));
   });
 
   it('set feeToSetter', async () => {

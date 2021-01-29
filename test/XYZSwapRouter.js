@@ -737,11 +737,11 @@ contract('XYZSwapRouter', function (accounts) {
 
     it('getAmountIn', async () => {
       [factory, pair] = await setupPair(feeToSetter, token0, token1, new BN(20000));
-      const router = await XYZSwapRouter.new(factory.address, weth.address);
+      let router = await XYZSwapRouter.new(factory.address, weth.address);
       const token0Amount = Helper.expandTo18Decimals(5);
       const token1Amount = Helper.expandTo18Decimals(10);
       const swapAmount = Helper.expandTo18Decimals(1);
-      const pairsPath = [pair.address];
+      let pairsPath = [pair.address];
       const path = [token0.address, token1.address];
       // revert if there is no liquidity
       await expectRevert(router.getAmountsIn(swapAmount, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
@@ -752,7 +752,7 @@ contract('XYZSwapRouter', function (accounts) {
         router.getAmountsIn(new BN(0), pairsPath, path),
         'XYZSwapLibrary: INSUFFICIENT_OUTPUT_AMOUNT'
       );
-      // special case virtual balance is not enough for trade
+      // special case real balance is not enough for trade
       await expectRevert(
         router.getAmountsIn(token1Amount.add(new BN(1)), pairsPath, path),
         'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY'
@@ -766,6 +766,13 @@ contract('XYZSwapRouter', function (accounts) {
       Helper.assertGreater(swapAmount, amounts[amounts.length - 1]);
       amounts = await router.getAmountsOut(amountIn, pairsPath, path);
       Helper.assertEqual(swapAmount, amounts[amounts.length - 1]);
+
+      // special case non amp pair.
+      [factory, pair] = await setupPair(feeToSetter, token0, token1, new BN(10000));
+      router = await XYZSwapRouter.new(factory.address, weth.address);
+      await addLiquidity(liquidityProvider, pair, token0, token1, token0Amount, token1Amount);
+      pairsPath = [pair.address];
+      await expectRevert(router.getAmountsIn(token1Amount, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
     });
   });
 

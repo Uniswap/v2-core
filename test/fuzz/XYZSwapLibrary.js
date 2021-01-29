@@ -1,10 +1,13 @@
 const XYZSwapFactory = artifacts.require('XYZSwapFactory');
-const XYZSwapPair = artifacts.require('MockXYZSwapPair');
+const MockXYZSwapPair = artifacts.require('MockXYZSwapPair');
+const XYZSwapPair = artifacts.require('XYZSwapPair');
+
 const XYZSwapLibrary = artifacts.require('MockXYZSwapLibrary');
 const TestToken = artifacts.require('TestToken');
 
 const BN = web3.utils.BN;
-const {expectRevert} = require('@openzeppelin/test-helpers');
+const {expectRevert, constants} = require('@openzeppelin/test-helpers');
+const {expect} = require('chai');
 const Helper = require('../helper');
 
 let factory;
@@ -19,6 +22,17 @@ contract('XYZSwapLibrary', function (accounts) {
     [factory, token0, token1, pair] = await setupPair(accounts[0], library, false);
     liquidityProvider = accounts[1];
   });
+
+  it('sortToken', async () => {
+    await factory.createPair(token0.address, token1.address, new BN(20000));
+    const pairAddresses = await factory.getPairs(token0.address, token1.address);
+    const pair = await XYZSwapPair.at(pairAddresses[0]);
+    expect(await pair.token0(), token0.address);
+
+    await expectRevert(library.sortTokens(token0.address, token0.address), 'XYZSwapLibrary: IDENTICAL_ADDRESSES');
+    await expectRevert(library.sortTokens(token0.address, constants.ZERO_ADDRESS), 'XYZSwapLibrary: ZERO_ADDRESS');
+  });
+
   const minReserve = new BN(10).pow(new BN(10));
   const maxReserve = new BN(10).pow(new BN(11));
 
@@ -83,7 +97,7 @@ async function setupPair (admin, library, isAmpPool) {
   const token0 = tokenA.address === result.token0 ? tokenA : tokenB;
   const token1 = tokenA.address === result.token0 ? tokenB : tokenA;
 
-  const pair = await XYZSwapPair.new(factory.address, token0.address, token1.address, isAmpPool);
+  const pair = await MockXYZSwapPair.new(factory.address, token0.address, token1.address, isAmpPool);
   return [factory, token0, token1, pair];
 }
 

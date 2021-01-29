@@ -99,7 +99,10 @@ library XYZSwapLibrary {
         uint256 feeInPrecision
     ) internal pure returns (uint256 amountIn) {
         require(amountOut > 0, "XYZSwapLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut >= amountOut, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
+        require(
+            reserveIn > 0 && reserveOut >= amountOut && vReserveOut > amountOut,
+            "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY"
+        );
         uint256 numerator = vReserveIn.mul(amountOut);
         uint256 denominator = vReserveOut.sub(amountOut);
         amountIn = numerator.div(denominator).add(1);

@@ -29,7 +29,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     }
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
-
+    /// @dev To make etherscan auto-verify new pair, these variables are not immutable
     IXYZSwapFactory public factory;
     IERC20 public token0;
     IERC20 public token1;
@@ -38,7 +38,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     uint112 internal reserve0;
     uint112 internal reserve1;
     uint32 internal blockTimestampLast;
-    uint32 internal ampBps;
+    uint32 public ampBps;
     /// @dev addition param only when pool is amp
     uint112 internal vReserve0;
     uint112 internal vReserve1;
@@ -320,7 +320,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
 
     /// @dev if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(bool isAmpPool, ReserveData memory data) internal returns (bool feeOn) {
-        address feeTo = factory.feeTo();
+        (address feeTo, uint16 governmentFeeBps) = factory.getFeeConfiguration();
         feeOn = feeTo != address(0);
         uint256 _kLast = kLast; // gas savings
         if (feeOn) {
@@ -328,9 +328,10 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
                 uint256 rootK = MathExt.sqrt(getK(isAmpPool, data));
                 uint256 rootKLast = MathExt.sqrt(_kLast);
                 if (rootK > rootKLast) {
-                    uint256 numerator = totalSupply().mul(rootK.sub(rootKLast));
-                    /// TODO: later change this configuration
-                    uint256 denominator = rootK.mul(5).add(rootKLast);
+                    uint256 numerator = totalSupply().mul(rootK.sub(rootKLast)).mul(
+                        governmentFeeBps
+                    );
+                    uint256 denominator = rootK.add(rootKLast).mul(5000);
                     uint256 liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
