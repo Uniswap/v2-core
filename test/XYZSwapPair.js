@@ -313,6 +313,72 @@ contract('XYZSwapPair', function (accounts) {
       console.log(`nonAmpPair swap gasUsed = ${txResult.receipt.gasUsed}`);
     });
 
+    [20000, 50000, 200000, 1000000].forEach(ampBPS => {
+      it(`swap: token0 stable pair ampBPS = ${ampBPS}`, async () => {
+        [factory, pair] = await setupPair(admin, token0, token1, new BN(ampBPS));
+        const token0Amount = expandTo18Decimals(10);
+        const token1Amount = expandTo18Decimals(10);
+        const swapAmount = expandTo18Decimals(1);
+
+        await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+        let tradeInfo = await pair.getTradeInfo();
+        console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
+
+        let amountOut = await XyzHelper.getAmountOut(swapAmount, token0, pair);
+
+        let beforeBalanceToken0 = await token0.balanceOf(trader);
+        let beforeBalanceToken1 = await token1.balanceOf(trader);
+        await token0.transfer(pair.address, swapAmount);
+
+        await expectRevert(pair.swap(new BN(0), amountOut.add(new BN(1)), trader, '0x', {from: app}), 'XYZSwap: K');
+
+        let result = await pair.swap(new BN(0), amountOut, trader, '0x', {from: app});
+        console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
+
+        await assertTokenPairBalances(token0, token1, pair.address, [
+          token0Amount.add(swapAmount),
+          token1Amount.sub(amountOut)
+        ]);
+
+        await assertTokenPairBalances(token0, token1, trader, [
+          beforeBalanceToken0,
+          beforeBalanceToken1.add(amountOut)
+        ]);
+      });
+
+      it(`swap: token1 stable pair ampBPS = ${ampBPS}`, async () => {
+        [factory, pair] = await setupPair(admin, token0, token1, new BN(ampBPS));
+        const token0Amount = expandTo18Decimals(10);
+        const token1Amount = expandTo18Decimals(10);
+        const swapAmount = expandTo18Decimals(1);
+
+        await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+
+        let tradeInfo = await pair.getTradeInfo();
+        console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
+        let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+
+        let beforeBalanceToken0 = await token0.balanceOf(trader);
+        let beforeBalanceToken1 = await token1.balanceOf(trader);
+        await token1.transfer(pair.address, swapAmount);
+
+        await expectRevert(pair.swap(amountOut.add(new BN(1)), new BN(0), trader, '0x', {from: app}), 'XYZSwap: K');
+
+        let result = await pair.swap(amountOut, new BN(0), trader, '0x', {from: app});
+        console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
+
+        await assertTokenPairBalances(token0, token1, pair.address, [
+          token0Amount.sub(amountOut),
+          token1Amount.add(swapAmount)
+        ]);
+
+        await assertTokenPairBalances(token0, token1, trader, [
+          beforeBalanceToken0.add(amountOut),
+          beforeBalanceToken1
+        ]);
+      });
+    });
+
     it('swap:token1 amp pair', async () => {
       [factory, pair] = await setupPair(admin, token0, token1, ampBps);
       const token0Amount = expandTo18Decimals(5);

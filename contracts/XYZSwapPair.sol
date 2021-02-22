@@ -20,6 +20,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
 
     uint256 internal constant MAX_UINT112 = 2**112 - 1;
     uint256 internal constant BPS = 10000;
+    uint256 internal constant AMP_STABLE_PAIR_THRESHOLD = 80 * BPS;
 
     struct ReserveData {
         uint256 reserve0;
@@ -252,15 +253,15 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
-        if (ampBps != BPS) {
-            _vReserve0 = vReserve0;
-            _vReserve1 = vReserve1;
-        } else {
+        uint32 _ampBps = ampBps;
+        _vReserve0 = vReserve0;
+        _vReserve1 = vReserve1;
+        if (ampBps == BPS) {
             _vReserve0 = _reserve0;
             _vReserve1 = _reserve1;
         }
         uint256 rFactorInPrecision = getRFactor(block.number);
-        feeInPrecision = FeeFomula.getFee(rFactorInPrecision);
+        feeInPrecision = getFinalFee(FeeFomula.getFee(rFactorInPrecision), _ampBps);
     }
 
     /// @dev returns reserve data to calculate amount to add liquidity
@@ -290,7 +291,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         // volume = beforeReserve0 * amount1In / beforeReserve1 + amount0In (normalized into amount in token 0)
         uint256 volume = beforeReserve0.mul(amount1In).div(beforeReserve1).add(amount0In);
         uint256 rFactorInPrecision = recordNewUpdatedVolume(block.number, volume);
-        feeInPrecision = FeeFomula.getFee(rFactorInPrecision);
+        feeInPrecision = getFinalFee(FeeFomula.getFee(rFactorInPrecision), ampBps);
         //verify balance update is match with fomula
         uint256 balance0Adjusted = afterReserve0.mul(PRECISION);
         balance0Adjusted = balance0Adjusted.sub(amount0In.mul(feeInPrecision));
@@ -349,6 +350,18 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         if (isAmpPool) {
             data.vReserve0 = vReserve0;
             data.vReserve1 = vReserve1;
+        }
+    }
+
+    function getFinalFee(uint256 feeInPrecision, uint32 _ampBps) internal pure returns (uint256) {
+        if (_ampBps <= 20000) {
+            return feeInPrecision;
+        } else if (_ampBps <= 50000) {
+            return (feeInPrecision * 20) / 30;
+        } else if (_ampBps <= 200000) {
+            return (feeInPrecision * 10) / 30;
+        } else {
+            return (feeInPrecision * 4) / 30;
         }
     }
 
