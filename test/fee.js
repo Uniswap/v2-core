@@ -35,7 +35,7 @@ contract('FeeTo', accounts => {
     let epoch = new BN(1);
     const dao = await MockKyberDao.new(new BN(0), new BN(0), epoch, new BN(0));
     const feeTo = await FeeTo.new(dao.address, daoOperator);
-    await factory.setFeeTo(feeTo.address, {from: feeToSetter});
+    await factory.setFeeConfiguration(feeTo.address, new BN(1000), {from: feeToSetter});
     await feeTo.setAllowedToken(pair.address, true, {from: daoOperator});
 
     /// setup router
