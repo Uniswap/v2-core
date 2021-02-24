@@ -14,6 +14,8 @@ interface IXYZSwapPair {
         bytes calldata data
     ) external;
 
+    function sync() external;
+
     function getReserves()
         external
         view

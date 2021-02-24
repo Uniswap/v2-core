@@ -219,8 +219,9 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     }
 
     /// @dev force reserves to match balances
-    function sync() external nonReentrant {
+    function sync() external override nonReentrant {
         (bool isAmpPool, ReserveData memory data) = getReservesData();
+        bool feeOn = _mintFee(isAmpPool, data);
         ReserveData memory newData;
         newData.reserve0 = IERC20(token0).balanceOf(address(this));
         newData.reserve1 = IERC20(token1).balanceOf(address(this));
@@ -235,6 +236,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
             newData.vReserve1 = Math.max(data.vReserve1.mul(b) / _totalSupply, newData.reserve1);
         }
         _update(isAmpPool, newData);
+        if (feeOn) kLast = getK(isAmpPool, newData);
     }
 
     /// @dev returns data to calculate amountIn, amountOut
