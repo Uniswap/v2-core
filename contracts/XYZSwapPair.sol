@@ -20,7 +20,6 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
 
     uint256 internal constant MAX_UINT112 = 2**112 - 1;
     uint256 internal constant BPS = 10000;
-    uint256 internal constant AMP_STABLE_PAIR_THRESHOLD = 80 * BPS;
 
     struct ReserveData {
         uint256 reserve0;
@@ -253,12 +252,13 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
             uint256 feeInPrecision
         )
     {
+        // gas saving to read reserve data
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         uint32 _ampBps = ampBps;
         _vReserve0 = vReserve0;
         _vReserve1 = vReserve1;
-        if (ampBps == BPS) {
+        if (_ampBps == BPS) {
             _vReserve0 = _reserve0;
             _vReserve1 = _reserve1;
         }
