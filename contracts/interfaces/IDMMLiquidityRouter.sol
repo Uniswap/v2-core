@@ -3,7 +3,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev an simple interface for integration dApp to contribute liquidity
-interface IXYZSwapLiquidityRouter {
+interface IDMMLiquidityRouter {
     function addLiquidity(
         IERC20 tokenA,
         IERC20 tokenB,

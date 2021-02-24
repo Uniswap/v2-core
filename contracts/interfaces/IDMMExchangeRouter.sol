@@ -3,7 +3,7 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev an simple interface for integration dApp to swap
-interface IXYZSwapExchangeRouter {
+interface IDMMExchangeRouter {
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,

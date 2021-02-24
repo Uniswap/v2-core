@@ -1,5 +1,5 @@
 const DaoRegistry = artifacts.require('DaoRegistry');
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
+const DMMFactory = artifacts.require('DMMFactory');
 const TestToken = artifacts.require('TestToken');
 
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
@@ -20,7 +20,7 @@ contract('DaoRegistry', accounts => {
     let tokenB = await TestToken.new('test token B', 'B', Helper.MaxUint256);
     [token0, token1] = new BN(tokenA.address).lt(new BN(tokenB.address)) ? [tokenA, tokenB] : [tokenB, tokenA];
 
-    factory = await XYZSwapFactory.new(accounts[0]);
+    factory = await DMMFactory.new(accounts[0]);
     registry = await DaoRegistry.new(factory.address, {from: owner});
   });
 

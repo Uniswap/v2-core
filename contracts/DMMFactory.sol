@@ -2,10 +2,10 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
-import "./interfaces/IXYZSwapFactory.sol";
-import "./XYZSwapPair.sol";
+import "./interfaces/IDMMFactory.sol";
+import "./DMMPool.sol";
 
-contract XYZSwapFactory is IXYZSwapFactory {
+contract DMMFactory is IDMMFactory {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 internal constant BPS = 10000;
@@ -37,17 +37,14 @@ contract XYZSwapFactory is IXYZSwapFactory {
         IERC20 tokenB,
         uint32 ampBps
     ) external override returns (address pair) {
-        require(tokenA != tokenB, "XYZSwap: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "DMM: IDENTICAL_ADDRESSES");
         (IERC20 token0, IERC20 token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(address(token0) != address(0), "XYZSwap: ZERO_ADDRESS");
-        require(ampBps >= BPS, "XYZSwap: INVALID_BPS");
+        require(address(token0) != address(0), "DMM: ZERO_ADDRESS");
+        require(ampBps >= BPS, "DMM: INVALID_BPS");
         // only exist 1 non-amplification pool of a pair.
-        require(
-            ampBps != BPS || getNonAmpPair[token0][token1] == address(0),
-            "XYZSwap: PAIR_EXISTS"
-        );
-        pair = address(new XYZSwapPair());
-        XYZSwapPair(pair).initialize(token0, token1, ampBps);
+        require(ampBps != BPS || getNonAmpPair[token0][token1] == address(0), "DMM: PAIR_EXISTS");
+        pair = address(new DMMPool());
+        DMMPool(pair).initialize(token0, token1, ampBps);
         // populate mapping in the reverse direction
         tokenPairs[token0][token1].add(pair);
         tokenPairs[token1][token0].add(pair);
@@ -61,8 +58,8 @@ contract XYZSwapFactory is IXYZSwapFactory {
     }
 
     function setFeeConfiguration(address _feeTo, uint16 _governmentFeeBps) external override {
-        require(msg.sender == feeToSetter, "XYZSwap: FORBIDDEN");
-        require(_governmentFeeBps > 0 && _governmentFeeBps < 2000, "XYZSwap: INVALID FEE");
+        require(msg.sender == feeToSetter, "DMM: FORBIDDEN");
+        require(_governmentFeeBps > 0 && _governmentFeeBps < 2000, "DMM: INVALID FEE");
         feeTo = _feeTo;
         governmentFeeBps = _governmentFeeBps;
 
@@ -70,7 +67,7 @@ contract XYZSwapFactory is IXYZSwapFactory {
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, "XYZSwap: FORBIDDEN");
+        require(msg.sender == feeToSetter, "DMM: FORBIDDEN");
         feeToSetter = _feeToSetter;
 
         emit SetFeeToSetter(_feeToSetter);

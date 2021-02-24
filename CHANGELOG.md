@@ -1,4 +1,4 @@
-### XYZ model: change fee calculation based on reserve and volume
+### Dynamic fee model: change fee calculation based on reserve and volume
 - [The white paper](https://github.com/xyzswap/xyz-protocol/blob/main/xyz.pdf)
 - Ema volume is implemented at [here](contracts/VolumeTrendRecorder.sol)
 - Fee fomula is implemented at [here](contracts/libraries/FeeFomula.sol)

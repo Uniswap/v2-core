@@ -2,9 +2,9 @@ const {artifacts} = require('hardhat');
 const BN = web3.utils.BN;
 const Helper = require('./helper');
 
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
-const XYZSwapRouter02 = artifacts.require('XYZSwapRouter02');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
+const DMMFactory = artifacts.require('DMMFactory');
+const DMMRouter02 = artifacts.require('DMMRouter02');
+const DMMPool = artifacts.require('DMMPool');
 const FeeTo = artifacts.require('FeeTo');
 const MockKyberDao = artifacts.require('MockKyberDao');
 const WETH = artifacts.require('WETH9');
@@ -26,10 +26,10 @@ contract('FeeTo', accounts => {
   });
 
   it('demo feeTo', async () => {
-    let factory = await XYZSwapFactory.new(feeToSetter);
+    let factory = await DMMFactory.new(feeToSetter);
     await factory.createPair(weth.address, token.address, new BN(10000));
     const pairAddress = await factory.getNonAmpPair(weth.address, token.address);
-    const pair = await XYZSwapPair.at(pairAddress);
+    const pair = await DMMPool.at(pairAddress);
 
     /// setup dao and feeTo
     let epoch = new BN(1);
@@ -39,7 +39,7 @@ contract('FeeTo', accounts => {
     await feeTo.setAllowedToken(pair.address, true, {from: daoOperator});
 
     /// setup router
-    let router = await XYZSwapRouter02.new(factory.address, weth.address);
+    let router = await DMMRouter02.new(factory.address, weth.address);
 
     await token.approve(router.address, Helper.MaxUint256);
     await router.addLiquidityETH(

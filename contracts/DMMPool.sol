@@ -9,12 +9,12 @@ import "./libraries/MathExt.sol";
 import "./libraries/FeeFomula.sol";
 import "./libraries/ERC20Permit.sol";
 
-import "./interfaces/IXYZSwapFactory.sol";
-import "./interfaces/IXYZSwapCallee.sol";
-import "./interfaces/IXYZSwapPair.sol";
+import "./interfaces/IDMMFactory.sol";
+import "./interfaces/IDMMCallee.sol";
+import "./interfaces/IDMMPool.sol";
 import "./VolumeTrendRecorder.sol";
 
-contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder {
+contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -30,7 +30,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
     /// @dev To make etherscan auto-verify new pair, these variables are not immutable
-    IXYZSwapFactory public factory;
+    IDMMFactory public factory;
     IERC20 public token0;
     IERC20 public token1;
 
@@ -59,8 +59,8 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     );
     event Sync(uint256 vReserve0, uint256 vReserve1, uint256 reserve0, uint256 reserve1);
 
-    constructor() public ERC20Permit("XYZSwap LP", "XYZ-LP", "1") VolumeTrendRecorder(0) {
-        factory = IXYZSwapFactory(msg.sender);
+    constructor() public ERC20Permit("DMM LP", "XYZ-LP", "1") VolumeTrendRecorder(0) {
+        factory = IDMMFactory(msg.sender);
     }
 
     // called once by the factory at time of deployment
@@ -69,7 +69,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         IERC20 _token1,
         uint32 _ampBps
     ) external {
-        require(msg.sender == address(factory), "XYZSwap: FORBIDDEN"); // sufficient check
+        require(msg.sender == address(factory), "DMM: FORBIDDEN"); // sufficient check
         token0 = _token0;
         token1 = _token1;
         ampBps = _ampBps;
@@ -106,7 +106,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
                 _data.vReserve1 = Math.max(data.vReserve1.mul(b) / _totalSupply, _data.reserve1);
             }
         }
-        require(liquidity > 0, "XYZSwap: INSUFFICIENT_LIQUIDITY_MINTED");
+        require(liquidity > 0, "DMM: INSUFFICIENT_LIQUIDITY_MINTED");
         _mint(to, liquidity);
 
         _update(isAmpPool, _data);
@@ -129,17 +129,14 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
 
         uint256 balance0 = _token0.balanceOf(address(this));
         uint256 balance1 = _token1.balanceOf(address(this));
-        require(
-            balance0 >= data.reserve0 && balance1 >= data.reserve1,
-            "XYZSwap: UNSYNC_RESERVES"
-        );
+        require(balance0 >= data.reserve0 && balance1 >= data.reserve1, "DMM: UNSYNC_RESERVES");
         uint256 liquidity = balanceOf(address(this));
 
         bool feeOn = _mintFee(isAmpPool, data);
         uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
-        require(amount0 > 0 && amount1 > 0, "XYZSwap: INSUFFICIENT_LIQUIDITY_BURNED");
+        require(amount0 > 0 && amount1 > 0, "DMM: INSUFFICIENT_LIQUIDITY_BURNED");
         _burn(address(this), liquidity);
         _token0.safeTransfer(to, amount0);
         _token1.safeTransfer(to, amount1);
@@ -167,11 +164,11 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         address to,
         bytes calldata callbackData
     ) external override nonReentrant {
-        require(amount0Out > 0 || amount1Out > 0, "XYZSwap: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(amount0Out > 0 || amount1Out > 0, "DMM: INSUFFICIENT_OUTPUT_AMOUNT");
         (bool isAmpPool, ReserveData memory data) = getReservesData(); // gas savings
         require(
             amount0Out < data.reserve0 && amount1Out < data.reserve1,
-            "XYZSwap: INSUFFICIENT_LIQUIDITY"
+            "DMM: INSUFFICIENT_LIQUIDITY"
         );
 
         ReserveData memory newData;
@@ -179,11 +176,11 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
             // scope for _token{0,1}, avoids stack too deep errors
             IERC20 _token0 = token0;
             IERC20 _token1 = token1;
-            require(to != address(_token0) && to != address(_token1), "XYZSwap: INVALID_TO");
+            require(to != address(_token0) && to != address(_token1), "DMM: INVALID_TO");
             if (amount0Out > 0) _token0.safeTransfer(to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _token1.safeTransfer(to, amount1Out); // optimistically transfer tokens
             if (callbackData.length > 0)
-                IXYZSwapCallee(to).xyzSwapCall(msg.sender, amount0Out, amount1Out, callbackData);
+                IDMMCallee(to).dmmSwapCall(msg.sender, amount0Out, amount1Out, callbackData);
             newData.reserve0 = _token0.balanceOf(address(this));
             newData.reserve1 = _token1.balanceOf(address(this));
             if (isAmpPool) {
@@ -197,7 +194,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         uint256 amount1In = newData.reserve1 > data.reserve1 - amount1Out
             ? newData.reserve1 - (data.reserve1 - amount1Out)
             : 0;
-        require(amount0In > 0 || amount1In > 0, "XYZSwap: INSUFFICIENT_INPUT_AMOUNT");
+        require(amount0In > 0 || amount1In > 0, "DMM: INSUFFICIENT_INPUT_AMOUNT");
         uint256 feeInPrecision = verifyBalanceAndUpdateEma(
             amount0In,
             amount1In,
@@ -303,7 +300,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
         balance1Adjusted = balance1Adjusted / PRECISION;
         require(
             balance0Adjusted.mul(balance1Adjusted) >= beforeReserve0.mul(beforeReserve1),
-            "XYZSwap: K"
+            "DMM: K"
         );
     }
 
@@ -372,7 +369,7 @@ contract XYZSwapPair is IXYZSwapPair, ERC20Permit, ReentrancyGuard, VolumeTrendR
     }
 
     function safeUint112(uint256 x) internal pure returns (uint112) {
-        require(x <= MAX_UINT112, "XYZSwap: OVERFLOW");
+        require(x <= MAX_UINT112, "DMM: OVERFLOW");
         return uint112(x);
     }
 }
