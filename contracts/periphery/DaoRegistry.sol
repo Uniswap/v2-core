@@ -9,43 +9,43 @@ contract DaoRegistry is Ownable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     address public immutable factory;
-    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
+    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPools;
 
-    event AddPair(IERC20 token0, IERC20 token1, address pair, bool isAdd);
+    event AddPool(IERC20 token0, IERC20 token1, address pool, bool isAdd);
 
     constructor(address _factory) public Ownable() {
         factory = _factory;
     }
 
-    function addPair(
+    function addPool(
         IERC20 token0,
         IERC20 token1,
-        address pair,
+        address pool,
         bool isAdd
     ) external onlyOwner {
         // populate mapping in the reverse direction
         if (isAdd) {
-            require(IDMMFactory(factory).isPair(token0, token1, pair), "Registry: INVALID_PAIR");
+            require(IDMMFactory(factory).isPool(token0, token1, pool), "Registry: INVALID_POOL");
 
-            tokenPairs[token0][token1].add(pair);
-            tokenPairs[token1][token0].add(pair);
+            tokenPools[token0][token1].add(pool);
+            tokenPools[token1][token0].add(pool);
         } else {
-            tokenPairs[token0][token1].remove(pair);
-            tokenPairs[token1][token0].remove(pair);
+            tokenPools[token0][token1].remove(pool);
+            tokenPools[token1][token0].remove(pool);
         }
 
-        emit AddPair(token0, token1, pair, isAdd);
+        emit AddPool(token0, token1, pool, isAdd);
     }
 
-    function getPairs(IERC20 token0, IERC20 token1)
+    function getPools(IERC20 token0, IERC20 token1)
         external
         view
-        returns (address[] memory _tokenPairs)
+        returns (address[] memory _tokenPools)
     {
-        uint256 length = tokenPairs[token0][token1].length();
-        _tokenPairs = new address[](length);
+        uint256 length = tokenPools[token0][token1].length();
+        _tokenPools = new address[](length);
         for (uint256 i = 0; i < length; i++) {
-            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
+            _tokenPools[i] = tokenPools[token0][token1].at(i);
         }
     }
 }

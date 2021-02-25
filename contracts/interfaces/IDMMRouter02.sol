@@ -5,7 +5,7 @@ import "./IDMMRouter01.sol";
 interface IDMMRouter02 is IDMMRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         IERC20 token,
-        address pair,
+        address pool,
         uint256 liquidity,
         uint256 amountTokenMin,
         uint256 amountETHMin,
@@ -15,7 +15,7 @@ interface IDMMRouter02 is IDMMRouter01 {
 
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
         IERC20 token,
-        address pair,
+        address pool,
         uint256 liquidity,
         uint256 amountTokenMin,
         uint256 amountETHMin,
@@ -30,7 +30,7 @@ interface IDMMRouter02 is IDMMRouter01 {
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        address[] calldata pairsPath,
+        address[] calldata poolsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline
@@ -38,7 +38,7 @@ interface IDMMRouter02 is IDMMRouter01 {
 
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint256 amountOutMin,
-        address[] calldata pairsPath,
+        address[] calldata poolsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline
@@ -47,7 +47,7 @@ interface IDMMRouter02 is IDMMRouter01 {
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        address[] calldata pairsPath,
+        address[] calldata poolsPath,
         IERC20[] calldata path,
         address to,
         uint256 deadline

@@ -27,16 +27,16 @@ contract('FeeTo', accounts => {
 
   it('demo feeTo', async () => {
     let factory = await DMMFactory.new(feeToSetter);
-    await factory.createPair(weth.address, token.address, new BN(10000));
-    const pairAddress = await factory.getNonAmpPair(weth.address, token.address);
-    const pair = await DMMPool.at(pairAddress);
+    await factory.createPool(weth.address, token.address, new BN(10000));
+    const poolAddress = await factory.getUnamplifiedPool(weth.address, token.address);
+    const pool = await DMMPool.at(poolAddress);
 
     /// setup dao and feeTo
     let epoch = new BN(1);
     const dao = await MockKyberDao.new(new BN(0), new BN(0), epoch, new BN(0));
     const feeTo = await FeeTo.new(dao.address, daoOperator);
     await factory.setFeeConfiguration(feeTo.address, new BN(1000), {from: feeToSetter});
-    await feeTo.setAllowedToken(pair.address, true, {from: daoOperator});
+    await feeTo.setAllowedToken(pool.address, true, {from: daoOperator});
 
     /// setup router
     let router = await DMMRouter02.new(factory.address, weth.address);
@@ -44,7 +44,7 @@ contract('FeeTo', accounts => {
     await token.approve(router.address, Helper.MaxUint256);
     await router.addLiquidityETH(
       token.address,
-      pairAddress,
+      poolAddress,
       Helper.expandTo18Decimals(100),
       new BN(0),
       new BN(0),
@@ -55,7 +55,7 @@ contract('FeeTo', accounts => {
 
     let txResult = await router.swapExactETHForTokens(
       new BN(0),
-      [pairAddress],
+      [poolAddress],
       [weth.address, token.address],
       accounts[0],
       Helper.MaxUint256,
@@ -66,10 +66,10 @@ contract('FeeTo', accounts => {
     console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
     /// test gascost with non-zero storage cost
     await dao.advanceEpoch();
-    await feeTo.finalize(pair.address, new BN(1));
+    await feeTo.finalize(pool.address, new BN(1));
     txResult = await router.swapExactETHForTokens(
       new BN(0),
-      [pairAddress],
+      [poolAddress],
       [weth.address, token.address],
       accounts[0],
       Helper.MaxUint256,
@@ -79,6 +79,6 @@ contract('FeeTo', accounts => {
     );
     console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
 
-    console.log(await feeTo.rewardsPerEpoch(new BN(1), pair.address));
+    console.log(await feeTo.rewardsPerEpoch(new BN(1), pool.address));
   });
 });

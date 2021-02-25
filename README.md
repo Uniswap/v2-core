@@ -1,10 +1,10 @@
-# Dynamic automate market maker
+# Dynamic Automated Market Maker
 ## Introduction
 [![built-with openzeppelin](https://img.shields.io/badge/built%20with-OpenZeppelin-3677FF)](https://docs.openzeppelin.com/)
-[![Build Status](https://api.travis-ci.com/xyzswap/smart-contracts.svg?branch=master&status=passed)](https://travis-ci.com/github/KyberNetwork/kyber_reserves_sc)
+[![Build Status](https://api.travis-ci.com/dynamic-amm/smart-contracts.svg?branch=master&status=passed)](https://travis-ci.com/github/KyberNetwork/kyber_reserves_sc)
 
-This repository contains the xyzswap smart contracts.
-For more details, please visit the white paper([dynamic fee](https://github.com/xyzswap/xyz-protocol/blob/main/xyz.pdf)  and [amplfication algorithm](https://github.com/xyzswap/xyz-protocol/blob/main/apr_v2.pdf))and our [change log](CHANGELOG.md) (compared to uniswap)
+This repository contains the dynamic-amm smart contracts.
+For more details, please visit the white paper([dynamic fee](https://github.com/dynamic-amm/dmm-protocol/blob/main/xyz.pdf)  and [amplfication algorithm](https://github.com/dynamic-amm/dmm-protocol/blob/main/apr_v2.pdf))and our [change log](CHANGELOG.md) (compared to uniswap)
 
 ## Package Manager
 We use `yarn` as the package manager. You may use `npm` and `npx` instead, but commands in bash scripts may have to be changed accordingly.

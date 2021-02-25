@@ -14,16 +14,16 @@ contract DMMFactory is IDMMFactory {
     uint16 private governmentFeeBps;
     address public override feeToSetter;
 
-    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPairs;
-    mapping(IERC20 => mapping(IERC20 => address)) public override getNonAmpPair;
-    address[] public override allPairs;
+    mapping(IERC20 => mapping(IERC20 => EnumerableSet.AddressSet)) internal tokenPools;
+    mapping(IERC20 => mapping(IERC20 => address)) public override getUnamplifiedPool;
+    address[] public override allPools;
 
-    event PairCreated(
+    event PoolCreated(
         IERC20 indexed token0,
         IERC20 indexed token1,
-        address pair,
+        address pool,
         uint32 ampBps,
-        uint256 totalPair
+        uint256 totalPool
     );
     event SetFeeConfiguration(address feeTo, uint16 governmentFeeBps);
     event SetFeeToSetter(address feeToSetter);
@@ -32,29 +32,32 @@ contract DMMFactory is IDMMFactory {
         feeToSetter = _feeToSetter;
     }
 
-    function createPair(
+    function createPool(
         IERC20 tokenA,
         IERC20 tokenB,
         uint32 ampBps
-    ) external override returns (address pair) {
+    ) external override returns (address pool) {
         require(tokenA != tokenB, "DMM: IDENTICAL_ADDRESSES");
         (IERC20 token0, IERC20 token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(address(token0) != address(0), "DMM: ZERO_ADDRESS");
         require(ampBps >= BPS, "DMM: INVALID_BPS");
-        // only exist 1 non-amplification pool of a pair.
-        require(ampBps != BPS || getNonAmpPair[token0][token1] == address(0), "DMM: PAIR_EXISTS");
-        pair = address(new DMMPool());
-        DMMPool(pair).initialize(token0, token1, ampBps);
+        // only exist 1 unamplified pool of a pool.
+        require(
+            ampBps != BPS || getUnamplifiedPool[token0][token1] == address(0),
+            "DMM: UNAMPLIFIED_POOL_EXISTS"
+        );
+        pool = address(new DMMPool());
+        DMMPool(pool).initialize(token0, token1, ampBps);
         // populate mapping in the reverse direction
-        tokenPairs[token0][token1].add(pair);
-        tokenPairs[token1][token0].add(pair);
+        tokenPools[token0][token1].add(pool);
+        tokenPools[token1][token0].add(pool);
         if (ampBps == BPS) {
-            getNonAmpPair[token0][token1] = pair;
-            getNonAmpPair[token1][token0] = pair;
+            getUnamplifiedPool[token0][token1] = pool;
+            getUnamplifiedPool[token1][token0] = pool;
         }
-        allPairs.push(pair);
+        allPools.push(pool);
 
-        emit PairCreated(token0, token1, pair, ampBps, allPairs.length);
+        emit PoolCreated(token0, token1, pool, ampBps, allPools.length);
     }
 
     function setFeeConfiguration(address _feeTo, uint16 _governmentFeeBps) external override {
@@ -83,40 +86,40 @@ contract DMMFactory is IDMMFactory {
         _governmentFeeBps = governmentFeeBps;
     }
 
-    function allPairsLength() external override view returns (uint256) {
-        return allPairs.length;
+    function allPoolsLength() external override view returns (uint256) {
+        return allPools.length;
     }
 
-    function getPairs(IERC20 token0, IERC20 token1)
+    function getPools(IERC20 token0, IERC20 token1)
         external
         override
         view
-        returns (address[] memory _tokenPairs)
+        returns (address[] memory _tokenPools)
     {
-        uint256 length = tokenPairs[token0][token1].length();
-        _tokenPairs = new address[](length);
+        uint256 length = tokenPools[token0][token1].length();
+        _tokenPools = new address[](length);
         for (uint256 i = 0; i < length; i++) {
-            _tokenPairs[i] = tokenPairs[token0][token1].at(i);
+            _tokenPools[i] = tokenPools[token0][token1].at(i);
         }
     }
 
-    function getPairsLength(IERC20 token0, IERC20 token1) external view returns (uint256) {
-        return tokenPairs[token0][token1].length();
+    function getPoolsLength(IERC20 token0, IERC20 token1) external view returns (uint256) {
+        return tokenPools[token0][token1].length();
     }
 
-    function getPairAtIndex(
+    function getPoolAtIndex(
         IERC20 token0,
         IERC20 token1,
         uint256 index
-    ) external view returns (address _tokenPair) {
-        return tokenPairs[token0][token1].at(index);
+    ) external view returns (address pool) {
+        return tokenPools[token0][token1].at(index);
     }
 
-    function isPair(
+    function isPool(
         IERC20 token0,
         IERC20 token1,
-        address pair
+        address pool
     ) external override view returns (bool) {
-        return tokenPairs[token0][token1].contains(pair);
+        return tokenPools[token0][token1].contains(pool);
     }
 }

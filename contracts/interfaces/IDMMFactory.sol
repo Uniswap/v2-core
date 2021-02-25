@@ -3,11 +3,11 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IDMMFactory {
-    function createPair(
+    function createPool(
         IERC20 tokenA,
         IERC20 tokenB,
         uint32 ampBps
-    ) external returns (address pair);
+    ) external returns (address pool);
 
     function setFeeConfiguration(address feeTo, uint16 governmentFeeBps) external;
 
@@ -17,20 +17,20 @@ interface IDMMFactory {
 
     function feeToSetter() external view returns (address);
 
-    function allPairs(uint256) external view returns (address pair);
+    function allPools(uint256) external view returns (address pool);
 
-    function allPairsLength() external view returns (uint256);
+    function allPoolsLength() external view returns (uint256);
 
-    function getNonAmpPair(IERC20 token0, IERC20 token1) external view returns (address);
+    function getUnamplifiedPool(IERC20 token0, IERC20 token1) external view returns (address);
 
-    function getPairs(IERC20 token0, IERC20 token1)
+    function getPools(IERC20 token0, IERC20 token1)
         external
         view
-        returns (address[] memory _tokenPairs);
+        returns (address[] memory _tokenPools);
 
-    function isPair(
+    function isPool(
         IERC20 token0,
         IERC20 token1,
-        address pair
+        address pool
     ) external view returns (bool);
 }

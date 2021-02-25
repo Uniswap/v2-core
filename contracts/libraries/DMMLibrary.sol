@@ -10,7 +10,7 @@ library DMMLibrary {
 
     uint256 public constant PRECISION = 1e18;
 
-    // returns sorted token addresses, used to handle return values from pairs sorted in this order
+    // returns sorted token addresses, used to handle return values from pools sorted in this order
     function sortTokens(IERC20 tokenA, IERC20 tokenB)
         internal
         pure
@@ -21,9 +21,9 @@ library DMMLibrary {
         require(address(token0) != address(0), "DMMLibrary: ZERO_ADDRESS");
     }
 
-    /// @dev fetch the reserves and fee for a pair, used for trading purpose
+    /// @dev fetch the reserves and fee for a pool, used for trading purposes
     function getTradeInfo(
-        address pair,
+        address pool,
         IERC20 tokenA,
         IERC20 tokenB
     )
@@ -42,24 +42,24 @@ library DMMLibrary {
         uint256 reserve1;
         uint256 vReserve0;
         uint256 vReserve1;
-        (reserve0, reserve1, vReserve0, vReserve1, feeInPrecision) = IDMMPool(pair).getTradeInfo();
+        (reserve0, reserve1, vReserve0, vReserve1, feeInPrecision) = IDMMPool(pool).getTradeInfo();
         (reserveA, reserveB, vReserveA, vReserveB) = tokenA == token0
             ? (reserve0, reserve1, vReserve0, vReserve1)
             : (reserve1, reserve0, vReserve1, vReserve0);
     }
 
-    /// @dev fetches the reserves for a pair, used for liquidity adding
+    /// @dev fetches the reserves for a pool, used for liquidity adding
     function getReserves(
-        address pair,
+        address pool,
         IERC20 tokenA,
         IERC20 tokenB
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (IERC20 token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 vReserve0, uint256 vReserve1, ) = IDMMPool(pair).getReserves();
+        (uint256 vReserve0, uint256 vReserve1, ) = IDMMPool(pool).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
     }
 
-    // given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+    // given some amount of an asset and pool reserves, returns an equivalent amount of the other asset
     function quote(
         uint256 amountA,
         uint256 reserveA,
@@ -70,7 +70,7 @@ library DMMLibrary {
         amountB = amountA.mul(reserveB) / reserveA;
     }
 
-    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
+    // given an input amount of an asset and pool reserves, returns the maximum output amount of the other asset
     function getAmountOut(
         uint256 amountIn,
         uint256 reserveIn,
@@ -88,7 +88,7 @@ library DMMLibrary {
         require(reserveOut >= amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
     }
 
-    // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
+    // given an output amount of an asset and pool reserves, returns a required input amount of the other asset
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
@@ -111,10 +111,10 @@ library DMMLibrary {
         amountIn = numerator.add(denominator - 1).div(denominator);
     }
 
-    // performs chained getAmountOut calculations on any number of pairs
+    // performs chained getAmountOut calculations on any number of pools
     function getAmountsOut(
         uint256 amountIn,
-        address[] memory pairsPath,
+        address[] memory poolsPath,
         IERC20[] memory path
     ) internal view returns (uint256[] memory amounts) {
         amounts = new uint256[](path.length);
@@ -126,7 +126,7 @@ library DMMLibrary {
                 uint256 vReserveIn,
                 uint256 vReserveOut,
                 uint256 feeInPrecision
-            ) = getTradeInfo(pairsPath[i], path[i], path[i + 1]);
+            ) = getTradeInfo(poolsPath[i], path[i], path[i + 1]);
             amounts[i + 1] = getAmountOut(
                 amounts[i],
                 reserveIn,
@@ -138,10 +138,10 @@ library DMMLibrary {
         }
     }
 
-    // performs chained getAmountIn calculations on any number of pairs
+    // performs chained getAmountIn calculations on any number of pools
     function getAmountsIn(
         uint256 amountOut,
-        address[] memory pairsPath,
+        address[] memory poolsPath,
         IERC20[] memory path
     ) internal view returns (uint256[] memory amounts) {
         amounts = new uint256[](path.length);
@@ -153,7 +153,7 @@ library DMMLibrary {
                 uint256 vReserveIn,
                 uint256 vReserveOut,
                 uint256 feeInPrecision
-            ) = getTradeInfo(pairsPath[i - 1], path[i - 1], path[i]);
+            ) = getTradeInfo(poolsPath[i - 1], path[i - 1], path[i]);
             amounts[i - 1] = getAmountIn(
                 amounts[i],
                 reserveIn,

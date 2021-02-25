@@ -1,9 +1,9 @@
 const BN = web3.utils.BN;
 const Helper = require('./helper');
 
-module.exports.getAmountOut = async (amountIn, tokenIn, pair) => {
-  let token0Addr = await pair.token0();
-  let tradeInfo = await pair.getTradeInfo();
+module.exports.getAmountOut = async (amountIn, tokenIn, pool) => {
+  let token0Addr = await pool.token0();
+  let tradeInfo = await pool.getTradeInfo();
   let reserveIn = token0Addr == tokenIn.address ? tradeInfo._vReserve0 : tradeInfo._vReserve1;
   let reserveOut = token0Addr == tokenIn.address ? tradeInfo._vReserve1 : tradeInfo._vReserve0;
 
@@ -13,9 +13,9 @@ module.exports.getAmountOut = async (amountIn, tokenIn, pair) => {
   return reserveOut.sub(numerator.add(denominator.sub(new BN(1))).div(denominator));
 };
 
-module.exports.getAmountIn = async (amountOut, tokenIn, pair) => {
-  let token0Addr = await pair.token0();
-  let tradeInfo = await pair.getTradeInfo();
+module.exports.getAmountIn = async (amountOut, tokenIn, pool) => {
+  let token0Addr = await pool.token0();
+  let tradeInfo = await pool.getTradeInfo();
   let reserveIn = token0Addr == tokenIn.address ? tradeInfo._vReserve0 : tradeInfo._vReserve1;
   let reserveOut = token0Addr == tokenIn.address ? tradeInfo._vReserve1 : tradeInfo._vReserve0;
   // amountIn = reserveIn * amountOut / (reserveOut - amountOut)

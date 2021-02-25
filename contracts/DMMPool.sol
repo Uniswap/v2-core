@@ -29,7 +29,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     }
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
-    /// @dev To make etherscan auto-verify new pair, these variables are not immutable
+    /// @dev To make etherscan auto-verify new pool, these variables are not immutable
     IDMMFactory public factory;
     IERC20 public token0;
     IERC20 public token1;
@@ -39,7 +39,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     uint112 internal reserve1;
     uint32 internal blockTimestampLast;
     uint32 public ampBps;
-    /// @dev addition param only when pool is amp
+    /// @dev addition param only when amplification factor > 1
     uint112 internal vReserve0;
     uint112 internal vReserve1;
 
@@ -59,7 +59,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     );
     event Sync(uint256 vReserve0, uint256 vReserve1, uint256 reserve0, uint256 reserve1);
 
-    constructor() public ERC20Permit("DMM LP", "XYZ-LP", "1") VolumeTrendRecorder(0) {
+    constructor() public ERC20Permit("DMM LP", "DMM-LP", "1") VolumeTrendRecorder(0) {
         factory = IDMMFactory(msg.sender);
     }
 
@@ -69,7 +69,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         IERC20 _token1,
         uint32 _ampBps
     ) external {
-        require(msg.sender == address(factory), "DMM: FORBIDDEN"); // sufficient check
+        require(msg.sender == address(factory), "DMM: FORBIDDEN");
         token0 = _token0;
         token1 = _token1;
         ampBps = _ampBps;
@@ -115,7 +115,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     }
 
     /// @dev this low-level function should be called from a contract
-    ///           which performs important safety checks
+    /// @dev which performs important safety checks
     /// @dev user must transfer LP token to this contract before call burn
     function burn(address to)
         external
@@ -221,7 +221,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         ReserveData memory newData;
         newData.reserve0 = IERC20(token0).balanceOf(address(this));
         newData.reserve1 = IERC20(token1).balanceOf(address(this));
-        // update virtual reserves if this is amp pool.
+        // update virtual reserves if this is amp pool
         if (isAmpPool) {
             uint256 _totalSupply = totalSupply();
             uint256 b = Math.min(
@@ -291,7 +291,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         uint256 volume = beforeReserve0.mul(amount1In).div(beforeReserve1).add(amount0In);
         uint256 rFactorInPrecision = recordNewUpdatedVolume(block.number, volume);
         feeInPrecision = getFinalFee(FeeFomula.getFee(rFactorInPrecision), ampBps);
-        //verify balance update is match with fomula
+        // verify balance update matches with fomula
         uint256 balance0Adjusted = afterReserve0.mul(PRECISION);
         balance0Adjusted = balance0Adjusted.sub(amount0In.mul(feeInPrecision));
         balance0Adjusted = balance0Adjusted / PRECISION;
@@ -318,7 +318,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         emit Sync(data.vReserve0, data.vReserve1, data.reserve0, data.reserve1);
     }
 
-    /// @dev if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
+    /// @dev if fee is on, mint liquidity equivalent to configured fee of the growth in sqrt(k)
     function _mintFee(bool isAmpPool, ReserveData memory data) internal returns (bool feeOn) {
         (address feeTo, uint16 governmentFeeBps) = factory.getFeeConfiguration();
         feeOn = feeTo != address(0);

@@ -15,14 +15,14 @@ const MINIMUM_LIQUIDITY = new BN(1000);
 let token0;
 let token1;
 let factory;
-let pair;
+let pool;
 let trader;
 let feeTo;
 let liquidityProvider;
 let app;
 
 let ampBps = new BN(20000);
-let nonAmpBps = new BN(10000);
+let unamplifiedBps = new BN(10000);
 
 let baseRate = new BN(0);
 
@@ -39,20 +39,20 @@ contract('DMMPool', function (accounts) {
   });
 
   it('can not initialize not by factory', async () => {
-    [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
-    await expectRevert(pair.initialize(token0.address, token1.address, nonAmpBps), 'DMM: FORBIDDEN');
+    [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
+    await expectRevert(pool.initialize(token0.address, token1.address, unamplifiedBps), 'DMM: FORBIDDEN');
   });
 
   describe('mint', async () => {
-    it('non-amp pair', async () => {
+    it('unamplified pool', async () => {
       const token0Amount = Helper.expandTo18Decimals(1);
       const token1Amount = Helper.expandTo18Decimals(4);
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
-      await token0.transfer(pair.address, token0Amount);
-      await token1.transfer(pair.address, token1Amount);
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
+      await token0.transfer(pool.address, token0Amount);
+      await token1.transfer(pool.address, token1Amount);
 
       const expectedLiquidity = Helper.expandTo18Decimals(2);
-      let result = await pair.mint(trader, {from: app});
+      let result = await pool.mint(trader, {from: app});
 
       expectEvent(result, 'Mint', {sender: app, amount0: token0Amount, amount1: token1Amount});
       expectEvent(result, 'Transfer', {
@@ -62,24 +62,24 @@ contract('DMMPool', function (accounts) {
       });
       expectEvent(result, 'Sync', {reserve0: token0Amount, reserve1: token1Amount});
 
-      Helper.assertEqual(await pair.totalSupply(), expectedLiquidity, 'unexpected totalSupply');
-      Helper.assertEqual(await pair.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
+      Helper.assertEqual(await pool.totalSupply(), expectedLiquidity, 'unexpected totalSupply');
+      Helper.assertEqual(await pool.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
 
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount);
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount);
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount);
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount);
 
-      const reserves = await pair.getReserves();
+      const reserves = await pool.getReserves();
       Helper.assertEqual(reserves._reserve0, token0Amount);
       Helper.assertEqual(reserves._reserve1, token1Amount);
 
       const updateToken0Amount = Helper.expandTo18Decimals(2);
       const updateToken1Amount = Helper.expandTo18Decimals(2);
-      await token0.transfer(pair.address, updateToken0Amount);
+      await token0.transfer(pool.address, updateToken0Amount);
       // if transfer only 1 token, trade will revert
-      await expectRevert(pair.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
+      await expectRevert(pool.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
 
-      await token1.transfer(pair.address, updateToken1Amount);
-      result = await pair.mint(trader, {from: app});
+      await token1.transfer(pool.address, updateToken1Amount);
+      result = await pool.mint(trader, {from: app});
       // the amount mint will be the min ratio with reserve0 and reserve1
       expectEvent(result, 'Transfer', {
         from: constants.ZERO_ADDRESS,
@@ -87,21 +87,21 @@ contract('DMMPool', function (accounts) {
         value: expectedLiquidity.div(new BN(2))
       });
       Helper.assertEqual(
-        await pair.balanceOf(trader),
+        await pool.balanceOf(trader),
         expectedLiquidity.sub(MINIMUM_LIQUIDITY).add(expectedLiquidity.div(new BN(2)))
       );
     });
 
-    it('amp pair', async () => {
+    it('amp pool', async () => {
       ampBps = new BN(20000);
       const token0Amount = Helper.expandTo18Decimals(1);
       const token1Amount = Helper.expandTo18Decimals(4);
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
-      await token0.transfer(pair.address, token0Amount);
-      await token1.transfer(pair.address, token1Amount);
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
+      await token0.transfer(pool.address, token0Amount);
+      await token1.transfer(pool.address, token1Amount);
 
       const expectedLiquidity = Helper.expandTo18Decimals(2);
-      let result = await pair.mint(trader, {from: app});
+      let result = await pool.mint(trader, {from: app});
 
       expectEvent(result, 'Mint', {sender: app, amount0: token0Amount, amount1: token1Amount});
       expectEvent(result, 'Transfer', {
@@ -116,24 +116,24 @@ contract('DMMPool', function (accounts) {
         vReserve1: token1Amount.mul(ampBps).div(Helper.BPS)
       });
 
-      Helper.assertEqual(await pair.totalSupply(), expectedLiquidity, 'unexpected totalSupply');
-      Helper.assertEqual(await pair.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
+      Helper.assertEqual(await pool.totalSupply(), expectedLiquidity, 'unexpected totalSupply');
+      Helper.assertEqual(await pool.balanceOf(trader), expectedLiquidity.sub(MINIMUM_LIQUIDITY));
 
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount);
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount);
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount);
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount);
 
-      const reserves = await pair.getReserves();
+      const reserves = await pool.getReserves();
       Helper.assertEqual(reserves._reserve0, token0Amount);
       Helper.assertEqual(reserves._reserve1, token1Amount);
 
       const updateToken0Amount = Helper.expandTo18Decimals(2);
       const updateToken1Amount = Helper.expandTo18Decimals(2);
-      await token0.transfer(pair.address, updateToken0Amount);
+      await token0.transfer(pool.address, updateToken0Amount);
       // if transfer only 1 token, trade will revert
-      await expectRevert(pair.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
+      await expectRevert(pool.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
 
-      await token1.transfer(pair.address, updateToken1Amount);
-      result = await pair.mint(trader, {from: app});
+      await token1.transfer(pool.address, updateToken1Amount);
+      result = await pool.mint(trader, {from: app});
       // the amount mint will be the min ratio with reserve0 and reserve1
       expectEvent(result, 'Transfer', {
         from: constants.ZERO_ADDRESS,
@@ -141,7 +141,7 @@ contract('DMMPool', function (accounts) {
         value: expectedLiquidity.div(new BN(2))
       });
       Helper.assertEqual(
-        await pair.balanceOf(trader),
+        await pool.balanceOf(trader),
         expectedLiquidity.sub(MINIMUM_LIQUIDITY).add(expectedLiquidity.div(new BN(2)))
       );
     });
@@ -163,69 +163,69 @@ contract('DMMPool', function (accounts) {
 
     swapTestCases.forEach((testCase, i) => {
       const [swapAmount, token0Amount, token1Amount] = testCase;
-      it(`getInputPrice:${i} non-amp pair`, async () => {
-        [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
+      it(`getInputPrice:${i} unamplified pool`, async () => {
+        [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
         await addLiquidity(
           liquidityProvider,
-          pair,
+          pool,
           expandTo18Decimals(token0Amount),
           expandTo18Decimals(token1Amount)
         );
-        await token0.transfer(pair.address, expandTo18Decimals(swapAmount));
-        let expectedOutputAmount = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
-        await expectRevert(pair.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'DMM: K');
-        await pair.swap(0, new BN(expectedOutputAmount), trader, '0x');
+        await token0.transfer(pool.address, expandTo18Decimals(swapAmount));
+        let expectedOutputAmount = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pool);
+        await expectRevert(pool.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'DMM: K');
+        await pool.swap(0, new BN(expectedOutputAmount), trader, '0x');
       });
 
-      it(`getInputPrice:${i} amp pair`, async () => {
-        [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+      it(`getInputPrice:${i} amp pool`, async () => {
+        [factory, pool] = await setupPool(admin, token0, token1, ampBps);
         await addLiquidity(
           liquidityProvider,
-          pair,
+          pool,
           expandTo18Decimals(token0Amount),
           expandTo18Decimals(token1Amount)
         );
-        await token0.transfer(pair.address, expandTo18Decimals(swapAmount));
-        let amountOut = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
-        await expectRevert(pair.swap(0, amountOut.add(new BN(1)), trader, '0x'), 'DMM: K');
-        await pair.swap(0, new BN(amountOut), trader, '0x');
+        await token0.transfer(pool.address, expandTo18Decimals(swapAmount));
+        let amountOut = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pool);
+        await expectRevert(pool.swap(0, amountOut.add(new BN(1)), trader, '0x'), 'DMM: K');
+        await pool.swap(0, new BN(amountOut), trader, '0x');
       });
     });
 
-    it('swap:token0 amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+    it('swap:token0 amp pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
       const token0Amount = expandTo18Decimals(5);
       const token1Amount = expandTo18Decimals(10);
       const swapAmount = expandTo18Decimals(1);
 
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pool);
       // when amountIn = 0 -> revert
       await expectRevert(
-        pair.swap(new BN(0), amountOut, trader, '0x', {from: app}),
+        pool.swap(new BN(0), amountOut, trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_INPUT_AMOUNT'
       );
 
       // when amountOut = 0 -> revert
-      await token0.transfer(pair.address, swapAmount);
+      await token0.transfer(pool.address, swapAmount);
       await expectRevert(
-        pair.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
+        pool.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_OUTPUT_AMOUNT'
       );
       // when amountOut > liquidity -> revert
       await expectRevert(
-        pair.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
+        pool.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_LIQUIDITY'
       );
       // revert when destAddres is token0 or token1
-      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
+      await expectRevert(pool.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
       // normal swap if everything is valid
       await token1.transfer(trader, new BN(1));
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
       let beforeBalanceToken1 = await token1.balanceOf(trader);
-      let txResult = await pair.swap(new BN(0), amountOut, trader, '0x', {from: app});
+      let txResult = await pool.swap(new BN(0), amountOut, trader, '0x', {from: app});
 
       expectEvent(txResult, 'Sync', {
         reserve0: token0Amount.add(swapAmount),
@@ -241,50 +241,50 @@ contract('DMMPool', function (accounts) {
         to: trader
       });
 
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount.add(swapAmount));
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount.sub(amountOut));
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount.add(swapAmount));
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount.sub(amountOut));
       // balance of token0 should be unchanged after transfer
       Helper.assertEqual(await token0.balanceOf(trader), beforeBalanceToken0);
       // balance of token1 should increase by amountOut
       Helper.assertEqual(await token1.balanceOf(trader), beforeBalanceToken1.add(amountOut));
       // this number of uniswap is 73462
-      console.log(`ampPair swap gasUsed = ${txResult.receipt.gasUsed}`);
+      console.log(`amp pool swap gasUsed = ${txResult.receipt.gasUsed}`);
     });
 
-    it('swap:token0 non-amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
+    it('swap:token0 unamplified pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
       const token0Amount = expandTo18Decimals(5);
       const token1Amount = expandTo18Decimals(10);
       const swapAmount = expandTo18Decimals(1);
 
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pool);
       // when amountIn = 0 -> revert
       await expectRevert(
-        pair.swap(new BN(0), amountOut, trader, '0x', {from: app}),
+        pool.swap(new BN(0), amountOut, trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_INPUT_AMOUNT'
       );
 
       // when amountOut = 0 -> revert
-      await token0.transfer(pair.address, swapAmount);
+      await token0.transfer(pool.address, swapAmount);
       await expectRevert(
-        pair.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
+        pool.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_OUTPUT_AMOUNT'
       );
       // when amountOut > liquidity -> revert
       await expectRevert(
-        pair.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
+        pool.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
         'DMM: INSUFFICIENT_LIQUIDITY'
       );
       // revert when destAddres is token0 or token1
-      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
+      await expectRevert(pool.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
       // normal swap if everything is valid
       await token1.transfer(trader, new BN(1));
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
       let beforeBalanceToken1 = await token1.balanceOf(trader);
-      let txResult = await pair.swap(new BN(0), amountOut, trader, '0x', {from: app});
+      let txResult = await pool.swap(new BN(0), amountOut, trader, '0x', {from: app});
 
       expectEvent(txResult, 'Sync', {
         reserve0: token0Amount.add(swapAmount),
@@ -302,96 +302,96 @@ contract('DMMPool', function (accounts) {
         to: trader
       });
 
-      const tradeInfo = await pair.getTradeInfo();
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount.add(swapAmount));
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount.sub(amountOut));
+      const tradeInfo = await pool.getTradeInfo();
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount.add(swapAmount));
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount.sub(amountOut));
       // balance of token0 should be unchanged after transfer
       Helper.assertEqual(await token0.balanceOf(trader), beforeBalanceToken0);
       // balance of token1 should increase by amountOut
       Helper.assertEqual(await token1.balanceOf(trader), beforeBalanceToken1.add(amountOut));
       // this number of uniswap is 73462
-      console.log(`nonAmpPair swap gasUsed = ${txResult.receipt.gasUsed}`);
+      console.log(`unamplified pool swap gasUsed = ${txResult.receipt.gasUsed}`);
     });
 
     [20000, 50000, 200000, 1000000].forEach(ampBPS => {
-      it(`swap: token0 stable pair ampBPS = ${ampBPS}`, async () => {
-        [factory, pair] = await setupPair(admin, token0, token1, new BN(ampBPS));
+      it(`swap: token0 stable pool ampBPS = ${ampBPS}`, async () => {
+        [factory, pool] = await setupPool(admin, token0, token1, new BN(ampBPS));
         const token0Amount = expandTo18Decimals(10);
         const token1Amount = expandTo18Decimals(10);
         const swapAmount = expandTo18Decimals(1);
 
-        await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-        let tradeInfo = await pair.getTradeInfo();
+        await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+        let tradeInfo = await pool.getTradeInfo();
         console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
 
-        let amountOut = await dmmHelper.getAmountOut(swapAmount, token0, pair);
+        let amountOut = await dmmHelper.getAmountOut(swapAmount, token0, pool);
 
         let beforeBalanceToken0 = await token0.balanceOf(trader);
         let beforeBalanceToken1 = await token1.balanceOf(trader);
-        await token0.transfer(pair.address, swapAmount);
+        await token0.transfer(pool.address, swapAmount);
 
-        await expectRevert(pair.swap(new BN(0), amountOut.add(new BN(1)), trader, '0x', {from: app}), 'DMM: K');
+        await expectRevert(pool.swap(new BN(0), amountOut.add(new BN(1)), trader, '0x', {from: app}), 'DMM: K');
 
-        let result = await pair.swap(new BN(0), amountOut, trader, '0x', {from: app});
-        console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
+        let result = await pool.swap(new BN(0), amountOut, trader, '0x', {from: app});
+        console.log(`stable pool gasUsed = ${result.receipt.gasUsed}`);
 
-        await assertTokenPairBalances(token0, token1, pair.address, [
+        await assertTokenPoolBalances(token0, token1, pool.address, [
           token0Amount.add(swapAmount),
           token1Amount.sub(amountOut)
         ]);
 
-        await assertTokenPairBalances(token0, token1, trader, [
+        await assertTokenPoolBalances(token0, token1, trader, [
           beforeBalanceToken0,
           beforeBalanceToken1.add(amountOut)
         ]);
       });
 
-      it(`swap: token1 stable pair ampBPS = ${ampBPS}`, async () => {
-        [factory, pair] = await setupPair(admin, token0, token1, new BN(ampBPS));
+      it(`swap: token1 stable pool ampBPS = ${ampBPS}`, async () => {
+        [factory, pool] = await setupPool(admin, token0, token1, new BN(ampBPS));
         const token0Amount = expandTo18Decimals(10);
         const token1Amount = expandTo18Decimals(10);
         const swapAmount = expandTo18Decimals(1);
 
-        await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+        await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-        let tradeInfo = await pair.getTradeInfo();
+        let tradeInfo = await pool.getTradeInfo();
         console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
-        let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
+        let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
 
         let beforeBalanceToken0 = await token0.balanceOf(trader);
         let beforeBalanceToken1 = await token1.balanceOf(trader);
-        await token1.transfer(pair.address, swapAmount);
+        await token1.transfer(pool.address, swapAmount);
 
-        await expectRevert(pair.swap(amountOut.add(new BN(1)), new BN(0), trader, '0x', {from: app}), 'DMM: K');
+        await expectRevert(pool.swap(amountOut.add(new BN(1)), new BN(0), trader, '0x', {from: app}), 'DMM: K');
 
-        let result = await pair.swap(amountOut, new BN(0), trader, '0x', {from: app});
-        console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
+        let result = await pool.swap(amountOut, new BN(0), trader, '0x', {from: app});
+        console.log(`stable pool gasUsed = ${result.receipt.gasUsed}`);
 
-        await assertTokenPairBalances(token0, token1, pair.address, [
+        await assertTokenPoolBalances(token0, token1, pool.address, [
           token0Amount.sub(amountOut),
           token1Amount.add(swapAmount)
         ]);
 
-        await assertTokenPairBalances(token0, token1, trader, [
+        await assertTokenPoolBalances(token0, token1, trader, [
           beforeBalanceToken0.add(amountOut),
           beforeBalanceToken1
         ]);
       });
     });
 
-    it('swap:token1 amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+    it('swap:token1 amp pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
       const token0Amount = expandTo18Decimals(5);
       const token1Amount = expandTo18Decimals(10);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
       let beforeBalanceToken1 = await token1.balanceOf(trader);
-      let result = await pair.swap(amountOut, new BN(0), trader, '0x', {from: app});
+      let result = await pool.swap(amountOut, new BN(0), trader, '0x', {from: app});
 
       expectEvent(result, 'Sync', {
         reserve0: token0Amount.sub(amountOut),
@@ -407,27 +407,27 @@ contract('DMMPool', function (accounts) {
         to: trader
       });
 
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount.sub(amountOut));
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount.add(swapAmount));
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount.sub(amountOut));
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount.add(swapAmount));
       // balance of token0 should increase by amountOut
       Helper.assertEqual(await token0.balanceOf(trader), beforeBalanceToken0.add(amountOut));
       // balance of token1 should be unchanged after transfer
       Helper.assertEqual(await token1.balanceOf(trader), beforeBalanceToken1);
     });
 
-    it('swap:token1 non-amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps, new BN(0));
+    it('swap:token1 unamplified pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps, new BN(0));
       const token0Amount = expandTo18Decimals(5);
       const token1Amount = expandTo18Decimals(10);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
       let beforeBalanceToken1 = await token1.balanceOf(trader);
-      let result = await pair.swap(amountOut, new BN(0), trader, '0x', {from: app});
+      let result = await pool.swap(amountOut, new BN(0), trader, '0x', {from: app});
 
       expectEvent(result, 'Sync', {
         reserve0: token0Amount.sub(amountOut),
@@ -445,8 +445,8 @@ contract('DMMPool', function (accounts) {
         to: trader
       });
 
-      Helper.assertEqual(await token0.balanceOf(pair.address), token0Amount.sub(amountOut));
-      Helper.assertEqual(await token1.balanceOf(pair.address), token1Amount.add(swapAmount));
+      Helper.assertEqual(await token0.balanceOf(pool.address), token0Amount.sub(amountOut));
+      Helper.assertEqual(await token1.balanceOf(pool.address), token1Amount.add(swapAmount));
       // balance of token0 should increase by amountOut
       Helper.assertEqual(await token0.balanceOf(trader), beforeBalanceToken0.add(amountOut));
       // balance of token1 should be unchanged after transfer
@@ -462,36 +462,36 @@ contract('DMMPool', function (accounts) {
     optimisticTestCases.forEach((testCase, i) => {
       it(`optimistic:${i}`, async () => {
         const [, token0Amount, token1Amount, inputAmount] = testCase;
-        await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-        await token0.transfer(pair.address, inputAmount);
+        await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+        await token0.transfer(pool.address, inputAmount);
 
-        let result = await pair.getTradeInfo();
+        let result = await pool.getTradeInfo();
 
         let outputAmount = inputAmount.mul(precisionUnits.sub(result.feeInPrecision)).div(precisionUnits);
-        await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'DMM: K');
-        await pair.swap(outputAmount, 0, trader, '0x');
+        await expectRevert(pool.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'DMM: K');
+        await pool.swap(outputAmount, 0, trader, '0x');
       });
     });
   });
 
   describe('burn', async () => {
-    it('burn non-amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
+    it('burn unamplified pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
       const token0Amount = expandTo18Decimals(3);
       const token1Amount = expandTo18Decimals(3);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       // revert if liquidity burn is 0
-      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
+      await expectRevert(pool.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
 
       const expectedLiquidity = expandTo18Decimals(3);
-      let beforeBalances = await getTokenPairBalances(token0, token1, liquidityProvider);
+      let beforeBalances = await getTokenPoolBalances(token0, token1, liquidityProvider);
 
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      let result = await pair.burn(liquidityProvider, {from: app});
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      let result = await pool.burn(liquidityProvider, {from: app});
 
       expectEvent(result, 'Transfer', {
-        from: pair.address,
+        from: pool.address,
         to: constants.ZERO_ADDRESS,
         value: expectedLiquidity.sub(MINIMUM_LIQUIDITY)
       });
@@ -507,34 +507,34 @@ contract('DMMPool', function (accounts) {
         reserve1: new BN(1000)
       });
 
-      Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY);
-      // assert balances of user and pair
-      await assertTokenPairBalances(token0, token1, pair.address, [MINIMUM_LIQUIDITY, MINIMUM_LIQUIDITY]);
-      await assertTokenPairBalances(token0, token1, liquidityProvider, [
+      Helper.assertEqual(await pool.balanceOf(liquidityProvider), new BN(0));
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY);
+      // assert balances of user and pool
+      await assertTokenPoolBalances(token0, token1, pool.address, [MINIMUM_LIQUIDITY, MINIMUM_LIQUIDITY]);
+      await assertTokenPoolBalances(token0, token1, liquidityProvider, [
         beforeBalances[0].add(token0Amount.sub(MINIMUM_LIQUIDITY)),
         beforeBalances[1].add(token1Amount.sub(MINIMUM_LIQUIDITY))
       ]);
       console.log(`burn gas used ${result.receipt.gasUsed}`);
     });
 
-    it('burn amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+    it('burn amp pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
       const token0Amount = expandTo18Decimals(1);
       const token1Amount = expandTo18Decimals(4);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       // revert if liquidity burn is 0
-      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
+      await expectRevert(pool.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
 
       const expectedLiquidity = expandTo18Decimals(2);
-      let beforeBalances = await getTokenPairBalances(token0, token1, liquidityProvider);
+      let beforeBalances = await getTokenPoolBalances(token0, token1, liquidityProvider);
 
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      let result = await pair.burn(liquidityProvider, {from: app});
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      let result = await pool.burn(liquidityProvider, {from: app});
 
       expectEvent(result, 'Transfer', {
-        from: pair.address,
+        from: pool.address,
         to: constants.ZERO_ADDRESS,
         value: expectedLiquidity.sub(MINIMUM_LIQUIDITY)
       });
@@ -552,11 +552,11 @@ contract('DMMPool', function (accounts) {
         vReserve1: new BN(2000).mul(ampBps).div(Helper.BPS)
       });
 
-      Helper.assertEqual(await pair.balanceOf(liquidityProvider), new BN(0));
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY);
-      // assert balances of user and pair
-      await assertTokenPairBalances(token0, token1, pair.address, [new BN(500), new BN(2000)]);
-      await assertTokenPairBalances(token0, token1, liquidityProvider, [
+      Helper.assertEqual(await pool.balanceOf(liquidityProvider), new BN(0));
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY);
+      // assert balances of user and pool
+      await assertTokenPoolBalances(token0, token1, pool.address, [new BN(500), new BN(2000)]);
+      await assertTokenPoolBalances(token0, token1, liquidityProvider, [
         beforeBalances[0].add(token0Amount.sub(new BN(500))),
         beforeBalances[1].add(token1Amount.sub(new BN(2000)))
       ]);
@@ -565,220 +565,220 @@ contract('DMMPool', function (accounts) {
   });
 
   describe('fee', async () => {
-    it.skip('feeTo:on non-amp pair', async () => {
+    it('feeTo:on unamplified pool', async () => {
       const token0Amount = expandTo18Decimals(1000);
       const token1Amount = expandTo18Decimals(1000);
       const governmentFeeBps = new BN(1000);
 
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
       await factory.setFeeConfiguration(feeTo, governmentFeeBps, {from: accounts[0]});
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-      let totalSuppy = await pair.totalSupply();
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+      let totalSuppy = await pool.totalSupply();
 
       const kLast = token1Amount.mul(token0Amount);
-      Helper.assertEqual(await pair.kLast(), token1Amount.mul(token0Amount));
+      Helper.assertEqual(await pool.kLast(), token1Amount.mul(token0Amount));
 
       const swapAmount = expandTo18Decimals(1);
-      let tradeInfo = await pair.getTradeInfo();
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      let tradeInfo = await pool.getTradeInfo();
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
       const expectedLiquidity = expandTo18Decimals(1000);
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      await pair.burn(liquidityProvider);
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      await pool.burn(liquidityProvider);
 
       const k = token1Amount.add(swapAmount).mul(token0Amount.sub(amountOut));
       let fee = await dmmHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
 
       // add liquidity will not be charged fee
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
 
       // disable fee again
       await factory.setFeeConfiguration(constants.ZERO_ADDRESS, governmentFeeBps, {from: accounts[0]});
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      tradeInfo = await pair.getTradeInfo();
-      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      tradeInfo = await pool.getTradeInfo();
+      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
-      await pair.sync();
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
-      Helper.assertEqual(await pair.kLast(), new BN(0));
+      await pool.sync();
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
+      Helper.assertEqual(await pool.kLast(), new BN(0));
     });
 
-    it.skip('feeTo:on amp pair', async () => {
+    it('feeTo:on amp pool', async () => {
       const token0Amount = expandTo18Decimals(1000);
       const token1Amount = expandTo18Decimals(1000);
       const vToken0Amount = token0Amount.mul(ampBps).div(Helper.BPS);
       const vToken1Amount = token1Amount.mul(ampBps).div(Helper.BPS);
       const governmentFeeBps = new BN(1000);
 
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
       await factory.setFeeConfiguration(feeTo, governmentFeeBps, {from: accounts[0]});
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-      let totalSuppy = await pair.totalSupply();
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+      let totalSuppy = await pool.totalSupply();
 
       const kLast = vToken0Amount.mul(vToken1Amount);
-      Helper.assertEqual(await pair.kLast(), kLast);
+      Helper.assertEqual(await pool.kLast(), kLast);
 
       const swapAmount = expandTo18Decimals(1);
-      let tradeInfo = await pair.getTradeInfo();
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      let tradeInfo = await pool.getTradeInfo();
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
       const expectedLiquidity = expandTo18Decimals(1000);
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      await pair.burn(liquidityProvider);
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      await pool.burn(liquidityProvider);
 
       const k = vToken1Amount.add(swapAmount).mul(vToken0Amount.sub(amountOut));
       let fee = dmmHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
 
       // add liquidity will not be charged fee
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
 
       // disable fee again
       await factory.setFeeConfiguration(constants.ZERO_ADDRESS, governmentFeeBps, {from: accounts[0]});
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      tradeInfo = await pair.getTradeInfo();
-      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      tradeInfo = await pool.getTradeInfo();
+      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
-      await pair.sync();
-      Helper.assertEqual(await pair.balanceOf(feeTo), fee);
-      Helper.assertEqual(await pair.kLast(), new BN(0));
+      await pool.sync();
+      Helper.assertEqual(await pool.balanceOf(feeTo), fee);
+      Helper.assertEqual(await pool.kLast(), new BN(0));
     });
 
-    it('feeTo:off non-amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
+    it('feeTo:off unamplified pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
 
       const token0Amount = expandTo18Decimals(1000);
       const token1Amount = expandTo18Decimals(1000);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
       const expectedLiquidity = expandTo18Decimals(1000);
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      await pair.burn(liquidityProvider);
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY);
-      Helper.assertEqual(await pair.kLast(), new BN(0));
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      await pool.burn(liquidityProvider);
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY);
+      Helper.assertEqual(await pool.kLast(), new BN(0));
       // turn on fee.
       await factory.setFeeConfiguration(feeTo, new BN(1000));
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
-      Helper.assertGreater(await pair.kLast(), new BN(0));
-      Helper.assertEqual(await pair.balanceOf(feeTo), new BN(0));
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
+      Helper.assertGreater(await pool.kLast(), new BN(0));
+      Helper.assertEqual(await pool.balanceOf(feeTo), new BN(0));
     });
 
-    it('feeTo:off amp pair', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+    it('feeTo:off amp pool', async () => {
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
 
       const token0Amount = expandTo18Decimals(1000);
       const token1Amount = expandTo18Decimals(1000);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
-      await token1.transfer(pair.address, swapAmount);
-      await pair.swap(amountOut, 0, trader, '0x');
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pool);
+      await token1.transfer(pool.address, swapAmount);
+      await pool.swap(amountOut, 0, trader, '0x');
 
       const expectedLiquidity = expandTo18Decimals(1000);
-      await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
-      await pair.burn(liquidityProvider);
-      Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY);
+      await pool.transfer(pool.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY), {from: liquidityProvider});
+      await pool.burn(liquidityProvider);
+      Helper.assertEqual(await pool.totalSupply(), MINIMUM_LIQUIDITY);
     });
   });
 
   describe('sync', async () => {
     it('case 1: donation from 1 side', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
 
       const token0Amount = expandTo18Decimals(1);
       const token1Amount = expandTo18Decimals(1);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      let tradeInfo = await pair.getTradeInfo();
+      let tradeInfo = await pool.getTradeInfo();
       let priceRange = dmmHelper.getPriceRange(tradeInfo);
       console.log(`minRate=${priceRange[0].toString()} maxRate=${priceRange[1].toString()}`);
 
-      await token0.transfer(pair.address, expandTo18Decimals(2));
-      await pair.sync();
+      await token0.transfer(pool.address, expandTo18Decimals(2));
+      await pool.sync();
 
-      tradeInfo = await pair.getTradeInfo();
+      tradeInfo = await pool.getTradeInfo();
       priceRange = dmmHelper.getPriceRange(tradeInfo);
       console.log(`minRate=${priceRange[0].toString()} maxRate=${priceRange[1].toString()}`);
     });
 
     it('case 2: donation from 2 side -> reserve data should scale up', async () => {
-      [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+      [factory, pool] = await setupPool(admin, token0, token1, ampBps);
 
       const token0Amount = expandTo18Decimals(1);
       const token1Amount = expandTo18Decimals(1);
-      await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+      await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-      let tradeInfo = await pair.getTradeInfo();
+      let tradeInfo = await pool.getTradeInfo();
       let priceRange = dmmHelper.getPriceRange(tradeInfo);
 
-      await token0.transfer(pair.address, expandTo18Decimals(2));
-      await token1.transfer(pair.address, expandTo18Decimals(2));
-      await pair.sync();
+      await token0.transfer(pool.address, expandTo18Decimals(2));
+      await token1.transfer(pool.address, expandTo18Decimals(2));
+      await pool.sync();
 
-      tradeInfo = await pair.getTradeInfo();
+      tradeInfo = await pool.getTradeInfo();
       let priceRange2 = dmmHelper.getPriceRange(tradeInfo);
       Helper.assertEqualArray(priceRange, priceRange2); // unchange price range
     });
   });
 
   it('skim', async () => {
-    [factory, pair] = await setupPair(admin, token0, token1, ampBps);
+    [factory, pool] = await setupPool(admin, token0, token1, ampBps);
     const token0Amount = expandTo18Decimals(1000);
     const token1Amount = expandTo18Decimals(1000);
-    await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
+    await addLiquidity(liquidityProvider, pool, token0Amount, token1Amount);
 
-    token0.transfer(pair.address, expandTo18Decimals(1));
+    token0.transfer(pool.address, expandTo18Decimals(1));
     let beforeBalance = await token0.balanceOf(trader);
-    await pair.skim(trader);
+    await pool.skim(trader);
     let afterBalance = await token0.balanceOf(trader);
     Helper.assertEqual(afterBalance.sub(beforeBalance), expandTo18Decimals(1));
 
-    let tradeInfo = await pair.getTradeInfo();
+    let tradeInfo = await pool.getTradeInfo();
     Helper.assertEqual(tradeInfo._reserve0, expandTo18Decimals(1000));
     Helper.assertEqual(tradeInfo._reserve1, expandTo18Decimals(1000));
     Helper.assertEqual(tradeInfo._vReserve0, expandTo18Decimals(2000));
     Helper.assertEqual(tradeInfo._vReserve1, expandTo18Decimals(2000));
     // test case overflow
-    await token0.transfer(pair.address, new BN(2).pow(new BN(112)));
-    await expectRevert(pair.sync(), 'DMM: OVERFLOW');
-    await pair.skim(trader);
+    await token0.transfer(pool.address, new BN(2).pow(new BN(112)));
+    await expectRevert(pool.sync(), 'DMM: OVERFLOW');
+    await pool.skim(trader);
   });
 });
 
-async function addLiquidity (liquidityProvider, pair, token0Amount, token1Amount) {
-  await token0.transfer(pair.address, token0Amount);
-  await token1.transfer(pair.address, token1Amount);
-  await pair.mint(liquidityProvider);
+async function addLiquidity (liquidityProvider, pool, token0Amount, token1Amount) {
+  await token0.transfer(pool.address, token0Amount);
+  await token1.transfer(pool.address, token1Amount);
+  await pool.mint(liquidityProvider);
 }
 
-async function getTokenPairBalances (token0, token1, user) {
+async function getTokenPoolBalances (token0, token1, user) {
   return [await token0.balanceOf(user), await token1.balanceOf(user)];
 }
 
-async function assertTokenPairBalances (token0, token1, user, expectedBalances) {
+async function assertTokenPoolBalances (token0, token1, user, expectedBalances) {
   Helper.assertEqual(await token0.balanceOf(user), expectedBalances[0], 'unmatch token0 balance');
   Helper.assertEqual(await token1.balanceOf(user), expectedBalances[1], 'unmatch token1 balance');
 }
@@ -787,12 +787,12 @@ async function setupFactory (admin) {
   return await DMMFactory.new(admin);
 }
 
-async function setupPair (admin, tokenA, tokenB, ampBps) {
+async function setupPool (admin, tokenA, tokenB, ampBps) {
   let factory = await setupFactory(admin);
 
-  await factory.createPair(tokenA.address, tokenB.address, ampBps);
-  const pairAddrs = await factory.getPairs(tokenA.address, tokenB.address);
-  const pair = await DMMPool.at(pairAddrs[0]);
+  await factory.createPool(tokenA.address, tokenB.address, ampBps);
+  const poolAddrs = await factory.getPools(tokenA.address, tokenB.address);
+  const pool = await DMMPool.at(poolAddrs[0]);
 
-  return [factory, pair];
+  return [factory, pool];
 }

@@ -24,29 +24,29 @@ contract('DMMFactory', function (accounts) {
     tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
   });
 
-  it('create pair', async () => {
-    const nonAmpBps = new BN(10000);
+  it('create pool', async () => {
+    const unamplifiedBps = new BN(10000);
     const ampBps = new BN(20000);
-    await expectRevert(factory.createPair(tokenA.address, constants.ZERO_ADDRESS, nonAmpBps), 'DMM: ZERO_ADDRESS');
+    await expectRevert(factory.createPool(tokenA.address, constants.ZERO_ADDRESS, unamplifiedBps), 'DMM: ZERO_ADDRESS');
 
-    await expectRevert(factory.createPair(tokenA.address, tokenA.address, nonAmpBps), 'DMM: IDENTICAL_ADDRESSES');
+    await expectRevert(factory.createPool(tokenA.address, tokenA.address, unamplifiedBps), 'DMM: IDENTICAL_ADDRESSES');
 
-    await expectRevert(factory.createPair(tokenA.address, tokenB.address, new BN(9999)), 'DMM: INVALID_BPS');
-    /// create pair nonAmp
-    await factory.createPair(tokenA.address, tokenB.address, nonAmpBps);
-    await expectRevert(factory.createPair(tokenA.address, tokenB.address, nonAmpBps), 'DMM: PAIR_EXISTS');
-    Helper.assertEqual(await factory.allPairsLength(), 1);
+    await expectRevert(factory.createPool(tokenA.address, tokenB.address, new BN(9999)), 'DMM: INVALID_BPS');
+    /// create unamplified pool
+    await factory.createPool(tokenA.address, tokenB.address, unamplifiedBps);
+    await expectRevert(factory.createPool(tokenA.address, tokenB.address, unamplifiedBps), 'DMM: UNAMPLIFIED_POOL_EXISTS');
+    Helper.assertEqual(await factory.allPoolsLength(), 1);
 
-    /// create pair amp
-    await factory.createPair(tokenA.address, tokenB.address, ampBps);
-    Helper.assertEqual(await factory.allPairsLength(), 2);
-    Helper.assertEqual(await factory.getPairsLength(tokenA.address, tokenB.address), 2);
+    /// create amp pool
+    await factory.createPool(tokenA.address, tokenB.address, ampBps);
+    Helper.assertEqual(await factory.allPoolsLength(), 2);
+    Helper.assertEqual(await factory.getPoolsLength(tokenA.address, tokenB.address), 2);
 
-    let pair0 = await factory.getPairAtIndex(tokenA.address, tokenB.address, new BN(0));
-    assert(await factory.isPair(tokenA.address, tokenB.address, pair0), 'pair is not asserted');
+    let pool0 = await factory.getPoolAtIndex(tokenA.address, tokenB.address, new BN(0));
+    assert(await factory.isPool(tokenA.address, tokenB.address, pool0), 'pool is not asserted');
   });
 
-  it('set FeeTo', async () => {
+  it('setFeeConfiguration', async () => {
     await expectRevert(factory.setFeeConfiguration(feeTo, new BN(1000)), 'DMM: FORBIDDEN');
     await expectRevert(factory.setFeeConfiguration(feeTo, new BN(2000), {from: feeToSetter}), 'DMM: INVALID FEE');
     await expectRevert(factory.setFeeConfiguration(feeTo, new BN(0), {from: feeToSetter}), 'DMM: INVALID FEE');

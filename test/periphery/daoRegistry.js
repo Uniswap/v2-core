@@ -24,41 +24,41 @@ contract('DaoRegistry', accounts => {
     registry = await DaoRegistry.new(factory.address, {from: owner});
   });
 
-  it('add pair to registry', async () => {
-    await factory.createPair(token0.address, token1.address, new BN(20000));
-    await factory.createPair(token0.address, token1.address, new BN(30000));
+  it('add pool to registry', async () => {
+    await factory.createPool(token0.address, token1.address, new BN(20000));
+    await factory.createPool(token0.address, token1.address, new BN(30000));
 
-    const pairs = await factory.getPairs(token0.address, token1.address);
-    Helper.assertEqual(pairs.length, new BN(2), 'unexpected pairs length');
+    const pools = await factory.getPools(token0.address, token1.address);
+    Helper.assertEqual(pools.length, new BN(2), 'unexpected pools length');
 
-    // revert if add invalid pair
+    // revert if add invalid pool
     await expectRevert(
-      registry.addPair(token0.address, token1.address, accounts[2], true, {from: owner}),
-      'Registry: INVALID_PAIR'
+      registry.addPool(token0.address, token1.address, accounts[2], true, {from: owner}),
+      'Registry: INVALID_POOL'
     );
     // revert if not owner
     await expectRevert(
-      registry.addPair(token0.address, token1.address, pairs[0], true, {from: accounts[0]}),
+      registry.addPool(token0.address, token1.address, pools[0], true, {from: accounts[0]}),
       'Ownable: caller is not the owner'
     );
-    let result = await registry.addPair(token0.address, token1.address, pairs[0], true, {from: owner});
-    await expectEvent(result, 'AddPair', {
+    let result = await registry.addPool(token0.address, token1.address, pools[0], true, {from: owner});
+    await expectEvent(result, 'AddPool', {
       token0: token0.address,
       token1: token1.address,
-      pair: pairs[0],
+      pool: pools[0],
       isAdd: true
     });
 
-    let registeredPairs = await registry.getPairs(token0.address, token1.address);
-    Helper.assertEqualArray(registeredPairs, [pairs[0]], 'unexpected registeredPairs');
-    // add 1 more pair
-    await registry.addPair(token0.address, token1.address, pairs[1], true, {from: owner});
-    registeredPairs = await registry.getPairs(token0.address, token1.address);
-    Helper.assertEqualArray(registeredPairs, pairs, 'unexpected registeredPairs');
+    let registeredPools = await registry.getPools(token0.address, token1.address);
+    Helper.assertEqualArray(registeredPools, [pools[0]], 'unexpected registeredPools');
+    // add 1 more pool
+    await registry.addPool(token0.address, token1.address, pools[1], true, {from: owner});
+    registeredPools = await registry.getPools(token0.address, token1.address);
+    Helper.assertEqualArray(registeredPools, pools, 'unexpected registeredPools');
 
-    // remove pair
-    await registry.addPair(token0.address, token1.address, pairs[1], false, {from: owner});
-    registeredPairs = await registry.getPairs(token0.address, token1.address);
-    Helper.assertEqualArray(registeredPairs, [pairs[0]], 'unexpected registeredPairs');
+    // remove pool
+    await registry.addPool(token0.address, token1.address, pools[1], false, {from: owner});
+    registeredPools = await registry.getPools(token0.address, token1.address);
+    Helper.assertEqualArray(registeredPools, [pools[0]], 'unexpected registeredPools');
   });
 });

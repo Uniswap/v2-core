@@ -10,12 +10,12 @@ contract MockDMMPool is DMMPool {
         address _factory,
         IERC20 _token0,
         IERC20 _token1,
-        bool isAmpPair
+        bool isAmpPool
     ) public DMMPool() {
         factory = IDMMFactory(_factory);
         token0 = _token0;
         token1 = _token1;
-        ampBps = isAmpPair ? uint32(BPS + 1) : uint32(BPS);
+        ampBps = isAmpPool ? uint32(BPS + 1) : uint32(BPS);
     }
 
     function setFee(uint256 _fee) external {

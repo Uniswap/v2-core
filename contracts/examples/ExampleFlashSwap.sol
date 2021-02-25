@@ -29,7 +29,7 @@ contract ExampleFlashSwap is IDMMCallee {
 
     receive() external payable {}
 
-    // gets tokens/WETH via a xyz flash swap, swaps for the WETH/tokens on uniswapV2, repays xyz, and keeps the rest!
+    // gets tokens/WETH via a dmm flash swap, swaps for the WETH/tokens on uniswapV2, repays dmm, and keeps the rest!
     function dmmSwapCall(
         address sender,
         uint256 amount0,
@@ -38,8 +38,8 @@ contract ExampleFlashSwap is IDMMCallee {
     ) external override {
         IERC20[] memory path = new IERC20[](2);
         address[] memory path2 = new address[](2);
-        address[] memory pairsPath = new address[](1);
-        pairsPath[0] = msg.sender;
+        address[] memory poolsPath = new address[](1);
+        poolsPath[0] = msg.sender;
 
         uint256 amountToken;
         uint256 amountETH;
@@ -47,7 +47,7 @@ contract ExampleFlashSwap is IDMMCallee {
             // scope for token{0,1}, avoids stack too deep errors
             IERC20 token0 = IDMMPoolExtended(msg.sender).token0();
             IERC20 token1 = IDMMPoolExtended(msg.sender).token1();
-            assert(IDMMFactory(factory).isPair(token0, token1, msg.sender));
+            assert(IDMMFactory(factory).isPool(token0, token1, msg.sender));
             assert(amount0 == 0 || amount1 == 0); // this strategy is unidirectional
             path[0] = amount0 == 0 ? token0 : token1;
             path[1] = amount0 == 0 ? token1 : token0;
@@ -57,11 +57,11 @@ contract ExampleFlashSwap is IDMMCallee {
             amountToken = token0 == IERC20(weth) ? amount1 : amount0;
             amountETH = token0 == IERC20(weth) ? amount0 : amount1;
         }
-        assert(path[0] == IERC20(weth) || path[1] == IERC20(weth)); // this strategy only works with a V2 WETH pair
+        assert(path[0] == IERC20(weth) || path[1] == IERC20(weth)); // this strategy only works with a V2 WETH pool
 
         if (amountToken > 0) {
             uint256 minETH = abi.decode(data, (uint256)); // slippage parameter for V1, passed in by caller
-            uint256 amountRequired = DMMLibrary.getAmountsIn(amountToken, pairsPath, path)[0];
+            uint256 amountRequired = DMMLibrary.getAmountsIn(amountToken, poolsPath, path)[0];
             path[1].safeApprove(address(uniswapRounter02), amountToken);
             uint256[] memory amounts = uniswapRounter02.swapExactTokensForTokens(
                 amountToken,
@@ -79,7 +79,7 @@ contract ExampleFlashSwap is IDMMCallee {
             require(success, "transfer eth failed");
         } else {
             weth.withdraw(amountETH);
-            uint256 amountRequired = DMMLibrary.getAmountsIn(amountETH, pairsPath, path)[0];
+            uint256 amountRequired = DMMLibrary.getAmountsIn(amountETH, poolsPath, path)[0];
             uint256[] memory amounts = uniswapRounter02.swapETHForExactTokens{value: amountETH}(
                 amountRequired,
                 path2,

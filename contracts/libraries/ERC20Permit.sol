@@ -6,7 +6,7 @@ import "../interfaces/IERC20Permit.sol";
 
 /// @dev https://eips.ethereum.org/EIPS/eip-2612
 contract ERC20Permit is ERC20, IERC20Permit {
-    /// @dev To make etherscan auto-verify new pair, this variable is not immutable
+    /// @dev To make etherscan auto-verify new pool, this variable is not immutable
     bytes32 public domainSeparator;
     // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
     bytes32

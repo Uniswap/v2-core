@@ -1,5 +1,5 @@
-const Helper = require('./helper');
-const {MaxUint256, ethAddress, expandTo18Decimals, MINIMUM_LIQUIDITY} = require('./helper');
+const Helper = require('../helper');
+const {MaxUint256, ethAddress, expandTo18Decimals, MINIMUM_LIQUIDITY} = require('../helper');
 const BN = web3.utils.BN;
 const {ecsign} = require('ethereumjs-util');
 const expectRevert = require('@openzeppelin/test-helpers/src/expectRevert');
@@ -16,9 +16,10 @@ let feeToken;
 let normalToken;
 
 let factory;
-let pair;
+let pool;
 let router;
 let weth;
+let tokenPool;
 
 let feeSetter;
 let liquidityProvider;
@@ -39,10 +40,10 @@ contract('DMMRouter02', accounts => {
 
     factory = await DMMFactory.new(feeSetter);
     router = await DMMRouter02.new(factory.address, weth.address);
-    // make a DTT<>WETH pair
-    await factory.createPair(feeToken.address, weth.address, new BN(10000));
-    const pairAddresses = await factory.getPairs(feeToken.address, weth.address);
-    pair = await DMMPool.at(pairAddresses[0]);
+    // make a DTT<>WETH pool
+    await factory.createPool(feeToken.address, weth.address, new BN(10000));
+    const poolAddresses = await factory.getPools(feeToken.address, weth.address);
+    pool = await DMMPool.at(poolAddresses[0]);
   });
 
   afterEach(async function () {
@@ -53,7 +54,7 @@ contract('DMMRouter02', accounts => {
     await feeToken.approve(router.address, MaxUint256);
     await router.addLiquidityETH(
       feeToken.address,
-      pair.address,
+      pool.address,
       feeTokenAmount,
       feeTokenAmount,
       ethAmount,
@@ -69,17 +70,17 @@ contract('DMMRouter02', accounts => {
     let feeTokenAmount = expandTo18Decimals(1);
     let ethAmount = expandTo18Decimals(4);
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
-    feeTokenAmount = await feeToken.balanceOf(pair.address);
+    feeTokenAmount = await feeToken.balanceOf(pool.address);
 
-    const liquidity = await pair.balanceOf(liquidityProvider);
-    const totalSupply = await pair.totalSupply();
+    const liquidity = await pool.balanceOf(liquidityProvider);
+    const totalSupply = await pool.totalSupply();
     const feeTokenExpected = feeTokenAmount.mul(liquidity).div(totalSupply);
     const ethExpected = ethAmount.mul(liquidity).div(totalSupply);
 
-    await pair.approve(router.address, MaxUint256, {from: liquidityProvider});
+    await pool.approve(router.address, MaxUint256, {from: liquidityProvider});
     await router.removeLiquidityETHSupportingFeeOnTransferTokens(
       feeToken.address,
-      pair.address,
+      pool.address,
       liquidity,
       feeTokenExpected,
       ethExpected,
@@ -98,14 +99,14 @@ contract('DMMRouter02', accounts => {
       .div(new BN(99));
     const ethAmount = expandTo18Decimals(5);
     const swapAmount = expandTo18Decimals(1);
-    const pairsPath = [pair.address];
+    const poolsPath = [pool.address];
     const path = [weth.address, feeToken.address];
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
 
     await expectRevert(
       router.swapExactETHForTokensSupportingFeeOnTransferTokens(
         0,
-        [pair.address],
+        [pool.address],
         [normalToken.address, feeToken.address],
         trader,
         MaxUint256,
@@ -117,11 +118,11 @@ contract('DMMRouter02', accounts => {
       'DMMRouter: INVALID_PATH'
     );
 
-    const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
+    const amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
     await expectRevert(
       router.swapExactETHForTokensSupportingFeeOnTransferTokens(
         amounts[amounts.length - 1],
-        pairsPath,
+        poolsPath,
         path,
         trader,
         MaxUint256,
@@ -132,7 +133,7 @@ contract('DMMRouter02', accounts => {
       ),
       'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
-    await router.swapExactETHForTokensSupportingFeeOnTransferTokens(0, pairsPath, path, trader, MaxUint256, {
+    await router.swapExactETHForTokensSupportingFeeOnTransferTokens(0, poolsPath, path, trader, MaxUint256, {
       from: trader,
       value: swapAmount
     });
@@ -144,7 +145,7 @@ contract('DMMRouter02', accounts => {
       .mul(new BN(100))
       .div(new BN(99));
     const path = [feeToken.address, weth.address];
-    const pairsPath = [pair.address];
+    const poolsPath = [pool.address];
     const ethAmount = expandTo18Decimals(10);
     const swapAmount = expandTo18Decimals(1);
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
@@ -155,7 +156,7 @@ contract('DMMRouter02', accounts => {
       router.swapExactTokensForETHSupportingFeeOnTransferTokens(
         swapAmount,
         0,
-        pairsPath,
+        poolsPath,
         [feeToken.address, normalToken.address],
         trader,
         MaxUint256,
@@ -165,12 +166,12 @@ contract('DMMRouter02', accounts => {
       ),
       'DMMRouter: INVALID_PATH'
     );
-    const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
+    const amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
     await expectRevert(
       router.swapExactTokensForETHSupportingFeeOnTransferTokens(
         swapAmount,
         amounts[amounts.length - 1],
-        pairsPath,
+        poolsPath,
         path,
         trader,
         MaxUint256,
@@ -183,7 +184,7 @@ contract('DMMRouter02', accounts => {
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
       0,
-      pairsPath,
+      poolsPath,
       path,
       trader,
       MaxUint256,
@@ -196,10 +197,10 @@ contract('DMMRouter02', accounts => {
   it('swapExactTokensForTokensSupportingFeeOnTransferTokens', async () => {
     const feeToken2 = await FeeToken.new('feeOnTransfer Token2', 'FOT2', expandTo18Decimals(100000));
 
-    /// create pair
-    await factory.createPair(feeToken.address, feeToken2.address, new BN(10000));
-    const pairAddresses = await factory.getPairs(feeToken.address, feeToken2.address);
-    tokenPair = await DMMPool.at(pairAddresses[0]);
+    /// create pool
+    await factory.createPool(feeToken.address, feeToken2.address, new BN(10000));
+    const poolAddresses = await factory.getPools(feeToken.address, feeToken2.address);
+    tokenPool = await DMMPool.at(poolAddresses[0]);
 
     const feeTokenAmount = expandTo18Decimals(5)
       .mul(new BN(100))
@@ -212,7 +213,7 @@ contract('DMMRouter02', accounts => {
     await router.addLiquidity(
       feeToken.address,
       feeToken2.address,
-      tokenPair.address,
+      tokenPool.address,
       feeTokenAmount,
       feeTokenAmount2,
       feeTokenAmount,
@@ -224,12 +225,12 @@ contract('DMMRouter02', accounts => {
     await feeToken.approve(router.address, MaxUint256, {from: trader});
     await feeToken.transfer(trader, amountIn.mul(new BN(2)));
 
-    const amounts = await router.getAmountsOut(amountIn, [tokenPair.address], [feeToken.address, feeToken2.address]);
+    const amounts = await router.getAmountsOut(amountIn, [tokenPool.address], [feeToken.address, feeToken2.address]);
     await expectRevert(
       router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
         amountIn,
         amounts[amounts.length - 1],
-        [tokenPair.address],
+        [tokenPool.address],
         [feeToken.address, feeToken2.address],
         trader,
         MaxUint256,
@@ -241,7 +242,7 @@ contract('DMMRouter02', accounts => {
     await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
       amountIn,
       0,
-      [tokenPair.address],
+      [tokenPool.address],
       [feeToken.address, feeToken2.address],
       trader,
       MaxUint256,
@@ -254,11 +255,11 @@ contract('DMMRouter02', accounts => {
     let ethAmount = expandTo18Decimals(4);
     await addLiquidity(feeTokenAmount, ethAmount, liquidityProvider);
 
-    const liquidity = await pair.balanceOf(liquidityProvider);
+    const liquidity = await pool.balanceOf(liquidityProvider);
 
-    const nonce = await pair.nonces(liquidityProvider);
+    const nonce = await pool.nonces(liquidityProvider);
     const digest = await Helper.getApprovalDigest(
-      pair,
+      pool,
       liquidityProvider,
       router.address,
       liquidity,
@@ -267,15 +268,15 @@ contract('DMMRouter02', accounts => {
     );
     const {v, r, s} = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(liquidityProviderPkKey.slice(2), 'hex'));
 
-    feeTokenAmount = await feeToken.balanceOf(pair.address);
-    const totalSupply = await pair.totalSupply();
+    feeTokenAmount = await feeToken.balanceOf(pool.address);
+    const totalSupply = await pool.totalSupply();
     const feeTokenExpected = feeTokenAmount.mul(liquidity).div(totalSupply);
     const ethExpected = ethAmount.mul(liquidity).div(totalSupply);
 
-    await pair.approve(router.address, MaxUint256, {from: liquidityProvider});
+    await pool.approve(router.address, MaxUint256, {from: liquidityProvider});
     await router.removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
       feeToken.address,
-      pair.address,
+      pool.address,
       liquidity,
       feeTokenExpected,
       ethExpected,
