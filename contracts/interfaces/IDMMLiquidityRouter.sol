@@ -59,7 +59,7 @@ interface IDMMLiquidityRouter {
 
     function addLiquidityETH(
         IERC20 token,
-        address,
+        address pool,
         uint256 amountTokenDesired,
         uint256 amountTokenMin,
         uint256 amountETHMin,

@@ -18,7 +18,7 @@ Router contract will also check if these pools are created from factory contract
 To add liquidity to a new pool, users would use function `addLiquidityNewPool` and `addLiquidityNewPoolETH`  
 - Change in fee:
   - We divide token pools into 4 categories. In general, the higher amplification used indicate greater price stability, so we use lower base fees.
-    - Similar asserts pools(amplificationFactor > 20): baseFee = 4 bps
+    - Similar assets pools(amplificationFactor > 20): baseFee = 4 bps
     - Strongly correlated assets pools (20 >= amplificationFactor > 5): baseFee = 10 bps
     - Correlated assets pools (5 >= amplificationFactor > 2): baseFee = 20 bps
     - Uncorrelated assets pools: (amplificationFactor <= 2): baseFee = 30 bps
