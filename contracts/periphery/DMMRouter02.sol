@@ -5,14 +5,14 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
-import "./interfaces/IXYZSwapFactory.sol";
-import "./interfaces/IXYZSwapRouter02.sol";
-import "./interfaces/IERC20Permit.sol";
-import "./interfaces/IXYZSwapPair.sol";
-import "./interfaces/IWETH.sol";
-import "./libraries/XYZSwapLibrary.sol";
+import "../interfaces/IDMMFactory.sol";
+import "../interfaces/IDMMRouter02.sol";
+import "../interfaces/IERC20Permit.sol";
+import "../interfaces/IDMMPool.sol";
+import "../interfaces/IWETH.sol";
+import "../libraries/DMMLibrary.sol";
 
-contract XYZSwapRouter02 is IXYZSwapRouter02 {
+contract DMMRouter02 is IDMMRouter02 {
     using SafeERC20 for IERC20;
     using SafeERC20 for IWETH;
     using SafeMath for uint256;
@@ -23,7 +23,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
     IWETH public immutable override weth;
 
     modifier ensure(uint256 deadline) {
-        require(deadline >= block.timestamp, "XYZSwapRouter: EXPIRED");
+        require(deadline >= block.timestamp, "DMMRouter: EXPIRED");
         _;
     }
 
@@ -46,18 +46,18 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         uint256 amountAMin,
         uint256 amountBMin
     ) internal virtual view returns (uint256 amountA, uint256 amountB) {
-        (uint256 reserveA, uint256 reserveB) = XYZSwapLibrary.getReserves(pair, tokenA, tokenB);
+        (uint256 reserveA, uint256 reserveB) = DMMLibrary.getReserves(pair, tokenA, tokenB);
         if (reserveA == 0 && reserveB == 0) {
             (amountA, amountB) = (amountADesired, amountBDesired);
         } else {
-            uint256 amountBOptimal = XYZSwapLibrary.quote(amountADesired, reserveA, reserveB);
+            uint256 amountBOptimal = DMMLibrary.quote(amountADesired, reserveA, reserveB);
             if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, "XYZSwapRouter: INSUFFICIENT_B_AMOUNT");
+                require(amountBOptimal >= amountBMin, "DMMRouter: INSUFFICIENT_B_AMOUNT");
                 (amountA, amountB) = (amountADesired, amountBOptimal);
             } else {
-                uint256 amountAOptimal = XYZSwapLibrary.quote(amountBDesired, reserveB, reserveA);
+                uint256 amountAOptimal = DMMLibrary.quote(amountBDesired, reserveB, reserveA);
                 assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, "XYZSwapRouter: INSUFFICIENT_A_AMOUNT");
+                require(amountAOptimal >= amountAMin, "DMMRouter: INSUFFICIENT_A_AMOUNT");
                 (amountA, amountB) = (amountAOptimal, amountBDesired);
             }
         }
@@ -97,7 +97,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         // using tokenA.safeTransferFrom will get "Stack too deep"
         SafeERC20.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         SafeERC20.safeTransferFrom(tokenB, msg.sender, pair, amountB);
-        liquidity = IXYZSwapPair(pair).mint(to);
+        liquidity = IDMMPool(pair).mint(to);
     }
 
     function addLiquidityETH(
@@ -132,7 +132,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         token.safeTransferFrom(msg.sender, pair, amountToken);
         weth.deposit{value: amountETH}();
         weth.safeTransfer(pair, amountETH);
-        liquidity = IXYZSwapPair(pair).mint(to);
+        liquidity = IDMMPool(pair).mint(to);
         // refund dust eth, if any
         if (msg.value > amountETH) {
             TransferHelper.safeTransferETH(msg.sender, msg.value - amountETH);
@@ -160,10 +160,10 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
     {
         address pair;
         if (ampBps == BPS) {
-            pair = IXYZSwapFactory(factory).getNonAmpPair(tokenA, tokenB);
+            pair = IDMMFactory(factory).getNonAmpPair(tokenA, tokenB);
         }
         if (pair == address(0)) {
-            pair = IXYZSwapFactory(factory).createPair(tokenA, tokenB, ampBps);
+            pair = IDMMFactory(factory).createPair(tokenA, tokenB, ampBps);
         }
         (amountA, amountB, liquidity) = addLiquidity(
             tokenA,
@@ -198,10 +198,10 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
     {
         address pair;
         if (ampBps == BPS) {
-            pair = IXYZSwapFactory(factory).getNonAmpPair(token, weth);
+            pair = IDMMFactory(factory).getNonAmpPair(token, weth);
         }
         if (pair == address(0)) {
-            pair = IXYZSwapFactory(factory).createPair(token, weth, ampBps);
+            pair = IDMMFactory(factory).createPair(token, weth, ampBps);
         }
         (amountToken, amountETH, liquidity) = addLiquidityETH(
             token,
@@ -227,11 +227,11 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
     ) public override ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         verifyPairAddress(tokenA, tokenB, pair);
         IERC20(pair).safeTransferFrom(msg.sender, pair, liquidity); // send liquidity to pair
-        (uint256 amount0, uint256 amount1) = IXYZSwapPair(pair).burn(to);
-        (IERC20 token0, ) = XYZSwapLibrary.sortTokens(tokenA, tokenB);
+        (uint256 amount0, uint256 amount1) = IDMMPool(pair).burn(to);
+        (IERC20 token0, ) = DMMLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
-        require(amountA >= amountAMin, "XYZSwapRouter: INSUFFICIENT_A_AMOUNT");
-        require(amountB >= amountBMin, "XYZSwapRouter: INSUFFICIENT_B_AMOUNT");
+        require(amountA >= amountAMin, "DMMRouter: INSUFFICIENT_A_AMOUNT");
+        require(amountB >= amountBMin, "DMMRouter: INSUFFICIENT_B_AMOUNT");
     }
 
     function removeLiquidityETH(
@@ -374,13 +374,13 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
     ) private {
         for (uint256 i; i < path.length - 1; i++) {
             (IERC20 input, IERC20 output) = (path[i], path[i + 1]);
-            (IERC20 token0, ) = XYZSwapLibrary.sortTokens(input, output);
+            (IERC20 token0, ) = DMMLibrary.sortTokens(input, output);
             uint256 amountOut = amounts[i + 1];
             (uint256 amount0Out, uint256 amount1Out) = input == token0
                 ? (uint256(0), amountOut)
                 : (amountOut, uint256(0));
             address to = i < path.length - 2 ? pairsPath[i + 1] : _to;
-            IXYZSwapPair(pairsPath[i]).swap(amount0Out, amount1Out, to, new bytes(0));
+            IDMMPool(pairsPath[i]).swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
 
@@ -393,10 +393,10 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         uint256 deadline
     ) public virtual override ensure(deadline) returns (uint256[] memory amounts) {
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsOut(amountIn, pairsPath, path);
+        amounts = DMMLibrary.getAmountsOut(amountIn, pairsPath, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,
-            "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+            "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
         IERC20(path[0]).safeTransferFrom(msg.sender, pairsPath[0], amounts[0]);
         _swap(amounts, pairsPath, path, to);
@@ -411,8 +411,8 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         uint256 deadline
     ) public override ensure(deadline) returns (uint256[] memory amounts) {
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsIn(amountOut, pairsPath, path);
-        require(amounts[0] <= amountInMax, "XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT");
+        amounts = DMMLibrary.getAmountsIn(amountOut, pairsPath, path);
+        require(amounts[0] <= amountInMax, "DMMRouter: EXCESSIVE_INPUT_AMOUNT");
         path[0].safeTransferFrom(msg.sender, pairsPath[0], amounts[0]);
         _swap(amounts, pairsPath, path, to);
     }
@@ -424,12 +424,12 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
-        require(path[0] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[0] == weth, "DMMRouter: INVALID_PATH");
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsOut(msg.value, pairsPath, path);
+        amounts = DMMLibrary.getAmountsOut(msg.value, pairsPath, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,
-            "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+            "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
         IWETH(weth).deposit{value: amounts[0]}();
         weth.safeTransfer(pairsPath[0], amounts[0]);
@@ -444,10 +444,10 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override ensure(deadline) returns (uint256[] memory amounts) {
-        require(path[path.length - 1] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[path.length - 1] == weth, "DMMRouter: INVALID_PATH");
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsIn(amountOut, pairsPath, path);
-        require(amounts[0] <= amountInMax, "XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT");
+        amounts = DMMLibrary.getAmountsIn(amountOut, pairsPath, path);
+        require(amounts[0] <= amountInMax, "DMMRouter: EXCESSIVE_INPUT_AMOUNT");
         path[0].safeTransferFrom(msg.sender, pairsPath[0], amounts[0]);
         _swap(amounts, pairsPath, path, address(this));
         IWETH(weth).withdraw(amounts[amounts.length - 1]);
@@ -462,12 +462,12 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override ensure(deadline) returns (uint256[] memory amounts) {
-        require(path[path.length - 1] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[path.length - 1] == weth, "DMMRouter: INVALID_PATH");
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsOut(amountIn, pairsPath, path);
+        amounts = DMMLibrary.getAmountsOut(amountIn, pairsPath, path);
         require(
             amounts[amounts.length - 1] >= amountOutMin,
-            "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+            "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
         path[0].safeTransferFrom(msg.sender, pairsPath[0], amounts[0]);
         _swap(amounts, pairsPath, path, address(this));
@@ -482,10 +482,10 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override payable ensure(deadline) returns (uint256[] memory amounts) {
-        require(path[0] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[0] == weth, "DMMRouter: INVALID_PATH");
         verifyPairsPathSwap(pairsPath, path);
-        amounts = XYZSwapLibrary.getAmountsIn(amountOut, pairsPath, path);
-        require(amounts[0] <= msg.value, "XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT");
+        amounts = DMMLibrary.getAmountsIn(amountOut, pairsPath, path);
+        require(amounts[0] <= msg.value, "DMMRouter: EXCESSIVE_INPUT_AMOUNT");
         IWETH(weth).deposit{value: amounts[0]}();
         weth.safeTransfer(pairsPath[0], amounts[0]);
         _swap(amounts, pairsPath, path, to);
@@ -505,8 +505,8 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         verifyPairsPathSwap(pairsPath, path);
         for (uint256 i; i < path.length - 1; i++) {
             (IERC20 input, IERC20 output) = (path[i], path[i + 1]);
-            (IERC20 token0, ) = XYZSwapLibrary.sortTokens(input, output);
-            IXYZSwapPair pair = IXYZSwapPair(pairsPath[i]);
+            (IERC20 token0, ) = DMMLibrary.sortTokens(input, output);
+            IDMMPool pair = IDMMPool(pairsPath[i]);
             uint256 amountOutput;
             {
                 // scope to avoid stack too deep errors
@@ -516,9 +516,9 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
                     uint256 vReserveIn,
                     uint256 vReserveOut,
                     uint256 feeInPrecision
-                ) = XYZSwapLibrary.getTradeInfo(pairsPath[i], input, output);
+                ) = DMMLibrary.getTradeInfo(pairsPath[i], input, output);
                 uint256 amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveIn);
-                amountOutput = XYZSwapLibrary.getAmountOut(
+                amountOutput = DMMLibrary.getAmountOut(
                     amountInput,
                     reserveIn,
                     reserveOut,
@@ -549,7 +549,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         uint256 balanceAfter = path[path.length - 1].balanceOf(to);
         require(
             balanceAfter >= balanceBefore.add(amountOutMin),
-            "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+            "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
 
@@ -560,7 +560,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override payable ensure(deadline) {
-        require(path[0] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[0] == weth, "DMMRouter: INVALID_PATH");
         uint256 amountIn = msg.value;
         IWETH(weth).deposit{value: amountIn}();
         weth.safeTransfer(pairsPath[0], amountIn);
@@ -568,7 +568,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         _swapSupportingFeeOnTransferTokens(pairsPath, path, to);
         require(
             path[path.length - 1].balanceOf(to).sub(balanceBefore) >= amountOutMin,
-            "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT"
+            "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
 
@@ -580,11 +580,11 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         address to,
         uint256 deadline
     ) external override ensure(deadline) {
-        require(path[path.length - 1] == weth, "XYZSwapRouter: INVALID_PATH");
+        require(path[path.length - 1] == weth, "DMMRouter: INVALID_PATH");
         path[0].safeTransferFrom(msg.sender, pairsPath[0], amountIn);
         _swapSupportingFeeOnTransferTokens(pairsPath, path, address(this));
         uint256 amountOut = IWETH(weth).balanceOf(address(this));
-        require(amountOut >= amountOutMin, "XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(amountOut >= amountOutMin, "DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT");
         IWETH(weth).withdraw(amountOut);
         TransferHelper.safeTransferETH(to, amountOut);
     }
@@ -597,7 +597,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         uint256 reserveA,
         uint256 reserveB
     ) external override pure returns (uint256 amountB) {
-        return XYZSwapLibrary.quote(amountA, reserveA, reserveB);
+        return DMMLibrary.quote(amountA, reserveA, reserveB);
     }
 
     function getAmountsOut(
@@ -606,7 +606,7 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         IERC20[] calldata path
     ) external override view returns (uint256[] memory amounts) {
         verifyPairsPathSwap(pairsPath, path);
-        return XYZSwapLibrary.getAmountsOut(amountIn, pairsPath, path);
+        return DMMLibrary.getAmountsOut(amountIn, pairsPath, path);
     }
 
     function getAmountsIn(
@@ -615,12 +615,12 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         IERC20[] calldata path
     ) external override view returns (uint256[] memory amounts) {
         verifyPairsPathSwap(pairsPath, path);
-        return XYZSwapLibrary.getAmountsIn(amountOut, pairsPath, path);
+        return DMMLibrary.getAmountsIn(amountOut, pairsPath, path);
     }
 
     function verifyPairsPathSwap(address[] memory pairsPath, IERC20[] memory path) internal view {
-        require(path.length >= 2, "XYZSwapRouter: INVALID_PATH");
-        require(pairsPath.length == path.length - 1, "XYZSwapRouter: INVALID_PAIRS_PATH");
+        require(path.length >= 2, "DMMRouter: INVALID_PATH");
+        require(pairsPath.length == path.length - 1, "DMMRouter: INVALID_PAIRS_PATH");
         for (uint256 i = 0; i < pairsPath.length; i++) {
             verifyPairAddress(path[i], path[i + 1], pairsPath[i]);
         }
@@ -631,9 +631,6 @@ contract XYZSwapRouter02 is IXYZSwapRouter02 {
         IERC20 tokenB,
         address pair
     ) internal view {
-        require(
-            IXYZSwapFactory(factory).isPair(tokenA, tokenB, pair),
-            "XYZSwapRouter: INVALID_PAIR"
-        );
+        require(IDMMFactory(factory).isPair(tokenA, tokenB, pair), "DMMRouter: INVALID_PAIR");
     }
 }

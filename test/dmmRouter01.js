@@ -1,15 +1,15 @@
 const Helper = require('./helper');
-const XyzHelper = require('./xyzHelper');
+const dmmHelper = require('./dmmHelper');
 const BN = web3.utils.BN;
 
 const {precisionUnits, MINIMUM_LIQUIDITY} = require('./helper');
 const {expectEvent, expectRevert, time} = require('@openzeppelin/test-helpers');
 const {ecsign} = require('ethereumjs-util');
 
-const XYZSwapRouter = artifacts.require('XYZSwapRouter02');
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
+const DMMRouter = artifacts.require('DMMRouter02');
+const DMMFactory = artifacts.require('DMMFactory');
 const WETH = artifacts.require('WETH9');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
+const DMMPool = artifacts.require('DMMPool');
 const TestToken = artifacts.require('TestToken');
 
 const bigAmount = new BN(2).pow(new BN(250));
@@ -33,7 +33,7 @@ let initTokenAmount = Helper.expandTo18Decimals(1000);
 const BNOne = new BN(1);
 const MaxUint256 = new BN(2).pow(new BN(256)).sub(BNOne);
 
-contract('XYZSwapRouter', function (accounts) {
+contract('DMMRouter', function (accounts) {
   before('setup', async () => {
     feeToSetter = accounts[0];
     trader = accounts[1];
@@ -55,17 +55,17 @@ contract('XYZSwapRouter', function (accounts) {
   });
 
   beforeEach('setup', async () => {
-    factory = await XYZSwapFactory.new(accounts[0]);
+    factory = await DMMFactory.new(accounts[0]);
     /// create pair tokenA and tokenB
     await factory.createPair(token0.address, token1.address, new BN(10000));
     const pairAddrs = await factory.getPairs(token0.address, token1.address);
-    pair = await XYZSwapPair.at(pairAddrs[0]);
+    pair = await DMMPool.at(pairAddrs[0]);
     /// create pair weth and ethPartner
     await factory.createPair(weth.address, ethPartner.address, new BN(10000));
     const wethPairAddresses = await factory.getPairs(weth.address, ethPartner.address);
-    ethPair = await XYZSwapPair.at(wethPairAddresses[0]);
+    ethPair = await DMMPool.at(wethPairAddresses[0]);
     /// create router
-    router = await XYZSwapRouter.new(factory.address, weth.address);
+    router = await DMMRouter.new(factory.address, weth.address);
   });
 
   it('factory, ETH', async () => {
@@ -99,7 +99,7 @@ contract('XYZSwapRouter', function (accounts) {
         {from: trader}
       );
       let pairAddresses = await factory.getPairs(tokenA.address, tokenB.address);
-      let pair = await XYZSwapPair.at(pairAddresses[0]);
+      let pair = await DMMPool.at(pairAddresses[0]);
       const token0Address = await pair.token0();
       console.log('gas used', result.receipt.gasUsed);
       await expectEvent.inTransaction(result.tx, pair, 'Sync', {
@@ -123,7 +123,7 @@ contract('XYZSwapRouter', function (accounts) {
         {from: trader}
       );
       pairAddresses = await factory.getPairs(tokenA.address, tokenB.address);
-      pair = await XYZSwapPair.at(pairAddresses[1]);
+      pair = await DMMPool.at(pairAddresses[1]);
       await expectEvent.inTransaction(result.tx, pair, 'Sync', {
         reserve0: tokenA.address == token0Address ? tokenAAmount : tokenBAmount,
         reserve1: tokenA.address == token0Address ? tokenBAmount : tokenAAmount
@@ -166,7 +166,7 @@ contract('XYZSwapRouter', function (accounts) {
         {from: trader, value: ethAmount}
       );
       let pairAddresses = await factory.getPairs(token.address, weth.address);
-      let pair = await XYZSwapPair.at(pairAddresses[0]);
+      let pair = await DMMPool.at(pairAddresses[0]);
       const token0Address = await pair.token0();
       console.log('gas used', result.receipt.gasUsed);
       await expectEvent.inTransaction(result.tx, pair, 'Sync', {
@@ -188,7 +188,7 @@ contract('XYZSwapRouter', function (accounts) {
         {from: trader, value: ethAmount}
       );
       pairAddresses = await factory.getPairs(token.address, weth.address);
-      pair = await XYZSwapPair.at(pairAddresses[1]);
+      pair = await DMMPool.at(pairAddresses[1]);
       await expectEvent.inTransaction(result.tx, pair, 'Sync', {
         reserve0: token.address == token0Address ? tokenAmount : ethAmount,
         reserve1: token.address == token0Address ? ethAmount : tokenAmount
@@ -256,7 +256,7 @@ contract('XYZSwapRouter', function (accounts) {
           bigAmount,
           {from: trader}
         ),
-        'XYZSwapRouter: INVALID_PAIR'
+        'DMMRouter: INVALID_PAIR'
       );
 
       await expectRevert(
@@ -272,7 +272,7 @@ contract('XYZSwapRouter', function (accounts) {
           bigAmount,
           {from: trader}
         ),
-        'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
+        'DMMRouter: INSUFFICIENT_A_AMOUNT'
       );
 
       await expectRevert(
@@ -288,7 +288,7 @@ contract('XYZSwapRouter', function (accounts) {
           bigAmount,
           {from: trader}
         ),
-        'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+        'DMMRouter: INSUFFICIENT_B_AMOUNT'
       );
 
       result = await router.addLiquidity(
@@ -352,7 +352,7 @@ contract('XYZSwapRouter', function (accounts) {
           bigAmount,
           {from: trader, value: ethAmount.add(new BN(100))}
         ),
-        'XYZSwapRouter: INVALID_PAIR'
+        'DMMRouter: INVALID_PAIR'
       );
 
       let result = await router.addLiquidityETH(
@@ -438,7 +438,7 @@ contract('XYZSwapRouter', function (accounts) {
         bigAmount,
         {from: trader}
       ),
-      'XYZSwapRouter: INSUFFICIENT_A_AMOUNT'
+      'DMMRouter: INSUFFICIENT_A_AMOUNT'
     );
 
     await expectRevert(
@@ -453,7 +453,7 @@ contract('XYZSwapRouter', function (accounts) {
         bigAmount,
         {from: trader}
       ),
-      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+      'DMMRouter: INSUFFICIENT_B_AMOUNT'
     );
 
     await expectRevert(
@@ -468,7 +468,7 @@ contract('XYZSwapRouter', function (accounts) {
         bigAmount,
         {from: trader}
       ),
-      'XYZSwapRouter: INSUFFICIENT_B_AMOUNT'
+      'DMMRouter: INSUFFICIENT_B_AMOUNT'
     );
 
     await expectRevert(
@@ -483,7 +483,7 @@ contract('XYZSwapRouter', function (accounts) {
         bigAmount,
         {from: trader}
       ),
-      'XYZSwapRouter: INVALID_PAIR'
+      'DMMRouter: INVALID_PAIR'
     );
 
     let result = await router.removeLiquidity(
@@ -699,31 +699,31 @@ contract('XYZSwapRouter', function (accounts) {
   describe('test query rate function', async () => {
     it('getAmountOut', async () => {
       let [factory, pair] = await setupPair(feeToSetter, token0, token1, new BN(20000));
-      let router = await XYZSwapRouter.new(factory.address, weth.address);
+      let router = await DMMRouter.new(factory.address, weth.address);
       const token0Amount = Helper.expandTo18Decimals(5);
       const token1Amount = Helper.expandTo18Decimals(10);
       const swapAmount = Helper.expandTo18Decimals(1);
       const pairsPath = [pair.address];
       const path = [token0.address, token1.address];
       // revert if invalid path.length
-      await expectRevert(router.getAmountsOut(swapAmount, pairsPath, [token0.address]), 'XYZSwapRouter: INVALID_PATH');
+      await expectRevert(router.getAmountsOut(swapAmount, pairsPath, [token0.address]), 'DMMRouter: INVALID_PATH');
       await expectRevert(
         router.getAmountsOut(swapAmount, pairsPath, [token0.address, token1.address, weth.address]),
-        'XYZSwapRouter: INVALID_PAIRS_PATH'
+        'DMMRouter: INVALID_PAIRS_PATH'
       );
 
       // revert if there is no liquidity
-      await expectRevert(router.getAmountsOut(swapAmount, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
+      await expectRevert(router.getAmountsOut(swapAmount, pairsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
 
       await addLiquidity(liquidityProvider, pair, token0, token1, token0Amount, token1Amount);
       // revert if amountOut == 0
       await expectRevert(
         router.getAmountsOut(new BN(0), pairsPath, path),
-        'XYZSwapLibrary: INSUFFICIENT_INPUT_AMOUNT'
+        'DMMLibrary: INSUFFICIENT_INPUT_AMOUNT'
       );
       // special case virtual balance is not enough for trade
-      let bigAmountIn = await XyzHelper.getAmountIn(token1Amount.add(new BN(1)), token0, pair);
-      await expectRevert(router.getAmountsOut(bigAmountIn, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
+      let bigAmountIn = await dmmHelper.getAmountIn(token1Amount.add(new BN(1)), token0, pair);
+      await expectRevert(router.getAmountsOut(bigAmountIn, pairsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
       await router.getAmountsOut(bigAmountIn.sub(new BN(1)), pairsPath, path);
 
       // test revert amount in
@@ -737,25 +737,25 @@ contract('XYZSwapRouter', function (accounts) {
 
     it('getAmountIn', async () => {
       [factory, pair] = await setupPair(feeToSetter, token0, token1, new BN(20000));
-      let router = await XYZSwapRouter.new(factory.address, weth.address);
+      let router = await DMMRouter.new(factory.address, weth.address);
       const token0Amount = Helper.expandTo18Decimals(5);
       const token1Amount = Helper.expandTo18Decimals(10);
       const swapAmount = Helper.expandTo18Decimals(1);
       let pairsPath = [pair.address];
       const path = [token0.address, token1.address];
       // revert if there is no liquidity
-      await expectRevert(router.getAmountsIn(swapAmount, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
+      await expectRevert(router.getAmountsIn(swapAmount, pairsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
 
       await addLiquidity(liquidityProvider, pair, token0, token1, token0Amount, token1Amount);
       // revert if amountOut == 0
       await expectRevert(
         router.getAmountsIn(new BN(0), pairsPath, path),
-        'XYZSwapLibrary: INSUFFICIENT_OUTPUT_AMOUNT'
+        'DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT'
       );
       // special case real balance is not enough for trade
       await expectRevert(
         router.getAmountsIn(token1Amount.add(new BN(1)), pairsPath, path),
-        'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY'
+        'DMMLibrary: INSUFFICIENT_LIQUIDITY'
       );
       await router.getAmountsIn(token1Amount, pairsPath, path);
 
@@ -769,10 +769,10 @@ contract('XYZSwapRouter', function (accounts) {
 
       // special case non amp pair.
       [factory, pair] = await setupPair(feeToSetter, token0, token1, new BN(10000));
-      router = await XYZSwapRouter.new(factory.address, weth.address);
+      router = await DMMRouter.new(factory.address, weth.address);
       await addLiquidity(liquidityProvider, pair, token0, token1, token0Amount, token1Amount);
       pairsPath = [pair.address];
-      await expectRevert(router.getAmountsIn(token1Amount, pairsPath, path), 'XYZSwapLibrary: INSUFFICIENT_LIQUIDITY');
+      await expectRevert(router.getAmountsIn(token1Amount, pairsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
     });
   });
 
@@ -804,7 +804,7 @@ contract('XYZSwapRouter', function (accounts) {
         value: swapAmount,
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
     // revert if excessive input amount
     await expectRevert(
@@ -813,7 +813,7 @@ contract('XYZSwapRouter', function (accounts) {
         value: expectAmountIn.sub(new BN(1)),
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT'
+      'DMMRouter: EXCESSIVE_INPUT_AMOUNT'
     );
 
     result = await router.swapETHForExactTokens(outputAmount, pairsPath, path, trader, bigAmount, {
@@ -878,14 +878,14 @@ contract('XYZSwapRouter', function (accounts) {
         from: trader,
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
     await expectRevert(
       router.swapExactTokensForETH(swapAmount, expectAmountOut.add(BNOne), pairsPath, path, trader, bigAmount, {
         from: trader,
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
     let result = await router.swapExactTokensForETH(swapAmount, 0, pairsPath, path, trader, bigAmount, {
       from: trader,
@@ -939,7 +939,7 @@ contract('XYZSwapRouter', function (accounts) {
         from: trader,
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
 
     await expectRevert(
@@ -947,7 +947,7 @@ contract('XYZSwapRouter', function (accounts) {
         from: trader,
         gasPrice: new BN(0)
       }),
-      'XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT'
+      'DMMRouter: EXCESSIVE_INPUT_AMOUNT'
     );
     let result = await router.swapTokensForExactETH(outputAmount, bigAmount, pairsPath, path, trader, bigAmount, {
       from: trader,
@@ -1003,7 +1003,7 @@ contract('XYZSwapRouter', function (accounts) {
         value: swapAmount,
         gasPrice: 0
       }),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
     await expectRevert(
       router.swapExactETHForTokens(expectedOutputAmount.add(BNOne), pairsPath, path, trader, bigAmount, {
@@ -1011,7 +1011,7 @@ contract('XYZSwapRouter', function (accounts) {
         value: swapAmount,
         gasPrice: 0
       }),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
     let result = await router.swapExactETHForTokens(0, pairsPath, path, trader, bigAmount, {
       from: trader,
@@ -1070,14 +1070,14 @@ contract('XYZSwapRouter', function (accounts) {
           from: trader
         }
       ),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
 
     // revert if over deadline
     let expiredTimeStamp = (await Helper.getCurrentBlockTime()) - 1;
     await expectRevert(
       router.swapExactTokensForTokens(swapAmount, 0, pairsPath, path, trader, expiredTimeStamp, {from: trader}),
-      'XYZSwapRouter: EXPIRED'
+      'DMMRouter: EXPIRED'
     );
 
     let result = await router.swapExactTokensForTokens(swapAmount, 0, pairsPath, path, trader, bigAmount, {
@@ -1132,7 +1132,7 @@ contract('XYZSwapRouter', function (accounts) {
           from: trader
         }
       ),
-      'XYZSwapRouter: EXCESSIVE_INPUT_AMOUNT'
+      'DMMRouter: EXCESSIVE_INPUT_AMOUNT'
     );
     // revert if over deadline
     let expiredTimeStamp = (await Helper.getCurrentBlockTime()) - 1;
@@ -1140,7 +1140,7 @@ contract('XYZSwapRouter', function (accounts) {
       router.swapTokensForExactTokens(outputAmount, bigAmount, pairsPath, path, trader, expiredTimeStamp, {
         from: trader
       }),
-      'XYZSwapRouter: EXPIRED'
+      'DMMRouter: EXPIRED'
     );
 
     let result = await router.swapTokensForExactTokens(outputAmount, bigAmount, pairsPath, path, trader, bigAmount, {
@@ -1167,7 +1167,7 @@ contract('XYZSwapRouter', function (accounts) {
 });
 
 async function setupFactory (admin) {
-  return await XYZSwapFactory.new(admin);
+  return await DMMFactory.new(admin);
 }
 
 async function setupPair (admin, token0, token1, ampBps) {
@@ -1175,7 +1175,7 @@ async function setupPair (admin, token0, token1, ampBps) {
   await factory.createPair(token0.address, token1.address, ampBps);
 
   const pairAddrs = await factory.getPairs(token0.address, token1.address);
-  const pair = await XYZSwapPair.at(pairAddrs[0]);
+  const pair = await DMMPool.at(pairAddrs[0]);
 
   return [factory, pair];
 }

@@ -2,9 +2,9 @@ const BN = web3.utils.BN;
 const Helper = require('./helper');
 const {expandTo18Decimals, MaxUint256} = require('./helper');
 
-const XYZSwapRouter = artifacts.require('XYZSwapRouter02');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
+const DMMRouter = artifacts.require('DMMRouter02');
+const DMMPool = artifacts.require('DMMPool');
+const DMMFactory = artifacts.require('DMMFactory');
 const WETH = artifacts.require('WETH9');
 const TestToken = artifacts.require('TestToken');
 const ExampleFlashSwap = artifacts.require('ExampleFlashSwap');
@@ -26,10 +26,10 @@ contract('ExampleFlashSwap', accounts => {
   beforeEach('setup', async () => {
     liquidityProvider = accounts[0];
     trader = accounts[0];
-    xyzFactory = await XYZSwapFactory.new(accounts[0]);
+    xyzFactory = await DMMFactory.new(accounts[0]);
     ethPartner = await TestToken.new('WETH Partner', 'WETH-P', Helper.expandTo18Decimals(10000));
     weth = await WETH.new();
-    xyzRouter = await XYZSwapRouter.new(xyzFactory.address, weth.address);
+    xyzRouter = await DMMRouter.new(xyzFactory.address, weth.address);
 
     uniswapFactory = await UniswapV2Factory.new(accounts[0]);
     uniswapRouter = await UniswapV2Router.new(uniswapFactory.address, weth.address);
@@ -39,7 +39,7 @@ contract('ExampleFlashSwap', accounts => {
     // await ethPartner.transfer(trader, initTokenAmount);
     await xyzFactory.createPair(weth.address, ethPartner.address, new BN(10000));
     const ethPairAddress = await xyzFactory.getPairs(weth.address, ethPartner.address);
-    ethXyzPair = await XYZSwapPair.at(ethPairAddress[0]);
+    ethXyzPair = await DMMPool.at(ethPairAddress[0]);
   });
 
   it('uniswapV2Call:0', async () => {
@@ -70,7 +70,7 @@ contract('ExampleFlashSwap', accounts => {
 
     const balanceBefore = await Helper.getBalancePromise(trader);
 
-    // now, execute arbitrage via xyzSwapCall:
+    // now, execute arbitrage via dmmSwapCall:
     // receive 1 ETH from xyzSwap, get as minimum X from uniswap, repay xyzSwap with minimum X, keep the rest!
     const arbitrageAmount = expandTo18Decimals(1);
     // instead of being 'hard-coded', the above value could be calculated optimally off-chain. this would be
@@ -117,7 +117,7 @@ contract('ExampleFlashSwap', accounts => {
 
     const balanceBefore = await Helper.getBalancePromise(trader);
 
-    // now, execute arbitrage via xyzSwapCall:
+    // now, execute arbitrage via dmmSwapCall:
     // receive 200 X from xyzSwap, get as much ETH from uniswap as we can, repay xyzSwap with minimum ETH, keep the rest!
     const arbitrageAmount = expandTo18Decimals(200);
     // instead of being 'hard-coded', the above value could be calculated optimally off-chain. this would be

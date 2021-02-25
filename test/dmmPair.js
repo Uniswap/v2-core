@@ -1,13 +1,13 @@
 const TestToken = artifacts.require('TestToken');
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
+const DMMFactory = artifacts.require('DMMFactory');
+const DMMPool = artifacts.require('DMMPool');
 
 const {expectEvent, expectRevert, constants} = require('@openzeppelin/test-helpers');
 const {assert} = require('chai');
 const BN = web3.utils.BN;
 
 const Helper = require('./helper');
-const XyzHelper = require('./xyzHelper');
+const dmmHelper = require('./dmmHelper');
 const {expandTo18Decimals, precisionUnits} = require('./helper');
 
 const MINIMUM_LIQUIDITY = new BN(1000);
@@ -26,7 +26,7 @@ let nonAmpBps = new BN(10000);
 
 let baseRate = new BN(0);
 
-contract('XYZSwapPair', function (accounts) {
+contract('DMMPool', function (accounts) {
   before('setup', async () => {
     admin = accounts[0];
     trader = accounts[1];
@@ -40,7 +40,7 @@ contract('XYZSwapPair', function (accounts) {
 
   it('can not initialize not by factory', async () => {
     [factory, pair] = await setupPair(admin, token0, token1, nonAmpBps);
-    await expectRevert(pair.initialize(token0.address, token1.address, nonAmpBps), 'XYZSwap: FORBIDDEN');
+    await expectRevert(pair.initialize(token0.address, token1.address, nonAmpBps), 'DMM: FORBIDDEN');
   });
 
   describe('mint', async () => {
@@ -76,7 +76,7 @@ contract('XYZSwapPair', function (accounts) {
       const updateToken1Amount = Helper.expandTo18Decimals(2);
       await token0.transfer(pair.address, updateToken0Amount);
       // if transfer only 1 token, trade will revert
-      await expectRevert(pair.mint(trader, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_MINTED');
+      await expectRevert(pair.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
 
       await token1.transfer(pair.address, updateToken1Amount);
       result = await pair.mint(trader, {from: app});
@@ -130,7 +130,7 @@ contract('XYZSwapPair', function (accounts) {
       const updateToken1Amount = Helper.expandTo18Decimals(2);
       await token0.transfer(pair.address, updateToken0Amount);
       // if transfer only 1 token, trade will revert
-      await expectRevert(pair.mint(trader, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_MINTED');
+      await expectRevert(pair.mint(trader, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_MINTED');
 
       await token1.transfer(pair.address, updateToken1Amount);
       result = await pair.mint(trader, {from: app});
@@ -172,8 +172,8 @@ contract('XYZSwapPair', function (accounts) {
           expandTo18Decimals(token1Amount)
         );
         await token0.transfer(pair.address, expandTo18Decimals(swapAmount));
-        let expectedOutputAmount = await XyzHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
-        await expectRevert(pair.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'XYZSwap: K');
+        let expectedOutputAmount = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
+        await expectRevert(pair.swap(0, expectedOutputAmount.add(new BN(1)), trader, '0x'), 'DMM: K');
         await pair.swap(0, new BN(expectedOutputAmount), trader, '0x');
       });
 
@@ -186,8 +186,8 @@ contract('XYZSwapPair', function (accounts) {
           expandTo18Decimals(token1Amount)
         );
         await token0.transfer(pair.address, expandTo18Decimals(swapAmount));
-        let amountOut = await XyzHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
-        await expectRevert(pair.swap(0, amountOut.add(new BN(1)), trader, '0x'), 'XYZSwap: K');
+        let amountOut = await dmmHelper.getAmountOut(expandTo18Decimals(swapAmount), token0, pair);
+        await expectRevert(pair.swap(0, amountOut.add(new BN(1)), trader, '0x'), 'DMM: K');
         await pair.swap(0, new BN(amountOut), trader, '0x');
       });
     });
@@ -200,26 +200,26 @@ contract('XYZSwapPair', function (accounts) {
 
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token0.address, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pair);
       // when amountIn = 0 -> revert
       await expectRevert(
         pair.swap(new BN(0), amountOut, trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_INPUT_AMOUNT'
+        'DMM: INSUFFICIENT_INPUT_AMOUNT'
       );
 
       // when amountOut = 0 -> revert
       await token0.transfer(pair.address, swapAmount);
       await expectRevert(
         pair.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_OUTPUT_AMOUNT'
+        'DMM: INSUFFICIENT_OUTPUT_AMOUNT'
       );
       // when amountOut > liquidity -> revert
       await expectRevert(
         pair.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_LIQUIDITY'
+        'DMM: INSUFFICIENT_LIQUIDITY'
       );
       // revert when destAddres is token0 or token1
-      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'XYZSwap: INVALID_TO');
+      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
       // normal swap if everything is valid
       await token1.transfer(trader, new BN(1));
 
@@ -259,26 +259,26 @@ contract('XYZSwapPair', function (accounts) {
 
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token0.address, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pair);
       // when amountIn = 0 -> revert
       await expectRevert(
         pair.swap(new BN(0), amountOut, trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_INPUT_AMOUNT'
+        'DMM: INSUFFICIENT_INPUT_AMOUNT'
       );
 
       // when amountOut = 0 -> revert
       await token0.transfer(pair.address, swapAmount);
       await expectRevert(
         pair.swap(new BN(0), new BN(0), trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_OUTPUT_AMOUNT'
+        'DMM: INSUFFICIENT_OUTPUT_AMOUNT'
       );
       // when amountOut > liquidity -> revert
       await expectRevert(
         pair.swap(new BN(0), token1Amount.add(new BN(1)), trader, '0x', {from: app}),
-        'XYZSwap: INSUFFICIENT_LIQUIDITY'
+        'DMM: INSUFFICIENT_LIQUIDITY'
       );
       // revert when destAddres is token0 or token1
-      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'XYZSwap: INVALID_TO');
+      await expectRevert(pair.swap(new BN(0), amountOut, token0.address, '0x', {from: app}), 'DMM: INVALID_TO');
       // normal swap if everything is valid
       await token1.transfer(trader, new BN(1));
 
@@ -324,13 +324,13 @@ contract('XYZSwapPair', function (accounts) {
         let tradeInfo = await pair.getTradeInfo();
         console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
 
-        let amountOut = await XyzHelper.getAmountOut(swapAmount, token0, pair);
+        let amountOut = await dmmHelper.getAmountOut(swapAmount, token0, pair);
 
         let beforeBalanceToken0 = await token0.balanceOf(trader);
         let beforeBalanceToken1 = await token1.balanceOf(trader);
         await token0.transfer(pair.address, swapAmount);
 
-        await expectRevert(pair.swap(new BN(0), amountOut.add(new BN(1)), trader, '0x', {from: app}), 'XYZSwap: K');
+        await expectRevert(pair.swap(new BN(0), amountOut.add(new BN(1)), trader, '0x', {from: app}), 'DMM: K');
 
         let result = await pair.swap(new BN(0), amountOut, trader, '0x', {from: app});
         console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
@@ -356,13 +356,13 @@ contract('XYZSwapPair', function (accounts) {
 
         let tradeInfo = await pair.getTradeInfo();
         console.log(`fee = ${tradeInfo.feeInPrecision.toString()}`);
-        let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+        let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
 
         let beforeBalanceToken0 = await token0.balanceOf(trader);
         let beforeBalanceToken1 = await token1.balanceOf(trader);
         await token1.transfer(pair.address, swapAmount);
 
-        await expectRevert(pair.swap(amountOut.add(new BN(1)), new BN(0), trader, '0x', {from: app}), 'XYZSwap: K');
+        await expectRevert(pair.swap(amountOut.add(new BN(1)), new BN(0), trader, '0x', {from: app}), 'DMM: K');
 
         let result = await pair.swap(amountOut, new BN(0), trader, '0x', {from: app});
         console.log(`stable pair gasUsed = ${result.receipt.gasUsed}`);
@@ -386,7 +386,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
@@ -422,7 +422,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
 
       let beforeBalanceToken0 = await token0.balanceOf(trader);
@@ -468,7 +468,7 @@ contract('XYZSwapPair', function (accounts) {
         let result = await pair.getTradeInfo();
 
         let outputAmount = inputAmount.mul(precisionUnits.sub(result.feeInPrecision)).div(precisionUnits);
-        await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'XYZSwap: K');
+        await expectRevert(pair.swap(outputAmount.add(new BN(1)), 0, trader, '0x'), 'DMM: K');
         await pair.swap(outputAmount, 0, trader, '0x');
       });
     });
@@ -482,7 +482,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       // revert if liquidity burn is 0
-      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_BURNED');
+      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
 
       const expectedLiquidity = expandTo18Decimals(3);
       let beforeBalances = await getTokenPairBalances(token0, token1, liquidityProvider);
@@ -525,7 +525,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       // revert if liquidity burn is 0
-      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'XYZSwap: INSUFFICIENT_LIQUIDITY_BURNED');
+      await expectRevert(pair.burn(liquidityProvider, {from: app}), 'DMM: INSUFFICIENT_LIQUIDITY_BURNED');
 
       const expectedLiquidity = expandTo18Decimals(2);
       let beforeBalances = await getTokenPairBalances(token0, token1, liquidityProvider);
@@ -580,7 +580,7 @@ contract('XYZSwapPair', function (accounts) {
 
       const swapAmount = expandTo18Decimals(1);
       let tradeInfo = await pair.getTradeInfo();
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -589,7 +589,7 @@ contract('XYZSwapPair', function (accounts) {
       await pair.burn(liquidityProvider);
 
       const k = token1Amount.add(swapAmount).mul(token0Amount.sub(amountOut));
-      let fee = await XyzHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
+      let fee = await dmmHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
       Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
@@ -603,7 +603,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       tradeInfo = await pair.getTradeInfo();
-      amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -629,7 +629,7 @@ contract('XYZSwapPair', function (accounts) {
 
       const swapAmount = expandTo18Decimals(1);
       let tradeInfo = await pair.getTradeInfo();
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -638,7 +638,7 @@ contract('XYZSwapPair', function (accounts) {
       await pair.burn(liquidityProvider);
 
       const k = vToken1Amount.add(swapAmount).mul(vToken0Amount.sub(amountOut));
-      let fee = XyzHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
+      let fee = dmmHelper.getFee(totalSuppy, k, kLast, governmentFeeBps);
 
       Helper.assertEqual(await pair.totalSupply(), MINIMUM_LIQUIDITY.add(fee));
       Helper.assertEqual(await pair.balanceOf(feeTo), fee);
@@ -652,7 +652,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       tradeInfo = await pair.getTradeInfo();
-      amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -669,7 +669,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -693,7 +693,7 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       const swapAmount = expandTo18Decimals(1);
-      let amountOut = await XyzHelper.getAmountOut(swapAmount, token1, pair);
+      let amountOut = await dmmHelper.getAmountOut(swapAmount, token1, pair);
       await token1.transfer(pair.address, swapAmount);
       await pair.swap(amountOut, 0, trader, '0x');
 
@@ -713,14 +713,14 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       let tradeInfo = await pair.getTradeInfo();
-      let priceRange = XyzHelper.getPriceRange(tradeInfo);
+      let priceRange = dmmHelper.getPriceRange(tradeInfo);
       console.log(`minRate=${priceRange[0].toString()} maxRate=${priceRange[1].toString()}`);
 
       await token0.transfer(pair.address, expandTo18Decimals(2));
       await pair.sync();
 
       tradeInfo = await pair.getTradeInfo();
-      priceRange = XyzHelper.getPriceRange(tradeInfo);
+      priceRange = dmmHelper.getPriceRange(tradeInfo);
       console.log(`minRate=${priceRange[0].toString()} maxRate=${priceRange[1].toString()}`);
     });
 
@@ -732,14 +732,14 @@ contract('XYZSwapPair', function (accounts) {
       await addLiquidity(liquidityProvider, pair, token0Amount, token1Amount);
 
       let tradeInfo = await pair.getTradeInfo();
-      let priceRange = XyzHelper.getPriceRange(tradeInfo);
+      let priceRange = dmmHelper.getPriceRange(tradeInfo);
 
       await token0.transfer(pair.address, expandTo18Decimals(2));
       await token1.transfer(pair.address, expandTo18Decimals(2));
       await pair.sync();
 
       tradeInfo = await pair.getTradeInfo();
-      let priceRange2 = XyzHelper.getPriceRange(tradeInfo);
+      let priceRange2 = dmmHelper.getPriceRange(tradeInfo);
       Helper.assertEqualArray(priceRange, priceRange2); // unchange price range
     });
   });
@@ -763,7 +763,7 @@ contract('XYZSwapPair', function (accounts) {
     Helper.assertEqual(tradeInfo._vReserve1, expandTo18Decimals(2000));
     // test case overflow
     await token0.transfer(pair.address, new BN(2).pow(new BN(112)));
-    await expectRevert(pair.sync(), 'XYZSwap: OVERFLOW');
+    await expectRevert(pair.sync(), 'DMM: OVERFLOW');
     await pair.skim(trader);
   });
 });
@@ -784,7 +784,7 @@ async function assertTokenPairBalances (token0, token1, user, expectedBalances) 
 }
 
 async function setupFactory (admin) {
-  return await XYZSwapFactory.new(admin);
+  return await DMMFactory.new(admin);
 }
 
 async function setupPair (admin, tokenA, tokenB, ampBps) {
@@ -792,7 +792,7 @@ async function setupPair (admin, tokenA, tokenB, ampBps) {
 
   await factory.createPair(tokenA.address, tokenB.address, ampBps);
   const pairAddrs = await factory.getPairs(tokenA.address, tokenB.address);
-  const pair = await XYZSwapPair.at(pairAddrs[0]);
+  const pair = await DMMPool.at(pairAddrs[0]);
 
   return [factory, pair];
 }

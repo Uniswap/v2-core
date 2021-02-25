@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@kyber.network/utils-sc/contracts/Utils.sol";
 
-import "../../interfaces/IXYZSwapPair.sol";
+import "../../interfaces/IDMMPool.sol";
 import "./IKyberDao.sol";
 
 contract DaoOperator {
@@ -72,7 +72,7 @@ contract FeeTo is Utils, DaoOperator, ReentrancyGuard {
             return;
         }
         lastFinalizedEpoch[token] = lastEpoch;
-        IXYZSwapPair(address(token)).sync();
+        IDMMPool(address(token)).sync();
 
         uint256 amount = token.balanceOf(address(this)).sub(reserves[token]);
         if (amount == 0) {
@@ -90,7 +90,7 @@ contract FeeTo is Utils, DaoOperator, ReentrancyGuard {
             return;
         }
         token.safeTransfer(address(token), amount - 1); // gas saving.
-        IXYZSwapPair(address(token)).burn(address(token));
+        IDMMPool(address(token)).burn(address(token));
     }
 
     /// @notice  WARNING When staker address is a contract,

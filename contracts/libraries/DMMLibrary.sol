@@ -3,9 +3,9 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../interfaces/IXYZSwapPair.sol";
+import "../interfaces/IDMMPool.sol";
 
-library XYZSwapLibrary {
+library DMMLibrary {
     using SafeMath for uint256;
 
     uint256 public constant PRECISION = 1e18;
@@ -16,9 +16,9 @@ library XYZSwapLibrary {
         pure
         returns (IERC20 token0, IERC20 token1)
     {
-        require(tokenA != tokenB, "XYZSwapLibrary: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "DMMLibrary: IDENTICAL_ADDRESSES");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(address(token0) != address(0), "XYZSwapLibrary: ZERO_ADDRESS");
+        require(address(token0) != address(0), "DMMLibrary: ZERO_ADDRESS");
     }
 
     /// @dev fetch the reserves and fee for a pair, used for trading purpose
@@ -42,8 +42,7 @@ library XYZSwapLibrary {
         uint256 reserve1;
         uint256 vReserve0;
         uint256 vReserve1;
-        (reserve0, reserve1, vReserve0, vReserve1, feeInPrecision) = IXYZSwapPair(pair)
-            .getTradeInfo();
+        (reserve0, reserve1, vReserve0, vReserve1, feeInPrecision) = IDMMPool(pair).getTradeInfo();
         (reserveA, reserveB, vReserveA, vReserveB) = tokenA == token0
             ? (reserve0, reserve1, vReserve0, vReserve1)
             : (reserve1, reserve0, vReserve1, vReserve0);
@@ -56,7 +55,7 @@ library XYZSwapLibrary {
         IERC20 tokenB
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (IERC20 token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 vReserve0, uint256 vReserve1, ) = IXYZSwapPair(pair).getReserves();
+        (uint256 vReserve0, uint256 vReserve1, ) = IDMMPool(pair).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
     }
 
@@ -66,8 +65,8 @@ library XYZSwapLibrary {
         uint256 reserveA,
         uint256 reserveB
     ) internal pure returns (uint256 amountB) {
-        require(amountA > 0, "XYZSwapLibrary: INSUFFICIENT_AMOUNT");
-        require(reserveA > 0 && reserveB > 0, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
+        require(amountA > 0, "DMMLibrary: INSUFFICIENT_AMOUNT");
+        require(reserveA > 0 && reserveB > 0, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
         amountB = amountA.mul(reserveB) / reserveA;
     }
 
@@ -80,13 +79,13 @@ library XYZSwapLibrary {
         uint256 vReserveOut,
         uint256 feeInPrecision
     ) internal pure returns (uint256 amountOut) {
-        require(amountIn > 0, "XYZSwapLibrary: INSUFFICIENT_INPUT_AMOUNT");
-        require(reserveIn > 0 && reserveOut > 0, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
+        require(amountIn > 0, "DMMLibrary: INSUFFICIENT_INPUT_AMOUNT");
+        require(reserveIn > 0 && reserveOut > 0, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
         uint256 amountInWithFee = amountIn.mul(PRECISION.sub(feeInPrecision)).div(PRECISION);
         uint256 numerator = amountInWithFee.mul(vReserveOut);
         uint256 denominator = vReserveIn.add(amountInWithFee);
         amountOut = numerator.div(denominator);
-        require(reserveOut >= amountOut, "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY");
+        require(reserveOut >= amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
     }
 
     // given an output amount of an asset and pair reserves, returns a required input amount of the other asset
@@ -98,10 +97,10 @@ library XYZSwapLibrary {
         uint256 vReserveOut,
         uint256 feeInPrecision
     ) internal pure returns (uint256 amountIn) {
-        require(amountOut > 0, "XYZSwapLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(amountOut > 0, "DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
         require(
             reserveIn > 0 && reserveOut >= amountOut && vReserveOut > amountOut,
-            "XYZSwapLibrary: INSUFFICIENT_LIQUIDITY"
+            "DMMLibrary: INSUFFICIENT_LIQUIDITY"
         );
         uint256 numerator = vReserveIn.mul(amountOut);
         uint256 denominator = vReserveOut.sub(amountOut);

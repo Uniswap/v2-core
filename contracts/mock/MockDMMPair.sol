@@ -1,9 +1,9 @@
 pragma solidity 0.6.6;
 
-import "../XYZSwapPair.sol";
+import "../DMMPool.sol";
 
 /// @dev this is a mock contract, so tester can set fee to random value
-contract MockXYZSwapPair is XYZSwapPair {
+contract MockDMMPool is DMMPool {
     uint256 public simulationFee;
 
     constructor(
@@ -11,8 +11,8 @@ contract MockXYZSwapPair is XYZSwapPair {
         IERC20 _token0,
         IERC20 _token1,
         bool isAmpPair
-    ) public XYZSwapPair() {
-        factory = IXYZSwapFactory(_factory);
+    ) public DMMPool() {
+        factory = IDMMFactory(_factory);
         token0 = _token0;
         token1 = _token1;
         ampBps = isAmpPair ? uint32(BPS + 1) : uint32(BPS);
@@ -52,7 +52,7 @@ contract MockXYZSwapPair is XYZSwapPair {
         balance1Adjusted = balance1Adjusted / PRECISION;
         require(
             balance0Adjusted.mul(balance1Adjusted) >= beforeReserve0.mul(beforeReserve1),
-            "XYZSwap: K"
+            "DMM: K"
         );
     }
 }

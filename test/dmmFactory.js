@@ -1,6 +1,6 @@
 const TestToken = artifacts.require('TestToken');
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
+const DMMFactory = artifacts.require('DMMFactory');
+const DMMPool = artifacts.require('DMMPool');
 
 const Helper = require('./helper');
 
@@ -14,11 +14,11 @@ let factory;
 let feeToSetter;
 let feeTo;
 
-contract('XYZSwapFactory', function (accounts) {
+contract('DMMFactory', function (accounts) {
   before('init', async () => {
     feeToSetter = accounts[1];
     feeTo = accounts[2];
-    factory = await XYZSwapFactory.new(feeToSetter);
+    factory = await DMMFactory.new(feeToSetter);
 
     tokenA = await TestToken.new('test token A', 'A', Helper.expandTo18Decimals(10000));
     tokenB = await TestToken.new('test token B', 'B', Helper.expandTo18Decimals(10000));
@@ -27,14 +27,14 @@ contract('XYZSwapFactory', function (accounts) {
   it('create pair', async () => {
     const nonAmpBps = new BN(10000);
     const ampBps = new BN(20000);
-    await expectRevert(factory.createPair(tokenA.address, constants.ZERO_ADDRESS, nonAmpBps), 'XYZSwap: ZERO_ADDRESS');
+    await expectRevert(factory.createPair(tokenA.address, constants.ZERO_ADDRESS, nonAmpBps), 'DMM: ZERO_ADDRESS');
 
-    await expectRevert(factory.createPair(tokenA.address, tokenA.address, nonAmpBps), 'XYZSwap: IDENTICAL_ADDRESSES');
+    await expectRevert(factory.createPair(tokenA.address, tokenA.address, nonAmpBps), 'DMM: IDENTICAL_ADDRESSES');
 
-    await expectRevert(factory.createPair(tokenA.address, tokenB.address, new BN(9999)), 'XYZSwap: INVALID_BPS');
+    await expectRevert(factory.createPair(tokenA.address, tokenB.address, new BN(9999)), 'DMM: INVALID_BPS');
     /// create pair nonAmp
     await factory.createPair(tokenA.address, tokenB.address, nonAmpBps);
-    await expectRevert(factory.createPair(tokenA.address, tokenB.address, nonAmpBps), 'XYZSwap: PAIR_EXISTS');
+    await expectRevert(factory.createPair(tokenA.address, tokenB.address, nonAmpBps), 'DMM: PAIR_EXISTS');
     Helper.assertEqual(await factory.allPairsLength(), 1);
 
     /// create pair amp
@@ -47,9 +47,9 @@ contract('XYZSwapFactory', function (accounts) {
   });
 
   it('set FeeTo', async () => {
-    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(1000)), 'XYZSwap: FORBIDDEN');
-    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(2000), {from: feeToSetter}), 'XYZSwap: INVALID FEE');
-    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(0), {from: feeToSetter}), 'XYZSwap: INVALID FEE');
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(1000)), 'DMM: FORBIDDEN');
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(2000), {from: feeToSetter}), 'DMM: INVALID FEE');
+    await expectRevert(factory.setFeeConfiguration(feeTo, new BN(0), {from: feeToSetter}), 'DMM: INVALID FEE');
     await factory.setFeeConfiguration(feeTo, new BN(1000), {from: feeToSetter});
 
     let config = await factory.getFeeConfiguration();
@@ -59,7 +59,7 @@ contract('XYZSwapFactory', function (accounts) {
 
   it('set feeToSetter', async () => {
     let newFeeToSetter = accounts[3];
-    await expectRevert(factory.setFeeToSetter(newFeeToSetter), 'XYZSwap: FORBIDDEN');
+    await expectRevert(factory.setFeeToSetter(newFeeToSetter), 'DMM: FORBIDDEN');
     await factory.setFeeToSetter(newFeeToSetter, {from: feeToSetter});
 
     assert((await factory.feeToSetter()) == newFeeToSetter, 'unexpected feeToSetter');

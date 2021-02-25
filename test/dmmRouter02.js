@@ -4,13 +4,13 @@ const BN = web3.utils.BN;
 const {ecsign} = require('ethereumjs-util');
 const expectRevert = require('@openzeppelin/test-helpers/src/expectRevert');
 
-const XYZSwapFactory = artifacts.require('XYZSwapFactory');
-const XYZSwapPair = artifacts.require('XYZSwapPair');
+const DMMFactory = artifacts.require('DMMFactory');
+const DMMPool = artifacts.require('DMMPool');
 const FeeToken = artifacts.require('MockFeeOnTransferERC20');
 const TestToken = artifacts.require('TestToken');
 const WETH = artifacts.require('WETH9');
 
-const XYZSwapRouter02 = artifacts.require('XYZSwapRouter02');
+const DMMRouter02 = artifacts.require('DMMRouter02');
 
 let feeToken;
 let normalToken;
@@ -23,7 +23,7 @@ let weth;
 let feeSetter;
 let liquidityProvider;
 
-contract('XYZSwapRouter02', accounts => {
+contract('DMMRouter02', accounts => {
   before('set accounts', async () => {
     feeSetter = accounts[0];
     liquidityProvider = accounts[3];
@@ -37,12 +37,12 @@ contract('XYZSwapRouter02', accounts => {
     feeToken = await FeeToken.new('feeOnTransfer Token', 'FOT', expandTo18Decimals(100000));
     normalToken = await TestToken.new('test', 't1', expandTo18Decimals(100000));
 
-    factory = await XYZSwapFactory.new(feeSetter);
-    router = await XYZSwapRouter02.new(factory.address, weth.address);
+    factory = await DMMFactory.new(feeSetter);
+    router = await DMMRouter02.new(factory.address, weth.address);
     // make a DTT<>WETH pair
     await factory.createPair(feeToken.address, weth.address, new BN(10000));
     const pairAddresses = await factory.getPairs(feeToken.address, weth.address);
-    pair = await XYZSwapPair.at(pairAddresses[0]);
+    pair = await DMMPool.at(pairAddresses[0]);
   });
 
   afterEach(async function () {
@@ -114,7 +114,7 @@ contract('XYZSwapRouter02', accounts => {
           value: swapAmount
         }
       ),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
 
     const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
@@ -130,7 +130,7 @@ contract('XYZSwapRouter02', accounts => {
           value: swapAmount
         }
       ),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
     await router.swapExactETHForTokensSupportingFeeOnTransferTokens(0, pairsPath, path, trader, MaxUint256, {
       from: trader,
@@ -163,7 +163,7 @@ contract('XYZSwapRouter02', accounts => {
           from: trader
         }
       ),
-      'XYZSwapRouter: INVALID_PATH'
+      'DMMRouter: INVALID_PATH'
     );
     const amounts = await router.getAmountsOut(swapAmount, pairsPath, path);
     await expectRevert(
@@ -178,7 +178,7 @@ contract('XYZSwapRouter02', accounts => {
           from: trader
         }
       ),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
     await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       swapAmount,
@@ -199,7 +199,7 @@ contract('XYZSwapRouter02', accounts => {
     /// create pair
     await factory.createPair(feeToken.address, feeToken2.address, new BN(10000));
     const pairAddresses = await factory.getPairs(feeToken.address, feeToken2.address);
-    tokenPair = await XYZSwapPair.at(pairAddresses[0]);
+    tokenPair = await DMMPool.at(pairAddresses[0]);
 
     const feeTokenAmount = expandTo18Decimals(5)
       .mul(new BN(100))
@@ -235,7 +235,7 @@ contract('XYZSwapRouter02', accounts => {
         MaxUint256,
         {from: trader}
       ),
-      'XYZSwapRouter: INSUFFICIENT_OUTPUT_AMOUNT'
+      'DMMRouter: INSUFFICIENT_OUTPUT_AMOUNT'
     );
 
     await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(

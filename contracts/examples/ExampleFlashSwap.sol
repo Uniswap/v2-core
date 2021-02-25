@@ -3,18 +3,18 @@ pragma solidity 0.6.6;
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
-import "../interfaces/IXYZSwapCallee.sol";
-import "../interfaces/IXYZSwapFactory.sol";
+import "../interfaces/IDMMCallee.sol";
+import "../interfaces/IDMMFactory.sol";
 import "../interfaces/IWETH.sol";
-import "../libraries/XYZSwapLibrary.sol";
+import "../libraries/DMMLibrary.sol";
 
-interface IXYZSwapPairExtended {
+interface IDMMPoolExtended {
     function token0() external view returns (IERC20);
 
     function token1() external view returns (IERC20);
 }
 
-contract ExampleFlashSwap is IXYZSwapCallee {
+contract ExampleFlashSwap is IDMMCallee {
     using SafeERC20 for IERC20;
 
     address public immutable factory;
@@ -30,7 +30,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
     receive() external payable {}
 
     // gets tokens/WETH via a xyz flash swap, swaps for the WETH/tokens on uniswapV2, repays xyz, and keeps the rest!
-    function xyzSwapCall(
+    function dmmSwapCall(
         address sender,
         uint256 amount0,
         uint256 amount1,
@@ -45,9 +45,9 @@ contract ExampleFlashSwap is IXYZSwapCallee {
         uint256 amountETH;
         {
             // scope for token{0,1}, avoids stack too deep errors
-            IERC20 token0 = IXYZSwapPairExtended(msg.sender).token0();
-            IERC20 token1 = IXYZSwapPairExtended(msg.sender).token1();
-            assert(IXYZSwapFactory(factory).isPair(token0, token1, msg.sender));
+            IERC20 token0 = IDMMPoolExtended(msg.sender).token0();
+            IERC20 token1 = IDMMPoolExtended(msg.sender).token1();
+            assert(IDMMFactory(factory).isPair(token0, token1, msg.sender));
             assert(amount0 == 0 || amount1 == 0); // this strategy is unidirectional
             path[0] = amount0 == 0 ? token0 : token1;
             path[1] = amount0 == 0 ? token1 : token0;
@@ -61,7 +61,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
 
         if (amountToken > 0) {
             uint256 minETH = abi.decode(data, (uint256)); // slippage parameter for V1, passed in by caller
-            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(amountToken, pairsPath, path)[0];
+            uint256 amountRequired = DMMLibrary.getAmountsIn(amountToken, pairsPath, path)[0];
             path[1].safeApprove(address(uniswapRounter02), amountToken);
             uint256[] memory amounts = uniswapRounter02.swapExactTokensForTokens(
                 amountToken,
@@ -79,7 +79,7 @@ contract ExampleFlashSwap is IXYZSwapCallee {
             require(success, "transfer eth failed");
         } else {
             weth.withdraw(amountETH);
-            uint256 amountRequired = XYZSwapLibrary.getAmountsIn(amountETH, pairsPath, path)[0];
+            uint256 amountRequired = DMMLibrary.getAmountsIn(amountETH, pairsPath, path)[0];
             uint256[] memory amounts = uniswapRounter02.swapETHForExactTokens{value: amountETH}(
                 amountRequired,
                 path2,

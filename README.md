@@ -1,4 +1,4 @@
-# XYZSwap
+# Dynamic automate market maker
 ## Introduction
 [![built-with openzeppelin](https://img.shields.io/badge/built%20with-OpenZeppelin-3677FF)](https://docs.openzeppelin.com/)
 [![Build Status](https://api.travis-ci.com/xyzswap/smart-contracts.svg?branch=master&status=passed)](https://travis-ci.com/github/KyberNetwork/kyber_reserves_sc)

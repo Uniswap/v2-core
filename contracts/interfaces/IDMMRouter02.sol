@@ -1,8 +1,8 @@
 pragma solidity 0.6.6;
 
-import "./IXYZSwapRouter01.sol";
+import "./IDMMRouter01.sol";
 
-interface IXYZSwapRouter02 is IXYZSwapRouter01 {
+interface IDMMRouter02 is IDMMRouter01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         IERC20 token,
         address pair,
