@@ -1,7 +1,7 @@
 pragma solidity 0.6.6;
 
-interface IXYZSwapCallee {
-    function xyzSwapCall(
+interface IDMMCallee {
+    function dmmSwapCall(
         address sender,
         uint256 amount0,
         uint256 amount1,

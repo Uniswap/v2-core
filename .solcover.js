@@ -107,6 +107,6 @@ module.exports = {
       }
     ]
   },
-  skipFiles: ['mock/', 'interfaces/'],
+  skipFiles: ['mock/', 'interfaces/', 'examples/'],
   istanbulReporter: ['html', 'json']
 };

@@ -22,7 +22,7 @@ library FeeFomula {
     // C2 = 25 * PRECISION - (F * (PRECISION - G)**2) / ((PRECISION - G)**2 + L * PRECISION)
     uint256 private constant C2 = 20036905816356657810;
 
-    /// @dev calculate fee from rFactorInPrecision, see section 3.2 in xyzswap white paper
+    /// @dev calculate fee from rFactorInPrecision, see section 3.2 in dmmSwap white paper
     /// @dev fee in [15, 60] bps
     /// @return fee percentage in Precision
     function getFee(uint256 rFactorInPrecision) internal pure returns (uint256) {

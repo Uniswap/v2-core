@@ -1,24 +1,30 @@
 pragma solidity 0.6.6;
 
-import "../libraries/XYZSwapLibrary.sol";
+import "../libraries/DMMLibrary.sol";
 
-contract MockXYZSwapLibrary {
+contract MockDMMLibrary {
     function getAmountOut(
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut,
+        uint256 vReserveIn,
+        uint256 vReserveOut,
         uint256 fee
     ) external pure returns (uint256 amountOut) {
-        return XYZSwapLibrary.getAmountOut(amountIn, reserveIn, reserveOut, fee);
+        return
+            DMMLibrary.getAmountOut(amountIn, reserveIn, reserveOut, vReserveIn, vReserveOut, fee);
     }
 
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
         uint256 reserveOut,
+        uint256 vReserveIn,
+        uint256 vReserveOut,
         uint256 fee
     ) external pure returns (uint256 amountIn) {
-        return XYZSwapLibrary.getAmountIn(amountOut, reserveIn, reserveOut, fee);
+        return
+            DMMLibrary.getAmountIn(amountOut, reserveIn, reserveOut, vReserveIn, vReserveOut, fee);
     }
 
     function sortTokens(IERC20 tokenA, IERC20 tokenB)
@@ -26,6 +32,6 @@ contract MockXYZSwapLibrary {
         pure
         returns (IERC20 token0, IERC20 token1)
     {
-        return XYZSwapLibrary.sortTokens(tokenA, tokenB);
+        return DMMLibrary.sortTokens(tokenA, tokenB);
     }
 }
