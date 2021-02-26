@@ -59,7 +59,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     );
     event Sync(uint256 vReserve0, uint256 vReserve1, uint256 reserve0, uint256 reserve1);
 
-    constructor() public ERC20Permit("DMM LP", "DMM-LP", "1") VolumeTrendRecorder(0) {
+    constructor() public ERC20Permit("KyberDMM LP", "DMM-LP", "1") VolumeTrendRecorder(0) {
         factory = IDMMFactory(msg.sender);
     }
 
