@@ -2,6 +2,8 @@ pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "./IDMMFactory.sol";
+
 interface IDMMPool {
     function mint(address to) external returns (uint256 liquidity);
 
@@ -35,4 +37,14 @@ interface IDMMPool {
             uint112 reserve1,
             uint256 feeInPrecision
         );
+
+    function token0() external view returns (IERC20);
+
+    function token1() external view returns (IERC20);
+
+    function ampBps() external view returns (uint32);
+
+    function factory() external view returns (IDMMFactory);
+
+    function kLast() external view returns (uint256);
 }

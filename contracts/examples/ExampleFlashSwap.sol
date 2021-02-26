@@ -5,14 +5,9 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 import "../interfaces/IDMMCallee.sol";
 import "../interfaces/IDMMFactory.sol";
+import "../interfaces/IDMMPool.sol";
 import "../interfaces/IWETH.sol";
 import "../libraries/DMMLibrary.sol";
-
-interface IDMMPoolExtended {
-    function token0() external view returns (IERC20);
-
-    function token1() external view returns (IERC20);
-}
 
 contract ExampleFlashSwap is IDMMCallee {
     using SafeERC20 for IERC20;
@@ -45,8 +40,8 @@ contract ExampleFlashSwap is IDMMCallee {
         uint256 amountETH;
         {
             // scope for token{0,1}, avoids stack too deep errors
-            IERC20 token0 = IDMMPoolExtended(msg.sender).token0();
-            IERC20 token1 = IDMMPoolExtended(msg.sender).token1();
+            IERC20 token0 = IDMMPool(msg.sender).token0();
+            IERC20 token1 = IDMMPool(msg.sender).token1();
             assert(IDMMFactory(factory).isPool(token0, token1, msg.sender));
             assert(amount0 == 0 || amount1 == 0); // this strategy is unidirectional
             path[0] = amount0 == 0 ? token0 : token1;

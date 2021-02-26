@@ -30,21 +30,21 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
     /// @dev To make etherscan auto-verify new pool, these variables are not immutable
-    IDMMFactory public factory;
-    IERC20 public token0;
-    IERC20 public token1;
+    IDMMFactory public override factory;
+    IERC20 public override token0;
+    IERC20 public override token1;
 
     /// @dev uses single storage slot, accessible via getReservesData
     uint112 internal reserve0;
     uint112 internal reserve1;
     uint32 internal blockTimestampLast;
-    uint32 public ampBps;
+    uint32 public override ampBps;
     /// @dev addition param only when amplification factor > 1
     uint112 internal vReserve0;
     uint112 internal vReserve1;
 
     /// @dev vReserve0 * vReserve1, as of immediately after the most recent liquidity event
-    uint256 public kLast;
+    uint256 public override kLast;
 
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
