@@ -34,7 +34,7 @@ describe('UniswapV2ERC20', () => {
 
   let token: Contract
   beforeEach(async () => {
-    token = new Contract("0x9bc04bb77f3e8b0467fc8bcf582d43111611ff86", JSON.parse(input), provider_sol)
+    token = new Contract("0x9bc04bb77f3e8b0467fc8bcf582d43111611ff86", JSON.parse(input), wallet)
     // token = await deployContract(wallet, ERC20, [TOTAL_SUPPLY])
   })
 
