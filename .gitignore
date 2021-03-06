@@ -1,2 +1,8 @@
 node_modules/
-build/
+
+#Hardhat files
+cache
+artifacts
+build
+.env
+types
