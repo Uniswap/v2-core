@@ -48,7 +48,8 @@
     "lint:fix": "prettier --write test contracts",
     "clean": "rimraf artifacts cache types",
     "precompile": "yarn clean",
-    "compile": "hardhat compile",
+    "compile": "hardhat compile --verbose",
+    "pretest": "yarn compile",
     "test": "hardhat test --verbose",
     "prepublishOnly": "yarn test"
   },
