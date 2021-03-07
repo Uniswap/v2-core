@@ -20,8 +20,9 @@ describe("UniswapV2Pair", async () => {
   let token1: ERC20;
 
   beforeEach(async () => {
-    const ff = await ethers.getContractFactory("UniswapV2Factory");
-    factory = (await ff.deploy()) as UniswapV2Factory;
+    const factory = (await (
+      await ethers.getContractFactory("UniswapV2Factory")
+    ).deploy()) as UniswapV2Factory;
 
     const tokenA = (await (
       await ethers.getContractFactory("ERC20")
@@ -31,9 +32,8 @@ describe("UniswapV2Pair", async () => {
     ).deploy()) as ERC20;
 
     await factory.createPair(tokenA.address, tokenB.address);
-    const pairAddress = await factory.getPair(tokenA.address, tokenB.address);
     pair = (await ethers.getContractFactory("UniswapV2Pair")).attach(
-      pairAddress
+      await factory.getPair(tokenA.address, tokenB.address)
     ) as UniswapV2Pair;
     const token0Address = await pair.token0();
     token0 = tokenA.address === token0Address ? tokenA : tokenB;
