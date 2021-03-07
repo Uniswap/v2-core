@@ -1,6 +1,5 @@
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
-import "dotenv/config";
 import { HardhatUserConfig } from "hardhat/config";
 
 const config: HardhatUserConfig = {
@@ -10,14 +9,14 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000,
+        runs: 9999,
       },
     },
   },
   typechain: {
     outDir: "types",
     target: "ethers-v5",
-  },
+  }
 };
 
 export default config;

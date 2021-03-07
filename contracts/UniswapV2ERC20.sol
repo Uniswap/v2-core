@@ -2,11 +2,11 @@
 
 pragma solidity =0.8.2;
 
-import './interfaces/IUniswapV2ERC20.sol';
+import "./interfaces/IUniswapV2ERC20.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
-    string public constant override name = 'Uniswap V2';
-    string public constant override symbol = 'UNI-V2';
+    string public constant override name = "Uniswap V2";
+    string public constant override symbol = "UNI-V2";
     uint8 public constant override decimals = 18;
     uint256 public override totalSupply;
     mapping(address => uint256) public override balanceOf;
@@ -21,9 +21,11 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     constructor() {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
                 keccak256(bytes(name)),
-                keccak256(bytes('1')),
+                keccak256(bytes("1")),
                 block.chainid,
                 address(this)
             )
@@ -61,12 +63,20 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         emit Transfer(from, to, value);
     }
 
-    function approve(address spender, uint256 value) external override returns (bool) {
+    function approve(address spender, uint256 value)
+        external
+        override
+        returns (bool)
+    {
         _approve(msg.sender, spender, value);
         return true;
     }
 
-    function transfer(address to, uint256 value) external override returns (bool) {
+    function transfer(address to, uint256 value)
+        external
+        override
+        returns (bool)
+    {
         _transfer(msg.sender, to, value);
         return true;
     }
@@ -92,17 +102,29 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         bytes32 r,
         bytes32 s
     ) external override {
-        require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
+        require(deadline >= block.timestamp, "UniswapV2: EXPIRED");
         bytes32 digest =
             keccak256(
                 abi.encodePacked(
-                    '\x19\x01',
+                    "\x19\x01",
                     DOMAIN_SEPARATOR,
-                    keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                    keccak256(
+                        abi.encode(
+                            PERMIT_TYPEHASH,
+                            owner,
+                            spender,
+                            value,
+                            nonces[owner]++,
+                            deadline
+                        )
+                    )
                 )
             );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
+        require(
+            recoveredAddress != address(0) && recoveredAddress == owner,
+            "UniswapV2: INVALID_SIGNATURE"
+        );
         _approve(owner, spender, value);
     }
 }

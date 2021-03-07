@@ -1,12 +1,11 @@
 import { expect } from "chai";
 import { BigNumber, constants as ethconst, utils as ethutils } from "ethers";
-import { ecsign } from "ethereumjs-util";
 import { ethers } from "hardhat";
 import { ERC20 } from "../types";
 import { expandTo18Decimals, getApprovalDigest } from "./shared/utilities";
 
 const { MaxUint256 } = ethconst;
-const { hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } = ethutils;
+const { keccak256, defaultAbiCoder, toUtf8Bytes } = ethutils;
 
 const TOTAL_SUPPLY = expandTo18Decimals(10000);
 const TEST_AMOUNT = expandTo18Decimals(10);

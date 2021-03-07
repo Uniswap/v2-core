@@ -1,5 +1,5 @@
 {
   "extension": ["ts"],
-  "spec": "test/**/*.spec.ts",
+  "spec": "./test/*.spec.ts",
   "require": "hardhat/register"
 }

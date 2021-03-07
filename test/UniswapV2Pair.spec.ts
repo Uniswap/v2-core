@@ -1,11 +1,9 @@
 import { expect } from "chai";
-import { BigNumber, constants as ethconst, Contract } from "ethers";
-
-import { expandTo18Decimals, encodePrice } from "./shared/utilities";
+import { BigNumber, constants as ethconst } from "ethers";
 import { ethers } from "hardhat";
 
+import { expandTo18Decimals, encodePrice } from "./shared/utilities";
 import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../types";
-import { abi as UniswapV2PairABI } from "../artifacts/contracts/UniswapV2Pair.sol/UniswapV2Pair.json";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3);
 
@@ -34,11 +32,9 @@ describe("UniswapV2Pair", async () => {
 
     await factory.createPair(tokenA.address, tokenB.address);
     const pairAddress = await factory.getPair(tokenA.address, tokenB.address);
-    pair = new Contract(
-      pairAddress,
-      JSON.stringify(UniswapV2PairABI)
+    pair = (await ethers.getContractFactory("UniswapV2Pair")).attach(
+      pairAddress
     ) as UniswapV2Pair;
-
     const token0Address = await pair.token0();
     token0 = tokenA.address === token0Address ? tokenA : tokenB;
     token1 = tokenA.address === token0Address ? tokenB : tokenA;

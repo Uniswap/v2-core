@@ -1,10 +1,8 @@
 import { expect } from "chai";
-import { Contract } from "ethers";
 import { constants as ethconst } from "ethers";
 import { UniswapV2Factory } from "../types";
 
 import { getCreate2Address } from "./shared/utilities";
-import UniswapV2Pair from "../artifacts/contracts/UniswapV2Pair.sol/UniswapV2Pair.json";
 import { ethers } from "hardhat";
 
 const TEST_ADDRESSES: [string, string] = [
@@ -28,7 +26,8 @@ describe("UniswapV2Factory", async () => {
   });
 
   async function createPair(tokens: [string, string]) {
-    const bytecode = `0x${UniswapV2Pair.bytecode}`;
+    const pairContract = await ethers.getContractFactory("UniswapV2Pair");
+    const bytecode = `0x${pairContract.bytecode}`;
     const create2Address = getCreate2Address(factory.address, tokens, bytecode);
     await expect(factory.createPair(...tokens))
       .to.emit(factory, "PairCreated")
@@ -41,11 +40,7 @@ describe("UniswapV2Factory", async () => {
     expect(await factory.allPairs(0)).to.eq(create2Address);
     expect(await factory.allPairsLength()).to.eq(1);
 
-    const pair = new Contract(
-      create2Address,
-      JSON.stringify(UniswapV2Pair.abi),
-      ethers.getDefaultProvider()
-    );
+    const pair = pairContract.attach(create2Address);
     expect(await pair.factory()).to.eq(factory.address);
     expect(await pair.token0()).to.eq(TEST_ADDRESSES[0]);
     expect(await pair.token1()).to.eq(TEST_ADDRESSES[1]);
