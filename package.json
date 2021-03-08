@@ -30,7 +30,6 @@
     "chai": "^4.3.3",
     "dotenv": "^8.2.0",
     "ethereum-waffle": "^3.3.0",
-    "ethereumjs-util": "^6.2.0",
     "ethers": "^5.0.31",
     "hardhat": "^2.1.1",
     "hardhat-typechain": "^0.3.5",
