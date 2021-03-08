@@ -125,7 +125,9 @@ describe("UniswapV2ERC20", async () => {
       deadline
     );
 
-    const sig = await wallet.signMessage(Buffer.from(digest.slice(2), "hex"));
+    const { r, s, v } = ethutils.splitSignature(
+      await wallet.signMessage(Buffer.from(digest.slice(2), "hex"))
+    );
 
     await expect(
       token.permit(
@@ -133,9 +135,9 @@ describe("UniswapV2ERC20", async () => {
         other.address,
         TEST_AMOUNT,
         deadline,
-        Number.parseInt(sig.slice(128), 16),
-        sig.slice(0, 64),
-        sig.slice(64, 128)
+        v,
+        r,
+        s
       )
     )
       .to.emit(token, "Approval")
