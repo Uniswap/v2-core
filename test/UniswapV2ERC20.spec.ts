@@ -15,8 +15,9 @@ import ERC20 from '../build/ERC20.json'
 
 chai.use(solidity)
 
-const TOTAL_SUPPLY = expandTo9Decimals(1)
+const TOTAL_SUPPLY = expandTo9Decimals(4)
 const TEST_AMOUNT = expandTo9Decimals(1)
+const TEST_BALANCE = expandTo9Decimals(8)
 
 describe('UniswapV2ERC20', () => {
   // const provider1 = new MockProvider({
@@ -28,7 +29,7 @@ describe('UniswapV2ERC20', () => {
 
   const provider_sol = new ethers.providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider_sol)
-  const other = Wallet.createRandom()
+  const other = Wallet.createRandom().connect(provider_sol)
 
   let token: Contract
   beforeEach(async () => {
@@ -41,7 +42,7 @@ describe('UniswapV2ERC20', () => {
     expect(await token.symbol()).to.eq('s1')
     expect(await token.decimals()).to.eq(9)
     expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
-    expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)
+    expect(await token.balanceOf(wallet.address)).to.eq(TEST_BALANCE)
     // expect(await token.DOMAIN_SEPARATOR()).to.eq(
     //   keccak256(
     //     defaultAbiCoder.encode(
@@ -72,47 +73,47 @@ describe('UniswapV2ERC20', () => {
 
   it('transfer', async () => {
     expect(await token.transfer(other.address, TEST_AMOUNT))
-    expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
+    expect(await token.balanceOf(wallet.address)).to.eq(TEST_BALANCE.sub(TEST_AMOUNT))
     expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
   })
-  //
+
   // it('transfer:fail', async () => {
   //   await expect(token.transfer(other.address, TOTAL_SUPPLY.add(1))).to.be.reverted // ds-math-sub-underflow
-  //   await expect(token.connect(other).transfer(wallet.address, 1)).to.be.reverted // ds-math-sub-underflow
+    // await expect(token.connect(other).transfer(wallet.address, 1)).to.be.reverted // ds-math-sub-underflow
   // })
   //
-  // it('transferFrom', async () => {
-  //   await token.approve(other.address, TEST_AMOUNT)
-  //   expect(await token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT));
-  //   expect(await token.allowance(wallet.address, other.address)).to.eq(0)
-  //   expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-  //   expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-  // })
-  //
-  // it('transferFrom:max', async () => {
-  //   await token.approve(other.address, MaxUint256)
-  //   expect(await token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
-  //   expect(await token.allowance(wallet.address, other.address)).to.eq(MaxUint256)
-  //   expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
-  //   expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
-  // })
-  //
-  // it('permit', async () => {
-  //   const nonce = await token.nonces(wallet.address)
-  //   const deadline = MaxUint256
-  //   const digest = await getApprovalDigest(
-  //     token,
-  //     { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
-  //     nonce,
-  //     deadline
-  //   )
-  //
-  //   const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
-  //
-  //   await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
-  //     .to.emit(token, 'Approval')
-  //     .withArgs(wallet.address, other.address, TEST_AMOUNT)
-  //   expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-  //   expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
-  // })
+  it('transferFrom', async () => {
+    await token.approve(other.address, TEST_AMOUNT)
+    expect(await token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT));
+    expect(await token.allowance(wallet.address, other.address)).to.eq(0)
+    expect(await token.balanceOf(wallet.address)).to.eq(TEST_BALANCE.sub(TEST_AMOUNT))
+    expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
+  })
+
+  it('transferFrom:max', async () => {
+    await token.approve(other.address, MaxUint256)
+    expect(await token.connect(other).transferFrom(wallet.address, other.address, TEST_AMOUNT))
+    expect(await token.allowance(wallet.address, other.address)).to.eq(MaxUint256.sub(10**9))
+    expect(await token.balanceOf(wallet.address)).to.eq(TEST_BALANCE.sub(TEST_AMOUNT))
+    expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
+  })
+
+  it('permit', async () => {
+    const nonce = await token.nonces(wallet.address)
+    const deadline = MaxUint256
+    const digest = await getApprovalDigest(
+      token,
+      { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
+      nonce,
+      deadline
+    )
+
+    const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+
+    await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
+      .to.emit(token, 'Approval')
+      .withArgs(wallet.address, other.address, TEST_AMOUNT)
+    expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
+    expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
+  })
 })
