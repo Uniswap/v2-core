@@ -48,7 +48,7 @@ describe('UniswapV2ERC20', () => {
             ),
             keccak256(toUtf8Bytes(name)),
             keccak256(toUtf8Bytes('1')),
-            0, // 1,
+            1,
             token.address
           ]
         )
@@ -93,22 +93,22 @@ describe('UniswapV2ERC20', () => {
     expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
   })
 
-  // it('permit', async () => {
-  //   const nonce = await token.nonces(wallet.address)
-  //   const deadline = MaxUint256
-  //   const digest = await getApprovalDigest(
-  //     token,
-  //     { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
-  //     nonce,
-  //     deadline
-  //   )
-  //
-  //   const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
-  //
-  //   await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
-  //     .to.emit(token, 'Approval')
-  //     .withArgs(wallet.address, other.address, TEST_AMOUNT)
-  //   expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-  //   expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
-  // })
+  it('permit', async () => {
+    const nonce = await token.nonces(wallet.address)
+    const deadline = MaxUint256
+    const digest = await getApprovalDigest(
+      token,
+      { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
+      nonce,
+      deadline
+    )
+
+    const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+
+    await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
+      .to.emit(token, 'Approval')
+      .withArgs(wallet.address, other.address, TEST_AMOUNT)
+    expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
+    expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
+  })
 })
