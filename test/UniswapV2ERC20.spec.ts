@@ -22,7 +22,7 @@ describe('UniswapV2ERC20', () => {
   // })
   // const [wallet, other] = provider.getWallets()
 
-  const provider_sol = new ethers.providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
+  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider_sol)
   const other = Wallet.createRandom().connect(provider_sol)
 
