@@ -42,7 +42,7 @@ describe('UniswapV2ERC20', () => {
             ),
             keccak256(toUtf8Bytes(name)),
             keccak256(toUtf8Bytes('1')),
-            1,
+            0,   // chainid
             token.address
           ]
         )
