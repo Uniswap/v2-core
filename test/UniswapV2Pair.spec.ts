@@ -3,7 +3,7 @@ import {Contract, providers, Wallet} from 'ethers'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 import { BigNumber, bigNumberify } from 'ethers/utils'
 
-import { expandTo18Decimals, mineBlock, encodePrice } from './shared/utilities'
+import { expandTo18Decimals, encodePrice } from './shared/utilities'
 import { pairFixture } from './shared/fixtures'
 import { AddressZero } from 'ethers/constants'
 
@@ -23,9 +23,7 @@ describe('UniswapV2Pair', () => {
   // })
   // const [wallet, other] = provider.getWallets()
 
-  //const provider = new providers.Web3Provider( {host:"http://127.0.0.1:9090/solana"})
   const provider = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
-  //const provider = new providers.Web3Provider(currentProvider)
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider)
   const other = Wallet.createRandom().connect(provider)
 
@@ -90,9 +88,9 @@ describe('UniswapV2Pair', () => {
       const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] = swapTestCase
       await addLiquidity(token0Amount, token1Amount)
       await token0.transfer(pair.address, swapAmount)
-//      await expect(pair.swap(0, expectedOutputAmount.add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
-//        'UniswapV2: K'
-//      )
+      await expect(pair.swap(0, expectedOutputAmount.add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
+        'UniswapV2: K'
+      )
       await pair.swap(0, expectedOutputAmount, wallet.address, '0x', overrides)
     })
   })
@@ -108,9 +106,9 @@ describe('UniswapV2Pair', () => {
       const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase
       await addLiquidity(token0Amount, token1Amount)
       await token0.transfer(pair.address, inputAmount)
- //     await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
- //       'UniswapV2: K'
- //     )
+      await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
+        'UniswapV2: K'
+      )
       await pair.swap(outputAmount, 0, wallet.address, '0x', overrides)
     })
   })
@@ -221,32 +219,42 @@ describe('UniswapV2Pair', () => {
     const token1Amount = expandTo18Decimals(3)
     await addLiquidity(token0Amount, token1Amount)
 
-    const blockTimestamp = (await pair.getReserves())[2]
+    const reserves0 = (await pair.getReserves())
     //await mineBlock(provider, blockTimestamp + 1)
+
     await pair.sync(overrides)
+    const reserves1 = (await pair.getReserves())
 
     const initialPrice = encodePrice(token0Amount, token1Amount)
-    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0])
-    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1])
-    expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 1)
+    const timeElapsed1 = reserves1[2] - reserves0[2]
+    expect(timeElapsed1).to.not.eq(0)
+    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(timeElapsed1))
+    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(timeElapsed1))
+    //expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 1)
 
     const swapAmount = expandTo18Decimals(3)
     await token0.transfer(pair.address, swapAmount)
     //await mineBlock(provider, blockTimestamp + 10)
     // swap to a new price eagerly instead of syncing
     await pair.swap(0, expandTo18Decimals(1), wallet.address, '0x', overrides) // make the price nice
+    const reserves2 = (await pair.getReserves())
 
-    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(10))
-    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(10))
-    expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 10)
+    const timeElapsed2 = reserves2[2] - reserves1[2]
+    expect(timeElapsed2).to.not.eq(0)
+    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(timeElapsed1+timeElapsed2))
+    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(timeElapsed1+timeElapsed2))
+    //expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 10)
 
     //await mineBlock(provider, blockTimestamp + 20)
     await pair.sync(overrides)
+    const reserves3 = (await pair.getReserves())
 
     const newPrice = encodePrice(expandTo18Decimals(6), expandTo18Decimals(2))
-    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(10).add(newPrice[0].mul(10)))
-    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(10).add(newPrice[1].mul(10)))
-    expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 20)
+    const timeElapsed3 = reserves3[2] - reserves2[2]
+    expect(timeElapsed3).to.not.eq(0)
+    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(timeElapsed1+timeElapsed2).add(newPrice[0].mul(timeElapsed3)))
+    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(timeElapsed1+timeElapsed2).add(newPrice[1].mul(timeElapsed3)))
+    //expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 20)
   })
 
   it('feeTo:off', async () => {
