@@ -23,9 +23,7 @@ describe('UniswapV2Pair', () => {
   // })
   // const [wallet, other] = provider.getWallets()
 
-  //const provider = new providers.Web3Provider( {host:"http://127.0.0.1:9090/solana"})
   const provider = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
-  //const provider = new providers.Web3Provider(currentProvider)
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider)
   const other = Wallet.createRandom().connect(provider)
 
@@ -90,9 +88,9 @@ describe('UniswapV2Pair', () => {
       const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] = swapTestCase
       await addLiquidity(token0Amount, token1Amount)
       await token0.transfer(pair.address, swapAmount)
-//      await expect(pair.swap(0, expectedOutputAmount.add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
-//        'UniswapV2: K'
-//      )
+      await expect(pair.swap(0, expectedOutputAmount.add(1), wallet.address, '0x', overrides)).to.be.revertedWith(
+        'UniswapV2: K'
+      )
       await pair.swap(0, expectedOutputAmount, wallet.address, '0x', overrides)
     })
   })
@@ -108,9 +106,9 @@ describe('UniswapV2Pair', () => {
       const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase
       await addLiquidity(token0Amount, token1Amount)
       await token0.transfer(pair.address, inputAmount)
- //     await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
- //       'UniswapV2: K'
- //     )
+      await expect(pair.swap(outputAmount.add(1), 0, wallet.address, '0x', overrides)).to.be.revertedWith(
+        'UniswapV2: K'
+      )
       await pair.swap(outputAmount, 0, wallet.address, '0x', overrides)
     })
   })

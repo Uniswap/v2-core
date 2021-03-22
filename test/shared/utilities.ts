@@ -1,5 +1,5 @@
 import { Contract } from 'ethers'
-import { Web3Provider } from 'ethers/providers'
+import {JsonRpcProvider, Web3Provider} from 'ethers/providers'
 import {
   BigNumber,
   bigNumberify,
@@ -26,7 +26,7 @@ function getDomainSeparator(name: string, tokenAddress: string) {
         keccak256(toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')),
         keccak256(toUtf8Bytes(name)),
         keccak256(toUtf8Bytes('1')),
-        1,
+        0,
         tokenAddress
       ]
     )
