@@ -5,7 +5,7 @@ import { HardhatUserConfig } from "hardhat/config";
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
-    version: "0.8.2",
+    version: "0.8.3",
     settings: {
       optimizer: {
         enabled: true,
