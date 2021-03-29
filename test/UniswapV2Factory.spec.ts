@@ -15,6 +15,7 @@ const TEST_ADDRESSES: [string, string] = [
   '0x1000000000000000000000000000000000000000',
   '0x2000000000000000000000000000000000000000'
 ]
+const CHAIN_ID = 111
 
 describe('UniswapV2Factory', () => {
 //  const provider = new MockProvider({
@@ -24,7 +25,7 @@ describe('UniswapV2Factory', () => {
 //  })
 //  const [wallet, other] = provider.getWallets()
 
-  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
+  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", { name: "solana", chainId: CHAIN_ID });
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider_sol)
   const other = Wallet.createRandom().connect(provider_sol)
   //const loadFixture = createFixtureLoader(provider_sol, [wallet, other])
