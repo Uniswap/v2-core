@@ -14,9 +14,11 @@ chai.use(solidity)
 const TOTAL_SUPPLY = expandTo18Decimals(10000)
 const TEST_AMOUNT = expandTo18Decimals(10)
 
+const CHAIN_ID = 111
+
 describe('UniswapV2ERC20', () => {
 
-  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana");
+  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", { name: "solana", chainId: CHAIN_ID });
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider_sol)
   const other = Wallet.createRandom().connect(provider_sol)
 
@@ -42,7 +44,7 @@ describe('UniswapV2ERC20', () => {
             ),
             keccak256(toUtf8Bytes(name)),
             keccak256(toUtf8Bytes('1')),
-            0,   // chainid
+            CHAIN_ID,
             token.address
           ]
         )
@@ -100,7 +102,8 @@ describe('UniswapV2ERC20', () => {
       token,
       { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
       nonce,
-      deadline
+      deadline,
+      CHAIN_ID
     )
 
     const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
