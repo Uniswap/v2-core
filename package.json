@@ -63,6 +63,6 @@
     "web3-eth-abi": "1.2.11"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "3.2.0"
+    "@openzeppelin/contracts": "3.4.1"
   }
 }

@@ -12,6 +12,7 @@ import "./libraries/ERC20Permit.sol";
 import "./interfaces/IDMMFactory.sol";
 import "./interfaces/IDMMCallee.sol";
 import "./interfaces/IDMMPool.sol";
+import "./interfaces/IERC20Metadata.sol";
 import "./VolumeTrendRecorder.sol";
 
 contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder {
@@ -277,6 +278,18 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         _reserve0 = reserve0;
         _reserve1 = reserve1;
         _blockTimestampLast = blockTimestampLast;
+    }
+
+    function name() public override view returns (string memory) {
+        IERC20Metadata _token0 = IERC20Metadata(address(token0));
+        IERC20Metadata _token1 = IERC20Metadata(address(token1));
+        return string(abi.encodePacked("KyberDMM LP ", _token0.symbol(), "-", _token1.symbol()));
+    }
+
+    function symbol() public override view returns (string memory) {
+        IERC20Metadata _token0 = IERC20Metadata(address(token0));
+        IERC20Metadata _token1 = IERC20Metadata(address(token1));
+        return string(abi.encodePacked("DMM-LP ", _token0.symbol(), "-", _token1.symbol()));
     }
 
     function verifyBalanceAndUpdateEma(
