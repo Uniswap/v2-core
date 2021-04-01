@@ -1,9 +1,9 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@kyber.network/utils-sc/contracts/Utils.sol";
 
 import "../../interfaces/IDMMPool.sol";
 import "./IKyberDao.sol";
@@ -22,7 +22,9 @@ contract DaoOperator {
     }
 }
 
-contract FeeTo is Utils, DaoOperator, ReentrancyGuard {
+contract FeeTo is DaoOperator, ReentrancyGuard {
+    uint256 internal constant PRECISION = (10**18);
+
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
