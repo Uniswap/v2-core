@@ -38,7 +38,6 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     /// @dev uses single storage slot, accessible via getReservesData
     uint112 internal reserve0;
     uint112 internal reserve1;
-    uint32 internal blockTimestampLast;
     uint32 public override ampBps;
     /// @dev addition param only when amplification factor > 1
     uint112 internal vReserve0;
@@ -265,19 +264,9 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     }
 
     /// @dev returns reserve data to calculate amount to add liquidity
-    function getReserves()
-        external
-        override
-        view
-        returns (
-            uint112 _reserve0,
-            uint112 _reserve1,
-            uint32 _blockTimestampLast
-        )
-    {
+    function getReserves() external override view returns (uint112 _reserve0, uint112 _reserve1) {
         _reserve0 = reserve0;
         _reserve1 = reserve1;
-        _blockTimestampLast = blockTimestampLast;
     }
 
     function name() public override view returns (string memory) {
@@ -319,10 +308,8 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
 
     /// @dev update reserves
     function _update(bool isAmpPool, ReserveData memory data) internal {
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         reserve0 = safeUint112(data.reserve0);
         reserve1 = safeUint112(data.reserve1);
-        blockTimestampLast = blockTimestamp;
         if (isAmpPool) {
             assert(data.vReserve0 >= data.reserve0 && data.vReserve1 >= data.reserve1); // never happen
             vReserve0 = safeUint112(data.vReserve0);

@@ -55,7 +55,7 @@ library DMMLibrary {
         IERC20 tokenB
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (IERC20 token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 vReserve0, uint256 vReserve1, ) = IDMMPool(pool).getReserves();
+        (uint256 vReserve0, uint256 vReserve1) = IDMMPool(pool).getReserves();
         (reserveA, reserveB) = tokenA == token0 ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
     }
 
