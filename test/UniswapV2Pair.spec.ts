@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { BigNumber, constants as ethconst } from "ethers";
-import { ethers } from "hardhat";
+import { ethers, waffle } from "hardhat";
 
 import { expandTo18Decimals, encodePrice } from "./shared/utilities";
 import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../types";
@@ -11,8 +11,8 @@ const overrides = {
   gasLimit: 9999999,
 };
 
-describe("UniswapV2Pair", async () => {
-  const [wallet, other] = await ethers.getSigners();
+describe("UniswapV2Pair", () => {
+  const [wallet, other] = waffle.provider.getWallets();
 
   let factory: UniswapV2Factory;
   let pair: UniswapV2Pair;
@@ -22,14 +22,14 @@ describe("UniswapV2Pair", async () => {
   beforeEach(async () => {
     const factory = (await (
       await ethers.getContractFactory("UniswapV2Factory")
-    ).deploy()) as UniswapV2Factory;
+    ).deploy(wallet.address)) as UniswapV2Factory;
 
-    const tokenA = (await (
-      await ethers.getContractFactory("ERC20")
-    ).deploy()) as ERC20;
-    const tokenB = (await (
-      await ethers.getContractFactory("ERC20")
-    ).deploy()) as ERC20;
+    const tokenA = (await (await ethers.getContractFactory("ERC20")).deploy(
+      expandTo18Decimals(10000)
+    )) as ERC20;
+    const tokenB = (await (await ethers.getContractFactory("ERC20")).deploy(
+      expandTo18Decimals(10000)
+    )) as ERC20;
 
     await factory.createPair(tokenA.address, tokenB.address);
     pair = (await ethers.getContractFactory("UniswapV2Pair")).attach(

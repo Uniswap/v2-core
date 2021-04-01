@@ -3,15 +3,15 @@ import { constants as ethconst } from "ethers";
 import { UniswapV2Factory } from "../types";
 
 import { getCreate2Address } from "./shared/utilities";
-import { ethers } from "hardhat";
+import { ethers, waffle } from "hardhat";
 
 const TEST_ADDRESSES: [string, string] = [
   "0x1000000000000000000000000000000000000000",
   "0x2000000000000000000000000000000000000000",
 ];
 
-describe("UniswapV2Factory", async () => {
-  const [wallet, other] = await ethers.getSigners();
+describe("UniswapV2Factory", () => {
+  const [wallet, other] = waffle.provider.getWallets();
 
   let factory: UniswapV2Factory;
   beforeEach(async () => {

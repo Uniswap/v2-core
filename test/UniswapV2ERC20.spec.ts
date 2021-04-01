@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { BigNumber, constants as ethconst, utils as ethutils } from "ethers";
-import { ethers } from "hardhat";
+import { ethers, waffle } from "hardhat";
 import { ERC20 } from "../types";
 import { expandTo18Decimals, getApprovalDigest } from "./shared/utilities";
 
@@ -10,8 +10,8 @@ const { keccak256, defaultAbiCoder, toUtf8Bytes } = ethutils;
 const TOTAL_SUPPLY = expandTo18Decimals(10000);
 const TEST_AMOUNT = expandTo18Decimals(10);
 
-describe("UniswapV2ERC20", async () => {
-  const [wallet, other] = await ethers.getSigners();
+describe("UniswapV2ERC20", () => {
+  const [wallet, other] = waffle.provider.getWallets();
 
   let token: ERC20;
   beforeEach(async () => {

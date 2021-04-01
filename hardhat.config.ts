@@ -3,7 +3,11 @@ import "hardhat-typechain";
 import { HardhatUserConfig } from "hardhat/config";
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  networks: {
+    hardhat: {
+      chainId: 1,
+    },
+  },
   solidity: {
     version: "0.8.3",
     settings: {
