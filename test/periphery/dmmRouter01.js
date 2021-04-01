@@ -717,14 +717,7 @@ contract('DMMRouter', function (accounts) {
 
       await addLiquidity(liquidityProvider, pool, token0, token1, token0Amount, token1Amount);
       // revert if amountOut == 0
-      await expectRevert(
-        router.getAmountsOut(new BN(0), poolsPath, path),
-        'DMMLibrary: INSUFFICIENT_INPUT_AMOUNT'
-      );
-      // special case virtual balance is not enough for trade
-      let bigAmountIn = await dmmHelper.getAmountIn(token1Amount.add(new BN(1)), token0, pool);
-      await expectRevert(router.getAmountsOut(bigAmountIn, poolsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
-      await router.getAmountsOut(bigAmountIn.sub(new BN(1)), poolsPath, path);
+      await expectRevert(router.getAmountsOut(new BN(0), poolsPath, path), 'DMMLibrary: INSUFFICIENT_INPUT_AMOUNT');
 
       // test revert amount in
       let amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
@@ -733,6 +726,23 @@ contract('DMMRouter', function (accounts) {
       Helper.assertLesser(swapAmount, amounts[0]);
       amounts = await router.getAmountsIn(amountOut, poolsPath, path);
       Helper.assertEqual(swapAmount, amounts[0]);
+
+      // special case virtual balance is not enough for trade
+      let bigAmountIn = await dmmHelper.getAmountIn(token1Amount, token0, pool);
+      await expectRevert(router.getAmountsOut(bigAmountIn, poolsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
+      bigAmountIn = await dmmHelper.getAmountIn(token1Amount.sub(new BN(1)), token0, pool);
+      amounts = await router.getAmountsOut(bigAmountIn, poolsPath, path);
+
+      await token0.approve(router.address, bigAmountIn, {from: trader});
+      await router.swapExactTokensForTokens(
+        bigAmountIn,
+        amounts[amounts.length - 1],
+        poolsPath,
+        path,
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
     });
 
     it('getAmountIn', async () => {
@@ -748,16 +758,7 @@ contract('DMMRouter', function (accounts) {
 
       await addLiquidity(liquidityProvider, pool, token0, token1, token0Amount, token1Amount);
       // revert if amountOut == 0
-      await expectRevert(
-        router.getAmountsIn(new BN(0), poolsPath, path),
-        'DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT'
-      );
-      // special case real balance is not enough for trade
-      await expectRevert(
-        router.getAmountsIn(token1Amount.add(new BN(1)), poolsPath, path),
-        'DMMLibrary: INSUFFICIENT_LIQUIDITY'
-      );
-      await router.getAmountsIn(token1Amount, poolsPath, path);
+      await expectRevert(router.getAmountsIn(new BN(0), poolsPath, path), 'DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
 
       // test revert amount in
       let amounts = await router.getAmountsIn(swapAmount, poolsPath, path);
@@ -767,12 +768,20 @@ contract('DMMRouter', function (accounts) {
       amounts = await router.getAmountsOut(amountIn, poolsPath, path);
       Helper.assertEqual(swapAmount, amounts[amounts.length - 1]);
 
-      // special case non amp pool.
-      [factory, pool] = await setupPool(feeToSetter, token0, token1, new BN(10000));
-      router = await DMMRouter.new(factory.address, weth.address);
-      await addLiquidity(liquidityProvider, pool, token0, token1, token0Amount, token1Amount);
-      poolsPath = [pool.address];
+      // special case real balance is not enough for trade
       await expectRevert(router.getAmountsIn(token1Amount, poolsPath, path), 'DMMLibrary: INSUFFICIENT_LIQUIDITY');
+      amounts = await router.getAmountsIn(token1Amount.sub(new BN(1)), poolsPath, path);
+
+      await token0.approve(router.address, amounts[0], {from: trader});
+      await router.swapTokensForExactTokens(
+        token1Amount.sub(new BN(1)),
+        amounts[0],
+        poolsPath,
+        path,
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
     });
   });
 

@@ -85,7 +85,7 @@ library DMMLibrary {
         uint256 numerator = amountInWithFee.mul(vReserveOut);
         uint256 denominator = vReserveIn.add(amountInWithFee);
         amountOut = numerator.div(denominator);
-        require(reserveOut >= amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
+        require(reserveOut > amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
     }
 
     // given an output amount of an asset and pool reserves, returns a required input amount of the other asset
@@ -98,10 +98,7 @@ library DMMLibrary {
         uint256 feeInPrecision
     ) internal pure returns (uint256 amountIn) {
         require(amountOut > 0, "DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
-        require(
-            reserveIn > 0 && reserveOut >= amountOut && vReserveOut > amountOut,
-            "DMMLibrary: INSUFFICIENT_LIQUIDITY"
-        );
+        require(reserveIn > 0 && reserveOut > amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
         uint256 numerator = vReserveIn.mul(amountOut);
         uint256 denominator = vReserveOut.sub(amountOut);
         amountIn = numerator.div(denominator).add(1);
