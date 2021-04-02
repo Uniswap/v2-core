@@ -1173,6 +1173,184 @@ contract('DMMRouter', function (accounts) {
     Helper.assertEqual(await token0.balanceOf(trader), token0Balance.sub(expectedSwapAmount));
     Helper.assertEqual(await token1.balanceOf(trader), token1Balance.add(outputAmount));
   });
+
+  describe('multi path router', async () => {
+    it('swapExactTokensForTokens', async () => {
+      let token2 = await TestToken.new('test token C', 'C', Helper.expandTo18Decimals(100000));
+      token2.transfer(trader, initTokenAmount);
+
+      await factory.createPool(token1.address, token2.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, token2.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(15));
+      await token2.transfer(pool2.address, Helper.expandTo18Decimals(10));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool.address, pool2.address];
+      let path = [token0.address, token1.address, token2.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
+
+      await token0.approve(router.address, swapAmount, {from: trader});
+      let balanceBefore = await token2.balanceOf(trader);
+      await router.swapExactTokensForTokens(
+        swapAmount,
+        amounts[amounts.length - 1],
+        poolsPath,
+        path,
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
+      Helper.assertEqual(await token2.balanceOf(trader), balanceBefore.add(amounts[amounts.length - 1]));
+    });
+
+    it('swapTokensForExactTokens', async () => {
+      let token2 = await TestToken.new('test token C', 'C', Helper.expandTo18Decimals(100000));
+      token2.transfer(trader, initTokenAmount);
+
+      await factory.createPool(token1.address, token2.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, token2.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(15));
+      await token2.transfer(pool2.address, Helper.expandTo18Decimals(10));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool.address, pool2.address];
+      let path = [token0.address, token1.address, token2.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsIn(swapAmount, poolsPath, path);
+
+      await token0.approve(router.address, amounts[0], {from: trader});
+      let balanceBefore = await token0.balanceOf(trader);
+      await router.swapTokensForExactTokens(swapAmount, amounts[0], poolsPath, path, trader, Helper.MaxUint256, {
+        from: trader
+      });
+      Helper.assertEqual(await token0.balanceOf(trader), balanceBefore.sub(amounts[0]));
+    });
+
+    it('swapExactTokensForETH', async () => {
+      await factory.createPool(token1.address, weth.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, weth.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(15));
+      await weth.deposit({value: Helper.expandTo18Decimals(14)});
+      await weth.transfer(pool2.address, Helper.expandTo18Decimals(14));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool.address, pool2.address];
+      let path = [token0.address, token1.address, weth.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
+
+      await token0.approve(router.address, swapAmount, {from: trader});
+      let balanceBefore = await Helper.getBalancePromise(trader);
+      await router.swapExactTokensForETH(
+        swapAmount,
+        amounts[amounts.length - 1],
+        poolsPath,
+        path,
+        trader,
+        Helper.MaxUint256,
+        {
+          from: trader,
+          gasPrice: new BN(0)
+        }
+      );
+      Helper.assertEqual(await Helper.getBalancePromise(trader), amounts[amounts.length - 1].add(balanceBefore));
+    });
+
+    it('swapExactETHForTokens', async () => {
+      await factory.createPool(token1.address, weth.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, weth.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(12));
+      await weth.deposit({value: Helper.expandTo18Decimals(14)});
+      await weth.transfer(pool2.address, Helper.expandTo18Decimals(14));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool2.address, pool.address];
+      let path = [weth.address, token1.address, token0.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsOut(swapAmount, poolsPath, path);
+
+      let balanceBefore = await token0.balanceOf(trader);
+      await router.swapExactETHForTokens(amounts[amounts.length - 1], poolsPath, path, trader, Helper.MaxUint256, {
+        from: trader,
+        value: swapAmount
+      });
+      Helper.assertEqual(await token0.balanceOf(trader), balanceBefore.add(amounts[amounts.length - 1]));
+    });
+
+    it('swapTokensForExactETH', async () => {
+      await factory.createPool(token1.address, weth.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, weth.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(15));
+      await weth.deposit({value: Helper.expandTo18Decimals(14)});
+      await weth.transfer(pool2.address, Helper.expandTo18Decimals(14));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool.address, pool2.address];
+      let path = [token0.address, token1.address, weth.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsIn(swapAmount, poolsPath, path);
+
+      await token0.approve(router.address, amounts[0], {from: trader});
+      let balanceBefore = await token0.balanceOf(trader);
+      await router.swapTokensForExactETH(swapAmount, amounts[0], poolsPath, path, trader, Helper.MaxUint256, {
+        from: trader
+      });
+      Helper.assertEqual(await token0.balanceOf(trader), balanceBefore.sub(amounts[0]));
+    });
+
+    it('swapETHForExactTokens', async () => {
+      await factory.createPool(token1.address, weth.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token1.address, weth.address);
+      let pool2 = await DMMPool.at(poolAddrs[0]);
+      await token1.transfer(pool2.address, Helper.expandTo18Decimals(12));
+      await weth.deposit({value: Helper.expandTo18Decimals(14)});
+      await weth.transfer(pool2.address, Helper.expandTo18Decimals(14));
+      await pool2.mint(liquidityProvider);
+
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(5));
+      await token1.transfer(pool.address, Helper.expandTo18Decimals(10));
+      await pool.mint(liquidityProvider);
+
+      let poolsPath = [pool2.address, pool.address];
+      let path = [weth.address, token1.address, token0.address];
+      let swapAmount = Helper.expandTo18Decimals(1);
+      let amounts = await router.getAmountsIn(swapAmount, poolsPath, path);
+
+      let balanceBefore = await Helper.getBalancePromise(trader);
+      await router.swapETHForExactTokens(swapAmount, poolsPath, path, trader, Helper.MaxUint256, {
+        from: trader,
+        value: amounts[0].add(Helper.expandTo18Decimals(1)),
+        gasPrice: new BN(0)
+      });
+      Helper.assertEqual(await Helper.getBalancePromise(trader), balanceBefore.sub(amounts[0]));
+    });
+  });
 });
 
 async function setupFactory (admin) {
