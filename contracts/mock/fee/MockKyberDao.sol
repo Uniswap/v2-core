@@ -1,10 +1,11 @@
-pragma solidity 0.6.6;
-
-import "@kyber.network/utils-sc/contracts/Utils.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.6.12;
 
 import "./IKyberDao.sol";
 
-contract MockKyberDao is IKyberDao, Utils {
+contract MockKyberDao is IKyberDao {
+    uint256 public constant BPS = 10000; // Basic Price Steps. 1 step = 0.01%
+
     uint256 public rewardInBPS;
     uint256 public rebateInBPS;
     uint256 public epoch;

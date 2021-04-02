@@ -12,7 +12,7 @@
     "check-send-result": "error",
     "compiler-version": [
       "off",
-      "0.6.6"
+      "0.6.12"
     ],
     "const-name-snakecase": "error",
     "func-name-mixedcase": "error",

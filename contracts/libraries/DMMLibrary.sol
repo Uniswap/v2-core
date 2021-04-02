@@ -1,4 +1,5 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -55,8 +56,8 @@ library DMMLibrary {
         IERC20 tokenB
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (IERC20 token0, ) = sortTokens(tokenA, tokenB);
-        (uint256 vReserve0, uint256 vReserve1, ) = IDMMPool(pool).getReserves();
-        (reserveA, reserveB) = tokenA == token0 ? (vReserve0, vReserve1) : (vReserve1, vReserve0);
+        (uint256 reserve0, uint256 reserve1) = IDMMPool(pool).getReserves();
+        (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
     }
 
     // given some amount of an asset and pool reserves, returns an equivalent amount of the other asset
@@ -85,7 +86,7 @@ library DMMLibrary {
         uint256 numerator = amountInWithFee.mul(vReserveOut);
         uint256 denominator = vReserveIn.add(amountInWithFee);
         amountOut = numerator.div(denominator);
-        require(reserveOut >= amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
+        require(reserveOut > amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
     }
 
     // given an output amount of an asset and pool reserves, returns a required input amount of the other asset
@@ -98,10 +99,7 @@ library DMMLibrary {
         uint256 feeInPrecision
     ) internal pure returns (uint256 amountIn) {
         require(amountOut > 0, "DMMLibrary: INSUFFICIENT_OUTPUT_AMOUNT");
-        require(
-            reserveIn > 0 && reserveOut >= amountOut && vReserveOut > amountOut,
-            "DMMLibrary: INSUFFICIENT_LIQUIDITY"
-        );
+        require(reserveIn > 0 && reserveOut > amountOut, "DMMLibrary: INSUFFICIENT_LIQUIDITY");
         uint256 numerator = vReserveIn.mul(amountOut);
         uint256 denominator = vReserveOut.sub(amountOut);
         amountIn = numerator.div(denominator).add(1);
