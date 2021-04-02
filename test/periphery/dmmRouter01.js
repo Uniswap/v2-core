@@ -1351,6 +1351,103 @@ contract('DMMRouter', function (accounts) {
       Helper.assertEqual(await Helper.getBalancePromise(trader), balanceBefore.sub(amounts[0]));
     });
   });
+
+  describe('special case: token balance > real reserve in the pool', async () => {
+    it('addLiquidity', async () => {
+      const token0Amount = Helper.expandTo18Decimals(2);
+      const token1Amount = Helper.expandTo18Decimals(8);
+      // create a new pool
+      await factory.createPool(token0.address, token1.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token0.address, token1.address);
+      let pool = await DMMPool.at(poolAddrs[poolAddrs.length - 1]);
+      await token0.transfer(pool.address, token0Amount);
+      await token1.transfer(pool.address, token1Amount);
+      await pool.mint(liquidityProvider);
+      // unexpected transfer token to the pool
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(4));
+
+      await token0.approve(router.address, token0Amount, {from: trader});
+      await token1.approve(router.address, token1Amount, {from: trader});
+      await router.addLiquidity(
+        token0.address,
+        token1.address,
+        pool.address,
+        token0Amount,
+        token1Amount,
+        token0Amount,
+        token1Amount,
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
+      Helper.assertEqual(await pool.balanceOf(trader), Helper.expandTo18Decimals(4));
+    });
+
+    it('swap', async () => {
+      const token0Amount = Helper.expandTo18Decimals(2);
+      const token1Amount = Helper.expandTo18Decimals(8);
+      // create a new pool
+      await factory.createPool(token0.address, token1.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token0.address, token1.address);
+      let pool = await DMMPool.at(poolAddrs[poolAddrs.length - 1]);
+      await token0.transfer(pool.address, token0Amount);
+      await token1.transfer(pool.address, token1Amount);
+      await pool.mint(liquidityProvider);
+      // unexpected transfer token to the pool
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(4));
+
+      await token0.approve(router.address, Helper.MaxUint256, {from: trader});
+      await router.swapExactTokensForTokens(
+        Helper.expandTo18Decimals(1),
+        new BN(0),
+        [pool.address],
+        [token0.address, token1.address],
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
+      // unexpected transfer token to the pool
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(4));
+      await token1.approve(router.address, Helper.MaxUint256, {from: trader});
+      await router.swapExactTokensForTokens(
+        Helper.expandTo18Decimals(1),
+        new BN(0),
+        [pool.address],
+        [token1.address, token0.address],
+        trader,
+        Helper.MaxUint256,
+        {from: trader}
+      );
+    });
+
+    it('removeLiquidity', async () => {
+      const token0Amount = Helper.expandTo18Decimals(2);
+      const token1Amount = Helper.expandTo18Decimals(8);
+      // create a new pool
+      await factory.createPool(token0.address, token1.address, new BN(20000));
+      const poolAddrs = await factory.getPools(token0.address, token1.address);
+      let pool = await DMMPool.at(poolAddrs[poolAddrs.length - 1]);
+      await token0.transfer(pool.address, token0Amount);
+      await token1.transfer(pool.address, token1Amount);
+      await pool.mint(liquidityProvider);
+      // unexpected transfer token to the pool
+      await token0.transfer(pool.address, Helper.expandTo18Decimals(4));
+
+      await pool.approve(router.address, Helper.MaxUint256, {from: liquidityProvider});
+      await router.removeLiquidity(
+        token0.address,
+        token1.address,
+        pool.address,
+        await pool.balanceOf(liquidityProvider),
+        token0Amount.sub(MINIMUM_LIQUIDITY.div(new BN(2))),
+        token1Amount.sub(MINIMUM_LIQUIDITY.mul(new BN(2))),
+        liquidityProvider,
+        Helper.MaxUint256,
+        {from: liquidityProvider}
+      );
+      Helper.assertEqual(await pool.balanceOf(liquidityProvider), new BN(0));
+    });
+  });
 });
 
 async function setupFactory (admin) {
