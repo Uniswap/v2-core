@@ -38,6 +38,12 @@ contract('DMMPool', function (accounts) {
     [token0, token1] = new BN(tokenA.address).lt(new BN(tokenB.address)) ? [tokenA, tokenB] : [tokenB, tokenA];
   });
 
+  it('name & symbol', async () => {
+    [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
+    assert(await pool.symbol(), `DMM-LP ${await token0.symbol()} ${await token1.symbol()}`, 'unexpected symbol');
+    assert(await pool.name(), `KyberDMM LP ${await token0.symbol()} ${await token1.symbol()}`, 'unexpected name');
+  });
+
   it('can not initialize not by factory', async () => {
     [factory, pool] = await setupPool(admin, token0, token1, unamplifiedBps);
     await expectRevert(pool.initialize(token0.address, token1.address, unamplifiedBps), 'DMM: FORBIDDEN');
@@ -202,10 +208,7 @@ contract('DMMPool', function (accounts) {
 
       let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pool);
       // when amountIn = 0 -> revert
-      await expectRevert(
-        pool.swap(new BN(0), amountOut, trader, '0x', {from: app}),
-        'DMM: INSUFFICIENT_INPUT_AMOUNT'
-      );
+      await expectRevert(pool.swap(new BN(0), amountOut, trader, '0x', {from: app}), 'DMM: INSUFFICIENT_INPUT_AMOUNT');
 
       // when amountOut = 0 -> revert
       await token0.transfer(pool.address, swapAmount);
@@ -261,10 +264,7 @@ contract('DMMPool', function (accounts) {
 
       let amountOut = await dmmHelper.getAmountOut(swapAmount, token0.address, pool);
       // when amountIn = 0 -> revert
-      await expectRevert(
-        pool.swap(new BN(0), amountOut, trader, '0x', {from: app}),
-        'DMM: INSUFFICIENT_INPUT_AMOUNT'
-      );
+      await expectRevert(pool.swap(new BN(0), amountOut, trader, '0x', {from: app}), 'DMM: INSUFFICIENT_INPUT_AMOUNT');
 
       // when amountOut = 0 -> revert
       await token0.transfer(pool.address, swapAmount);
