@@ -6,6 +6,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       chainId: 1,
+      blockGasLimit: 999999999,
     },
   },
   solidity: {

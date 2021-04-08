@@ -264,7 +264,7 @@ describe("UniswapV2Pair", () => {
       overrides
     );
     const receipt = await tx.wait();
-    expect(receipt.gasUsed).to.eq(74660);
+    expect(receipt.gasUsed).to.eq(74696);
   });
 
   it("burn", async () => {

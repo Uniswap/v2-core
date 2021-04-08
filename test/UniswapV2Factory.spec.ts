@@ -16,7 +16,7 @@ describe("UniswapV2Factory", () => {
   let factory: UniswapV2Factory;
   beforeEach(async () => {
     const f = await ethers.getContractFactory("UniswapV2Factory");
-    factory = (await f.deploy()) as UniswapV2Factory;
+    factory = (await f.deploy(wallet.address)) as UniswapV2Factory;
   });
 
   it("feeTo, feeToSetter, allPairsLength", async () => {
@@ -57,7 +57,7 @@ describe("UniswapV2Factory", () => {
   it("createPair:gas", async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES);
     const receipt = await tx.wait();
-    expect(receipt.gasUsed).to.eq(2535258);
+    expect(receipt.gasUsed).to.eq(2381560);
   });
 
   it("setFeeTo", async () => {
