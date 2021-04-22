@@ -186,7 +186,7 @@ contract('LiquidityMigrator', accounts => {
           0,
           0,
           0,
-          [zeroAddress, 12345],
+          [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
           deadline,
           {from: liquidityProvider}
         );
@@ -227,14 +227,20 @@ contract('LiquidityMigrator', accounts => {
             new BN(12000),
             0,
             0,
-            0,
-            0,
             liquidityProvider,
             deadline,
             {from: liquidityProvider}
           );
           dmmPools = await dmmFactory.getPools(token0.address, token1.address);
           poolAddress = dmmPools[0];
+        }
+
+        let tradeInfo = await (await DMMPool.at(poolAddress)).getTradeInfo();
+        let vReserveRatioBounds;
+        if (new BN(token0.address).lt(new BN(token1.address))) {
+          vReserveRatioBounds = tradeInfo._vReserve1.mul(Helper.Q112).div(tradeInfo._vReserve0);
+        } else {
+          vReserveRatioBounds = tradeInfo._vReserve0.mul(Helper.Q112).div(tradeInfo._vReserve1);
         }
 
         let poolLength = await dmmFactory.getPoolsLength(token0.address, token1.address);
@@ -247,7 +253,7 @@ contract('LiquidityMigrator', accounts => {
           0,
           0,
           0,
-          [poolAddress, 0],
+          [poolAddress, 0, [vReserveRatioBounds, vReserveRatioBounds.add(new BN(1))]],
           deadline,
           {from: liquidityProvider}
         );
@@ -290,7 +296,7 @@ contract('LiquidityMigrator', accounts => {
             liquidity,
             token0Amount.add(new BN(1)),
             0,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             {from: liquidityProvider}
           ),
@@ -306,7 +312,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount.add(new BN(1)),
             0,
             token1Amount.add(new BN(1)),
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             {from: liquidityProvider}
           ),
@@ -342,7 +348,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount,
             token0Amount,
             token1Amount,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             {from: liquidityProvider}
           )
@@ -377,7 +383,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount,
             token0Amount,
             token1Amount,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             {from: liquidityProvider}
           )
@@ -412,7 +418,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount,
             token0Amount,
             token1Amount,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             new BN(0),
             {from: liquidityProvider}
           ),
@@ -464,7 +470,7 @@ contract('LiquidityMigrator', accounts => {
           0,
           0,
           0,
-          [zeroAddress, 12345],
+          [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
           deadline,
           [true, data.v, data.r, data.s],
           {from: liquidityProvider}
@@ -517,6 +523,14 @@ contract('LiquidityMigrator', accounts => {
           poolAddress = dmmPools[0];
         }
 
+        let tradeInfo = await (await DMMPool.at(poolAddress)).getTradeInfo();
+        let vReserveRatioBounds;
+        if (new BN(token0.address).lt(new BN(token1.address))) {
+          vReserveRatioBounds = tradeInfo._vReserve1.mul(Helper.Q112).div(tradeInfo._vReserve0);
+        } else {
+          vReserveRatioBounds = tradeInfo._vReserve0.mul(Helper.Q112).div(tradeInfo._vReserve1);
+        }
+
         let poolLength = await dmmFactory.getPoolsLength(token0.address, token1.address);
         let tx = await migrator.migrateLpToDmmPoolWithPermit(
           lpToken.address,
@@ -527,7 +541,7 @@ contract('LiquidityMigrator', accounts => {
           0,
           0,
           0,
-          [poolAddress, 0],
+          [poolAddress, 0, [vReserveRatioBounds, vReserveRatioBounds.add(new BN(1))]],
           deadline,
           [false, data.v, data.r, data.s],
           {from: liquidityProvider}
@@ -574,7 +588,7 @@ contract('LiquidityMigrator', accounts => {
             0,
             0,
             0,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             [true, data.v, data.r, data.s],
             {from: liquidityProvider}
@@ -590,7 +604,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount.add(new BN(1)),
             0,
             token1Amount.add(new BN(1)),
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             {from: liquidityProvider}
           )
@@ -627,7 +641,7 @@ contract('LiquidityMigrator', accounts => {
             token1Amount,
             token0Amount,
             token1Amount,
-            [zeroAddress, 12345],
+            [zeroAddress, 12345, [Helper.zeroBN, Helper.zeroBN]],
             deadline,
             [false, data.v, data.r, data.s],
             {from: liquidityProvider}
@@ -670,6 +684,8 @@ contract('LiquidityMigrator', accounts => {
       poolAddress = dmmPools[dmmPools.length - 1];
       console.log(poolAddress);
 
+      let vReserveRatio = new BN(2000).mul(Helper.Q112);
+
       // reset allowance
       await approveAllowance([lpToken], migrator.address, 0, liquidityProvider);
       const data = await getPermitData(lpToken, liquidity, false, deadline);
@@ -683,7 +699,7 @@ contract('LiquidityMigrator', accounts => {
         token1Amount,
         token1Amount.div(new BN(2000)),
         token1Amount,
-        [poolAddress, new BN(0)],
+        [poolAddress, new BN(0), [vReserveRatio, vReserveRatio]],
         deadline,
         [false, data.v, data.r, data.s],
         {from: liquidityProvider}

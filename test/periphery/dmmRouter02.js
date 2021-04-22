@@ -58,6 +58,7 @@ contract('DMMRouter02', accounts => {
       feeTokenAmount,
       feeTokenAmount,
       ethAmount,
+      [Helper.zeroBN, Helper.MaxUint256],
       liquidityProvider,
       MaxUint256,
       {
@@ -200,7 +201,7 @@ contract('DMMRouter02', accounts => {
     /// create pool
     await factory.createPool(feeToken.address, feeToken2.address, new BN(10000));
     const poolAddresses = await factory.getPools(feeToken.address, feeToken2.address);
-    tokenPool = await DMMPool.at(poolAddresses[0]);
+    tokenPool = await DMMPool.at(poolAddresses[poolAddresses.length - 1]);
 
     const feeTokenAmount = expandTo18Decimals(5)
       .mul(new BN(100))
@@ -208,20 +209,10 @@ contract('DMMRouter02', accounts => {
     const feeTokenAmount2 = expandTo18Decimals(5);
     const amountIn = expandTo18Decimals(1);
 
-    await feeToken.approve(router.address, MaxUint256);
-    await feeToken2.approve(router.address, MaxUint256);
-    await router.addLiquidity(
-      feeToken.address,
-      feeToken2.address,
-      tokenPool.address,
-      feeTokenAmount,
-      feeTokenAmount2,
-      feeTokenAmount,
-      feeTokenAmount2,
-      liquidityProvider,
-      MaxUint256
-    );
-
+    await feeToken.transfer(tokenPool.address, feeTokenAmount);
+    await feeToken2.transfer(tokenPool.address, feeTokenAmount2);
+    await tokenPool.mint(liquidityProvider);
+    // approve to the router and tranfer token to trader
     await feeToken.approve(router.address, MaxUint256, {from: trader});
     await feeToken.transfer(trader, amountIn.mul(new BN(2)));
 

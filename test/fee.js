@@ -48,6 +48,7 @@ contract('FeeTo', accounts => {
       Helper.expandTo18Decimals(100),
       new BN(0),
       new BN(0),
+      [Helper.zeroBN, Helper.MaxUint256],
       accounts[0],
       Helper.MaxUint256,
       {value: Helper.expandTo18Decimals(10)}
