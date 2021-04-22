@@ -215,6 +215,8 @@ contract('DMMRouter', function (accounts) {
 
       await token0.approve(router.address, bigAmount, {from: trader});
       await token1.approve(router.address, bigAmount, {from: trader});
+
+      let vReserveRatio = token1Amount.mul(Helper.Q112).div(token0Amount);
       // add liquidity to a pool without any reserves
       let result = await router.addLiquidity(
         token0.address,
@@ -224,6 +226,7 @@ contract('DMMRouter', function (accounts) {
         token1Amount,
         0,
         0,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader}
@@ -252,6 +255,7 @@ contract('DMMRouter', function (accounts) {
           Helper.expandTo18Decimals(2),
           expectedToken0Amount.add(new BN(1)),
           0,
+          [vReserveRatio, vReserveRatio],
           trader,
           bigAmount,
           {from: trader}
@@ -268,6 +272,7 @@ contract('DMMRouter', function (accounts) {
           Helper.expandTo18Decimals(2),
           expectedToken0Amount.add(new BN(1)),
           0,
+          [vReserveRatio, vReserveRatio],
           trader,
           bigAmount,
           {from: trader}
@@ -284,11 +289,46 @@ contract('DMMRouter', function (accounts) {
           updateAmount,
           0,
           expectedToken0Amount.add(new BN(1)),
+          [vReserveRatio, vReserveRatio],
           trader,
           bigAmount,
           {from: trader}
         ),
         'DMMRouter: INSUFFICIENT_B_AMOUNT'
+      );
+
+      await expectRevert(
+        router.addLiquidity(
+          token1.address,
+          token0.address,
+          pool.address,
+          updateAmount,
+          updateAmount,
+          0,
+          0,
+          [vReserveRatio.add(new BN(1)), vReserveRatio.add(new BN(1))],
+          trader,
+          bigAmount,
+          {from: trader}
+        ),
+        'DMMRouter: OUT_OF_BOUNDS_VRESERVE'
+      );
+
+      await expectRevert(
+        router.addLiquidity(
+          token1.address,
+          token0.address,
+          pool.address,
+          updateAmount,
+          updateAmount,
+          0,
+          0,
+          [vReserveRatio.sub(new BN(1)), vReserveRatio.sub(new BN(1))],
+          trader,
+          bigAmount,
+          {from: trader}
+        ),
+        'DMMRouter: OUT_OF_BOUNDS_VRESERVE'
       );
 
       result = await router.addLiquidity(
@@ -299,6 +339,7 @@ contract('DMMRouter', function (accounts) {
         updateAmount,
         0,
         0,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader}
@@ -314,6 +355,7 @@ contract('DMMRouter', function (accounts) {
       let expectedToken1Amount = Helper.expandTo18Decimals(4);
       Helper.assertEqual(await router.quote(updateAmount, token0Amount, token1Amount), expectedToken1Amount);
 
+      vReserveRatio = token0Amount.mul(Helper.Q112).div(token1Amount);
       result = await router.addLiquidity(
         token1.address,
         token0.address,
@@ -322,6 +364,7 @@ contract('DMMRouter', function (accounts) {
         updateAmount,
         0,
         0,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader}
@@ -341,6 +384,8 @@ contract('DMMRouter', function (accounts) {
       const token0 = await ethPool.token0();
       await ethPartner.approve(router.address, bigAmount, {from: trader});
 
+      let vReserveRatio = ethAmount.mul(Helper.Q112).div(ethPartnerAmount);
+
       await expectRevert(
         router.addLiquidityETH(
           ethPartner.address,
@@ -348,6 +393,7 @@ contract('DMMRouter', function (accounts) {
           ethPartnerAmount,
           ethPartnerAmount,
           ethAmount,
+          [vReserveRatio, vReserveRatio],
           trader,
           bigAmount,
           {from: trader, value: ethAmount.add(new BN(100))}
@@ -361,6 +407,7 @@ contract('DMMRouter', function (accounts) {
         ethPartnerAmount,
         ethPartnerAmount,
         ethAmount,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader, value: ethAmount}
@@ -384,6 +431,7 @@ contract('DMMRouter', function (accounts) {
         ethPartnerAmount,
         ethPartnerAmount,
         ethAmount,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader, value: ethAmount.add(new BN(100))}
@@ -402,6 +450,7 @@ contract('DMMRouter', function (accounts) {
         ethPartnerAmount.add(new BN(500)),
         ethPartnerAmount,
         ethAmount,
+        [vReserveRatio, vReserveRatio],
         trader,
         bigAmount,
         {from: trader, value: ethAmount}
@@ -1368,6 +1417,7 @@ contract('DMMRouter', function (accounts) {
 
       await token0.approve(router.address, token0Amount, {from: trader});
       await token1.approve(router.address, token1Amount, {from: trader});
+      const vReserveRatio = token1Amount.mul(Helper.Q112).div(token0Amount);
       await router.addLiquidity(
         token0.address,
         token1.address,
@@ -1376,6 +1426,7 @@ contract('DMMRouter', function (accounts) {
         token1Amount,
         token0Amount,
         token1Amount,
+        [vReserveRatio, vReserveRatio],
         trader,
         Helper.MaxUint256,
         {from: trader}
