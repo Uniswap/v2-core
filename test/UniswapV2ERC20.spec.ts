@@ -1,27 +1,29 @@
 import { expect } from "chai";
-import { BigNumber, constants as ethconst, utils as ethutils } from "ethers";
 import { ethers, waffle } from "hardhat";
 import { ERC20 } from "../types";
 import { expandTo18Decimals, getApprovalDigest } from "./shared/utilities";
+import type { Wallet } from "ethers";
 
-const { MaxUint256 } = ethconst;
-const { keccak256, defaultAbiCoder, toUtf8Bytes } = ethutils;
+const { BigNumber } = ethers;
+const { MaxUint256 } = ethers.constants;
+const { keccak256, defaultAbiCoder, toUtf8Bytes } = ethers.utils;
 
 const TOTAL_SUPPLY = expandTo18Decimals(10000);
 const TEST_AMOUNT = expandTo18Decimals(10);
 
 describe("UniswapV2ERC20", () => {
-  const [wallet, other] = waffle.provider.getWallets();
+  const loadFixture = waffle.createFixtureLoader(waffle.provider.getWallets());
 
-  let token: ERC20;
-  beforeEach(async () => {
+  async function fixture([wallet, other]: Wallet[]) {
     const factory = await ethers.getContractFactory(
       "contracts/test/ERC20.sol:ERC20"
     );
-    token = (await factory.deploy(TOTAL_SUPPLY)) as ERC20;
-  });
+    const token = await factory.deploy(TOTAL_SUPPLY);
+    return { token: token as ERC20, wallet, other };
+  }
 
   it("name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH", async () => {
+    const { token, wallet } = await loadFixture(fixture);
     const name = await token.name();
     expect(name).to.eq("Uniswap V2");
     expect(await token.symbol()).to.eq("UNI-V2");
@@ -56,6 +58,7 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("approve", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
     await expect(token.approve(other.address, TEST_AMOUNT))
       .to.emit(token, "Approval")
       .withArgs(wallet.address, other.address, TEST_AMOUNT);
@@ -65,6 +68,7 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("transfer", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
     await expect(token.transfer(other.address, TEST_AMOUNT))
       .to.emit(token, "Transfer")
       .withArgs(wallet.address, other.address, TEST_AMOUNT);
@@ -75,6 +79,7 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("transfer:fail", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
     await expect(token.transfer(other.address, TOTAL_SUPPLY.add(1))).to.be
       .reverted; // ds-math-sub-underflow
     await expect(token.connect(other).transfer(wallet.address, 1)).to.be
@@ -82,6 +87,7 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("transferFrom", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
     await token.approve(other.address, TEST_AMOUNT);
     await expect(
       token
@@ -98,6 +104,8 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("transferFrom:max", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
+
     await token.approve(other.address, MaxUint256);
     await expect(
       token
@@ -116,6 +124,7 @@ describe("UniswapV2ERC20", () => {
   });
 
   it("permit", async () => {
+    const { token, wallet, other } = await loadFixture(fixture);
     const nonce = await token.nonces(wallet.address);
     const deadline = MaxUint256;
     const digest = await getApprovalDigest(
@@ -125,9 +134,9 @@ describe("UniswapV2ERC20", () => {
       deadline
     );
 
-    const { r, s, v } = ethutils.splitSignature(
-      await wallet.signMessage(Buffer.from(digest.slice(2), "hex"))
-    );
+    const { r, s, v } = wallet
+      ._signingKey()
+      .signDigest(Buffer.from(digest.slice(2), "hex"));
 
     await expect(
       token.permit(

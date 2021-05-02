@@ -1,3 +1,4 @@
+import { MockProvider } from "@ethereum-waffle/provider";
 import { BigNumber, Contract } from "ethers";
 import { utils as ethutil } from "ethers";
 
@@ -97,4 +98,16 @@ export function encodePrice(reserve0: BigNumber, reserve1: BigNumber) {
     reserve1.mul(BigNumber.from(2).pow(112)).div(reserve0),
     reserve0.mul(BigNumber.from(2).pow(112)).div(reserve1),
   ];
+}
+
+export async function setNextBlockTime(
+  provider: MockProvider,
+  timestamp: number
+): Promise<void> {
+  return provider.send("evm_setNextBlockTimestamp", [timestamp]);
+}
+
+export async function logCurrent(provider: MockProvider) {
+  const { timestamp, number } = await provider.getBlock("latest");
+  console.log("current height", number, timestamp);
 }
