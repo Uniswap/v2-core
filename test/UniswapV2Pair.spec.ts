@@ -6,16 +6,11 @@ import {
   expandTo18Decimals,
   encodePrice,
   setNextBlockTime,
-  logCurrent,
 } from "./shared/utilities";
 import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../types";
 import { MockProvider } from "@ethereum-waffle/provider";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3);
-
-const overrides = {
-  gasLimit: 9999999,
-};
 
 describe("UniswapV2Pair", () => {
   const loadFixture = waffle.createFixtureLoader(
@@ -53,7 +48,7 @@ describe("UniswapV2Pair", () => {
     await token1.transfer(pair.address, token1Amount);
 
     const expectedLiquidity = expandTo18Decimals(2);
-    await expect(pair.mint(wallet.address, overrides))
+    await expect(pair.mint(wallet.address))
       .to.emit(pair, "Transfer")
       .withArgs(ethconst.AddressZero, ethconst.AddressZero, MINIMUM_LIQUIDITY)
       .to.emit(pair, "Transfer")
@@ -88,7 +83,7 @@ describe("UniswapV2Pair", () => {
   ) {
     await token0.transfer(pair.address, token0Amount);
     await token1.transfer(pair.address, token1Amount);
-    await pair.mint(wallet.address, overrides);
+    await pair.mint(wallet.address);
   }
 
   const swapTestCases: BigNumber[][] = [
@@ -128,15 +123,9 @@ describe("UniswapV2Pair", () => {
       );
       await token0.transfer(pair.address, swapAmount);
       await expect(
-        pair.swap(
-          0,
-          expectedOutputAmount.add(1),
-          wallet.address,
-          "0x",
-          overrides
-        )
+        pair.swap(0, expectedOutputAmount.add(1), wallet.address, "0x")
       ).to.be.revertedWith("UniswapV2: K");
-      await pair.swap(0, expectedOutputAmount, wallet.address, "0x", overrides);
+      await pair.swap(0, expectedOutputAmount, wallet.address, "0x");
     });
   });
 
@@ -170,9 +159,9 @@ describe("UniswapV2Pair", () => {
       );
       await token0.transfer(pair.address, inputAmount);
       await expect(
-        pair.swap(outputAmount.add(1), 0, wallet.address, "0x", overrides)
+        pair.swap(outputAmount.add(1), 0, wallet.address, "0x")
       ).to.be.revertedWith("UniswapV2: K");
-      await pair.swap(outputAmount, 0, wallet.address, "0x", overrides);
+      await pair.swap(outputAmount, 0, wallet.address, "0x");
     });
   });
 
@@ -193,9 +182,7 @@ describe("UniswapV2Pair", () => {
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("1662497915624478906");
     await token0.transfer(pair.address, swapAmount);
-    await expect(
-      pair.swap(0, expectedOutputAmount, wallet.address, "0x", overrides)
-    )
+    await expect(pair.swap(0, expectedOutputAmount, wallet.address, "0x"))
       .to.emit(token1, "Transfer")
       .withArgs(pair.address, wallet.address, expectedOutputAmount)
       .to.emit(pair, "Sync")
@@ -249,9 +236,7 @@ describe("UniswapV2Pair", () => {
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("453305446940074565");
     await token1.transfer(pair.address, swapAmount);
-    await expect(
-      pair.swap(expectedOutputAmount, 0, wallet.address, "0x", overrides)
-    )
+    await expect(pair.swap(expectedOutputAmount, 0, wallet.address, "0x"))
       .to.emit(token0, "Transfer")
       .withArgs(pair.address, wallet.address, expectedOutputAmount)
       .to.emit(pair, "Sync")
@@ -313,7 +298,7 @@ describe("UniswapV2Pair", () => {
       provider,
       (await provider.getBlock("latest")).timestamp + 1
     );
-    await pair.sync(overrides);
+    await pair.sync();
 
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("453305446940074565");
@@ -322,13 +307,7 @@ describe("UniswapV2Pair", () => {
       provider,
       (await provider.getBlock("latest")).timestamp + 1
     );
-    const tx = await pair.swap(
-      expectedOutputAmount,
-      0,
-      wallet.address,
-      "0x",
-      overrides
-    );
+    const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, "0x");
     const receipt = await tx.wait();
     expect(receipt.gasUsed).to.eq(74396);
   });
@@ -349,7 +328,7 @@ describe("UniswapV2Pair", () => {
 
     const expectedLiquidity = expandTo18Decimals(3);
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY));
-    await expect(pair.burn(wallet.address, overrides))
+    await expect(pair.burn(wallet.address))
       .to.emit(pair, "Transfer")
       .withArgs(
         pair.address,
@@ -402,7 +381,7 @@ describe("UniswapV2Pair", () => {
 
     const blockTimestamp = (await pair.getReserves())[2];
     await setNextBlockTime(provider, blockTimestamp + 1);
-    await pair.sync(overrides);
+    await pair.sync();
 
     const initialPrice = encodePrice(token0Amount, token1Amount);
     // expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0]);
@@ -413,14 +392,14 @@ describe("UniswapV2Pair", () => {
     await token0.transfer(pair.address, swapAmount);
     await setNextBlockTime(provider, blockTimestamp + 10);
     // swap to a new price eagerly instead of syncing
-    await pair.swap(0, expandTo18Decimals(1), wallet.address, "0x", overrides); // make the price nice
+    await pair.swap(0, expandTo18Decimals(1), wallet.address, "0x"); // make the price nice
 
     expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(10));
     expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(10));
     expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 10);
 
     await setNextBlockTime(provider, blockTimestamp + 20);
-    await pair.sync(overrides);
+    await pair.sync();
 
     const newPrice = encodePrice(expandTo18Decimals(6), expandTo18Decimals(2));
     expect(await pair.price0CumulativeLast()).to.eq(
@@ -449,11 +428,11 @@ describe("UniswapV2Pair", () => {
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("996006981039903216");
     await token1.transfer(pair.address, swapAmount);
-    await pair.swap(expectedOutputAmount, 0, wallet.address, "0x", overrides);
+    await pair.swap(expectedOutputAmount, 0, wallet.address, "0x");
 
     const expectedLiquidity = expandTo18Decimals(1000);
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY));
-    await pair.burn(wallet.address, overrides);
+    await pair.burn(wallet.address);
     expect(await pair.totalSupply()).to.eq(MINIMUM_LIQUIDITY);
   });
 
@@ -478,11 +457,11 @@ describe("UniswapV2Pair", () => {
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("996006981039903216");
     await token1.transfer(pair.address, swapAmount);
-    await pair.swap(expectedOutputAmount, 0, wallet.address, "0x", overrides);
+    await pair.swap(expectedOutputAmount, 0, wallet.address, "0x");
 
     const expectedLiquidity = expandTo18Decimals(1000);
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY));
-    await pair.burn(wallet.address, overrides);
+    await pair.burn(wallet.address);
     expect(await pair.totalSupply()).to.eq(
       MINIMUM_LIQUIDITY.add("249750499251388")
     );

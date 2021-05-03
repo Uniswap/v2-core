@@ -106,8 +106,3 @@ export async function setNextBlockTime(
 ): Promise<void> {
   return provider.send("evm_setNextBlockTimestamp", [timestamp]);
 }
-
-export async function logCurrent(provider: MockProvider) {
-  const { timestamp, number } = await provider.getBlock("latest");
-  console.log("current height", number, timestamp);
-}

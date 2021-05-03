@@ -11,7 +11,10 @@ const TEST_ADDRESSES: [string, string] = [
 ];
 
 describe("UniswapV2Factory", () => {
-  const loadFixture = waffle.createFixtureLoader(waffle.provider.getWallets());
+  const loadFixture = waffle.createFixtureLoader(
+    waffle.provider.getWallets(),
+    waffle.provider
+  );
 
   async function fixture([wallet, other]: Wallet[]) {
     const tmp = await ethers.getContractFactory("UniswapV2Factory");

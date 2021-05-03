@@ -3,16 +3,16 @@ import { ethers, waffle } from "hardhat";
 import { ERC20 } from "../types";
 import { expandTo18Decimals, getApprovalDigest } from "./shared/utilities";
 import type { Wallet } from "ethers";
-
-const { BigNumber } = ethers;
-const { MaxUint256 } = ethers.constants;
-const { keccak256, defaultAbiCoder, toUtf8Bytes } = ethers.utils;
+import { BigNumber } from "ethers";
 
 const TOTAL_SUPPLY = expandTo18Decimals(10000);
 const TEST_AMOUNT = expandTo18Decimals(10);
 
 describe("UniswapV2ERC20", () => {
-  const loadFixture = waffle.createFixtureLoader(waffle.provider.getWallets());
+  const loadFixture = waffle.createFixtureLoader(
+    waffle.provider.getWallets(),
+    waffle.provider
+  );
 
   async function fixture([wallet, other]: Wallet[]) {
     const factory = await ethers.getContractFactory(
@@ -31,17 +31,17 @@ describe("UniswapV2ERC20", () => {
     expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY);
     expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY);
     expect(await token.DOMAIN_SEPARATOR()).to.eq(
-      keccak256(
-        defaultAbiCoder.encode(
+      ethers.utils.keccak256(
+        ethers.utils.defaultAbiCoder.encode(
           ["bytes32", "bytes32", "bytes32", "uint256", "address"],
           [
-            keccak256(
-              toUtf8Bytes(
+            ethers.utils.keccak256(
+              ethers.utils.toUtf8Bytes(
                 "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
               )
             ),
-            keccak256(toUtf8Bytes(name)),
-            keccak256(toUtf8Bytes("1")),
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes(name)),
+            ethers.utils.keccak256(ethers.utils.toUtf8Bytes("1")),
             1,
             token.address,
           ]
@@ -49,8 +49,8 @@ describe("UniswapV2ERC20", () => {
       )
     );
     expect(await token.PERMIT_TYPEHASH()).to.eq(
-      keccak256(
-        toUtf8Bytes(
+      ethers.utils.keccak256(
+        ethers.utils.toUtf8Bytes(
           "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
         )
       )
@@ -106,7 +106,7 @@ describe("UniswapV2ERC20", () => {
   it("transferFrom:max", async () => {
     const { token, wallet, other } = await loadFixture(fixture);
 
-    await token.approve(other.address, MaxUint256);
+    await token.approve(other.address, ethers.constants.MaxUint256);
     await expect(
       token
         .connect(other)
@@ -115,7 +115,7 @@ describe("UniswapV2ERC20", () => {
       .to.emit(token, "Transfer")
       .withArgs(wallet.address, other.address, TEST_AMOUNT);
     expect(await token.allowance(wallet.address, other.address)).to.eq(
-      MaxUint256
+      ethers.constants.MaxUint256
     );
     expect(await token.balanceOf(wallet.address)).to.eq(
       TOTAL_SUPPLY.sub(TEST_AMOUNT)
@@ -126,7 +126,7 @@ describe("UniswapV2ERC20", () => {
   it("permit", async () => {
     const { token, wallet, other } = await loadFixture(fixture);
     const nonce = await token.nonces(wallet.address);
-    const deadline = MaxUint256;
+    const deadline = ethers.constants.MaxUint256;
     const digest = await getApprovalDigest(
       token,
       { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
