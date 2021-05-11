@@ -1,4 +1,6 @@
-pragma solidity >=0.6.2;
+// SPDX-License-Identifier: GPL-3.0
+
+pragma solidity>=0.6.2;
 
 interface IDeliciouswapRouter {
     function factory() external pure returns (address);

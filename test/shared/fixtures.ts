@@ -1,6 +1,5 @@
 import { Contract, Wallet } from 'ethers'
-import { Web3Provider } from 'ethers/providers'
-import { deployContract } from 'ethereum-waffle'
+import { deployContract, Fixture, MockProvider } from 'ethereum-waffle'
 
 import { expandTo18Decimals } from './utilities'
 
@@ -20,7 +19,7 @@ interface FactoryFixture {
   factory: Contract
 }
 
-export async function factoryFixture(_: Web3Provider, [wallet]: Wallet[]): Promise<FactoryFixture> {
+export const factoryFixture: Fixture<FactoryFixture>  = async function ([wallet]: Wallet[], provider: MockProvider) {
   const factory = await deployContract(wallet, DeliciouswapFactory, [wallet.address], overrides)
   return { factory }
 }
@@ -31,8 +30,8 @@ interface PairFixture extends FactoryFixture {
   pair: Contract
 }
 
-export async function pairFixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<PairFixture> {
-  const { factory } = await factoryFixture(provider, [wallet])
+export const pairFixture: Fixture<PairFixture> = async function ([wallet]: Wallet[], provider: MockProvider) {
+  const { factory } = await factoryFixture([wallet], provider)
 
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)], overrides)
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)], overrides)
@@ -60,7 +59,7 @@ interface DspFixture {
   WETHPair: Contract
 }
 
-export async function dspFixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<DspFixture> {
+export const dspFixture: Fixture<DspFixture> = async function ([wallet]: Wallet[], provider: MockProvider) {
   // deploy tokens
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])
   const tokenB = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)])

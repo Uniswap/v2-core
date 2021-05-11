@@ -1,9 +1,10 @@
-pragma solidity =0.5.16;
+// SPDX-License-Identifier: GPL-3.0
 
-import './interfaces/IDeliciouswapERC20.sol';
+pragma solidity=0.6.12;
+
 import './libraries/SafeMath.sol';
 
-contract DeliciouswapERC20 is IDeliciouswapERC20 {
+contract DeliciouswapERC20 {
     using SafeMath for uint;
 
     string public constant name = 'Deliciouswap';
@@ -24,7 +25,7 @@ contract DeliciouswapERC20 is IDeliciouswapERC20 {
     constructor() public {
         uint chainId;
         assembly {
-            chainId := chainid
+            chainId := chainid()
         }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(

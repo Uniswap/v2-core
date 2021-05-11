@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity >=0.5.0;
+
+pragma solidity>=0.5.0;
 
 library BitMath {
     // returns the 0 indexed position of the most significant bit of the input x
