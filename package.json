@@ -1,18 +1,18 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "@deliciouswap/core",
+  "description": "🎛 Core contracts for the Deliciouswap protocol",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://deliciouswap.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/DSP-Networks/deliciouswap-core"
   },
   "keywords": [
-    "uniswap",
+    "deliciouswap",
     "ethereum",
     "v2",
     "core",
-    "uniswap-v2"
+    "deliciouswap"
   ],
   "files": [
     "contracts",
