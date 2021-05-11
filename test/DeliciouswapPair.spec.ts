@@ -68,15 +68,15 @@ describe('DeliciouswapPair', () => {
     await pair.mint(wallet.address, overrides)
   }
   const swapTestCases: BigNumber[][] = [
-    [1, 5, 10, '1662497915624478906'],
-    [1, 10, 5, '453305446940074565'],
+    [1, 5, 10, '1665277546257709618'],
+    [1, 10, 5, '454132193835803254'],
 
-    [2, 5, 10, '2851015155847869602'],
-    [2, 10, 5, '831248957812239453'],
+    [2, 5, 10, '2855101457559302657'],
+    [2, 10, 5, '832638773128854809'],
 
-    [1, 10, 10, '906610893880149131'],
-    [1, 100, 100, '987158034397061298'],
-    [1, 1000, 1000, '996006981039903216']
+    [1, 10, 10, '908264387671606509'],
+    [1, 100, 100, '989118704145585599'],
+    [1, 1000, 1000, '998002995007987020']
   ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
   swapTestCases.forEach((swapTestCase, i) => {
     it(`getInputPrice:${i}`, async () => {
@@ -91,10 +91,10 @@ describe('DeliciouswapPair', () => {
   })
 
   const optimisticTestCases: BigNumber[][] = [
-    ['997000000000000000', 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .997)
-    ['997000000000000000', 10, 5, 1],
-    ['997000000000000000', 5, 5, 1],
-    [1, 5, 5, '1003009027081243732'] // given amountOut, amountIn = ceiling(amountOut / .997)
+    ['999000000000000000', 5, 10, 1], // given amountIn, amountOut = floor(amountIn * .999)
+    ['999000000000000000', 10, 5, 1],
+    ['999000000000000000', 5, 5, 1],
+    [1, 5, 5, '1001001001001001002'] // given amountOut, amountIn = ceiling(amountOut / .999)
   ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
   optimisticTestCases.forEach((optimisticTestCase, i) => {
     it(`optimistic:${i}`, async () => {
@@ -177,7 +177,7 @@ describe('DeliciouswapPair', () => {
     await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(73462)
+    expect(receipt.gasUsed).to.eq(73198)
   })
 
   it('burn', async () => {
