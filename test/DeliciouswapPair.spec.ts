@@ -68,7 +68,7 @@ describe('DeliciouswapPair', () => {
     await pair.mint(wallet.address, overrides)
   }
   const swapTestCases: BigNumber[][] = [
-    [1, 5, 10, '1665277546257709618'],
+    [1, 5, 10, '1665277546257709618'], // change fee to 0.1%
     [1, 10, 5, '454132193835803254'],
 
     [2, 5, 10, '2855101457559302657'],
