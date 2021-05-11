@@ -3,6 +3,7 @@
 pragma solidity>=0.5.0;
 
 import '../interfaces/IDeliciouswapPair.sol';
+import '../interfaces/IDeliciouswapERC20.sol';
 import "./SafeMath.sol";
 
 library DeliciouswapLibrary {
@@ -22,7 +23,7 @@ library DeliciouswapLibrary {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash
+                hex'b65b74e7eb4dc7e8e14c98f9570d665fe3b70206dbce4513df054587accd5631' // init code hash
             ))));
     }
 
@@ -44,7 +45,7 @@ library DeliciouswapLibrary {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {
         require(amountIn > 0, 'DeliciouswapLibrary: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'DeliciouswapLibrary: INSUFFICIENT_LIQUIDITY');
-        uint amountInWithFee = amountIn.mul(997);
+        uint amountInWithFee = amountIn.mul(999);
         uint numerator = amountInWithFee.mul(reserveOut);
         uint denominator = reserveIn.mul(1000).add(amountInWithFee);
         amountOut = numerator / denominator;
@@ -55,7 +56,7 @@ library DeliciouswapLibrary {
         require(amountOut > 0, 'DeliciouswapLibrary: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'DeliciouswapLibrary: INSUFFICIENT_LIQUIDITY');
         uint numerator = reserveIn.mul(amountOut).mul(1000);
-        uint denominator = reserveOut.sub(amountOut).mul(997);
+        uint denominator = reserveOut.sub(amountOut).mul(999);
         amountIn = (numerator / denominator).add(1);
     }
 

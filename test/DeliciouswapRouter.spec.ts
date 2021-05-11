@@ -7,6 +7,7 @@ import { dspFixture } from './shared/fixtures'
 import { expandTo18Decimals, getApprovalDigest, MINIMUM_LIQUIDITY } from './shared/utilities'
 
 import IDeliciouswapPair from '../build/IDeliciouswapPair.json'
+import IDeliciouswapERC20 from '../build/IDeliciouswapERC20.json'
 import DeflatingERC20 from '../build/DeflatingERC20.json'
 import { ecsign } from 'ethereumjs-util'
 
@@ -91,7 +92,6 @@ describe('DeliciouswapRouter', () => {
       MaxUint256,
       overrides
     )
-
     await expect(router.getAmountsOut(BigNumber.from(2), [token0.address])).to.be.revertedWith(
       'DeliciouswapLibrary: INVALID_PATH'
     )
@@ -137,6 +137,7 @@ describe('fee-on-transfer tokens', () => {
   let WETH: Contract
   let router: Contract
   let pair: Contract
+  let pairERC20: Contract
   beforeEach(async function() {
     const fixture = await loadFixture(dspFixture)
 
@@ -149,6 +150,7 @@ describe('fee-on-transfer tokens', () => {
     await fixture.factory.createPair(DTT.address, WETH.address)
     const pairAddress = await fixture.factory.getPair(DTT.address, WETH.address)
     pair = new Contract(pairAddress, JSON.stringify(IDeliciouswapPair.abi), provider).connect(wallet)
+    pairERC20 = new Contract(pairAddress, JSON.stringify(IDeliciouswapERC20.abi), provider).connect(wallet)
   })
 
   afterEach(async function() {
@@ -170,12 +172,12 @@ describe('fee-on-transfer tokens', () => {
 
     const DTTInPair = await DTT.balanceOf(pair.address)
     const WETHInPair = await WETH.balanceOf(pair.address)
-    const liquidity = await pair.balanceOf(wallet.address)
-    const totalSupply = await pair.totalSupply()
+    const liquidity = await pairERC20.balanceOf(wallet.address)
+    const totalSupply = await pairERC20.totalSupply()
     const NaiveDTTExpected = DTTInPair.mul(liquidity).div(totalSupply)
     const WETHExpected = WETHInPair.mul(liquidity).div(totalSupply)
 
-    await pair.approve(router.address, MaxUint256)
+    await pairERC20.approve(router.address, MaxUint256)
     await router.removeLiquidityETHSupportingFeeOnTransferTokens(
       DTT.address,
       liquidity,
@@ -196,9 +198,9 @@ describe('fee-on-transfer tokens', () => {
 
     const expectedLiquidity = expandTo18Decimals(2)
 
-    const nonce = await pair.nonces(wallet.address)
+    const nonce = await pairERC20.nonces(wallet.address)
     const digest = await getApprovalDigest(
-      pair,
+      pairERC20,
       { owner: wallet.address, spender: router.address, value: expectedLiquidity.sub(MINIMUM_LIQUIDITY) },
       nonce,
       MaxUint256
@@ -207,12 +209,12 @@ describe('fee-on-transfer tokens', () => {
 
     const DTTInPair = await DTT.balanceOf(pair.address)
     const WETHInPair = await WETH.balanceOf(pair.address)
-    const liquidity = await pair.balanceOf(wallet.address)
-    const totalSupply = await pair.totalSupply()
+    const liquidity = await pairERC20.balanceOf(wallet.address)
+    const totalSupply = await pairERC20.totalSupply()
     const NaiveDTTExpected = DTTInPair.mul(liquidity).div(totalSupply)
     const WETHExpected = WETHInPair.mul(liquidity).div(totalSupply)
 
-    await pair.approve(router.address, MaxUint256)
+    await pairERC20.approve(router.address, MaxUint256)
     await router.removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
       DTT.address,
       liquidity,

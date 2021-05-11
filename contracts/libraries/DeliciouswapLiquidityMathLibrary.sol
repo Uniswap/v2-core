@@ -3,6 +3,7 @@
 pragma solidity>=0.5.0;
 
 import '../interfaces/IDeliciouswapPair.sol';
+import '../interfaces/IDeliciouswapERC20.sol';
 import '../interfaces/IDeliciouswapFactory.sol';
 import './Babylonian.sol';
 import './FullMath.sol';
@@ -29,10 +30,10 @@ library DeliciouswapLiquidityMathLibrary {
             FullMath.mulDiv(
                 invariant.mul(1000),
                 aToB ? truePriceTokenA : truePriceTokenB,
-                (aToB ? truePriceTokenB : truePriceTokenA).mul(997)
+                (aToB ? truePriceTokenB : truePriceTokenA).mul(999)
             )
         );
-        uint256 rightSide = (aToB ? reserveA.mul(1000) : reserveB.mul(1000)) / 997;
+        uint256 rightSide = (aToB ? reserveA.mul(1000) : reserveB.mul(1000)) / 999;
 
         if (leftSide < rightSide) return (false, 0);
 
@@ -105,10 +106,12 @@ library DeliciouswapLiquidityMathLibrary {
         uint256 liquidityAmount
     ) internal view returns (uint256 tokenAAmount, uint256 tokenBAmount) {
         (uint256 reservesA, uint256 reservesB) = DeliciouswapLibrary.getReserves(factory, tokenA, tokenB);
-        IDeliciouswapPair pair = IDeliciouswapPair(DeliciouswapLibrary.pairFor(factory, tokenA, tokenB));
+        address pairAddr = DeliciouswapLibrary.pairFor(factory, tokenA, tokenB);
+        IDeliciouswapPair pair = IDeliciouswapPair(pairAddr);
         bool feeOn = IDeliciouswapFactory(factory).feeTo() != address(0);
         uint kLast = feeOn ? pair.kLast() : 0;
-        uint totalSupply = pair.totalSupply();
+        IDeliciouswapERC20 pairToken = IDeliciouswapERC20(pairAddr);
+        uint totalSupply = pairToken.totalSupply();
         return computeLiquidityValue(reservesA, reservesB, totalSupply, liquidityAmount, feeOn, kLast);
     }
 
@@ -126,9 +129,11 @@ library DeliciouswapLiquidityMathLibrary {
         uint256 tokenBAmount
     ) {
         bool feeOn = IDeliciouswapFactory(factory).feeTo() != address(0);
-        IDeliciouswapPair pair = IDeliciouswapPair(DeliciouswapLibrary.pairFor(factory, tokenA, tokenB));
+        address pairAddr = DeliciouswapLibrary.pairFor(factory, tokenA, tokenB);
+        IDeliciouswapPair pair = IDeliciouswapPair(pairAddr);
         uint kLast = feeOn ? pair.kLast() : 0;
-        uint totalSupply = pair.totalSupply();
+        IDeliciouswapERC20 pairToken = IDeliciouswapERC20(pairAddr);
+        uint totalSupply = pairToken.totalSupply();
 
         // this also checks that totalSupply > 0
         require(totalSupply >= liquidityAmount && liquidityAmount > 0, 'ComputeLiquidityValue: LIQUIDITY_AMOUNT');

@@ -3,8 +3,8 @@
 pragma solidity=0.6.12;
 
 import './interfaces/IDeliciouswapFactory.sol';
+import './interfaces/IDeliciouswapERC20.sol';
 import './libraries/TransferHelper.sol';
-
 import './interfaces/IDeliciouswapRouter.sol';
 import './libraries/DeliciouswapLibrary.sol';
 import './libraries/SafeMath.sol';
@@ -112,7 +112,7 @@ contract DeliciouswapRouter is IDeliciouswapRouter {
         uint deadline
     ) public virtual override ensure(deadline) returns (uint amountA, uint amountB) {
         address pair = DeliciouswapLibrary.pairFor(factory, tokenA, tokenB);
-        IDeliciouswapPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
+        IDeliciouswapERC20(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amount0, uint amount1) = IDeliciouswapPair(pair).burn(to);
         (address token0,) = DeliciouswapLibrary.sortTokens(tokenA, tokenB);
         (amountA, amountB) = tokenA == token0 ? (amount0, amount1) : (amount1, amount0);
@@ -152,8 +152,9 @@ contract DeliciouswapRouter is IDeliciouswapRouter {
     ) external virtual override returns (uint amountA, uint amountB) {
         address pair = DeliciouswapLibrary.pairFor(factory, tokenA, tokenB);
         uint value = approveMax ? uint(-1) : liquidity;
-        IDeliciouswapPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IDeliciouswapERC20(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountA, amountB) = removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
+        // (amountA, amountB) = (0, 0);
     }
     function removeLiquidityETHWithPermit(
         address token,
@@ -166,7 +167,7 @@ contract DeliciouswapRouter is IDeliciouswapRouter {
     ) external virtual override returns (uint amountToken, uint amountETH) {
         address pair = DeliciouswapLibrary.pairFor(factory, token, WETH);
         uint value = approveMax ? uint(-1) : liquidity;
-        IDeliciouswapPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IDeliciouswapERC20(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
 
@@ -203,7 +204,7 @@ contract DeliciouswapRouter is IDeliciouswapRouter {
     ) external virtual override returns (uint amountETH) {
         address pair = DeliciouswapLibrary.pairFor(factory, token, WETH);
         uint value = approveMax ? uint(-1) : liquidity;
-        IDeliciouswapPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IDeliciouswapERC20(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(
             token, liquidity, amountTokenMin, amountETHMin, to, deadline
         );
