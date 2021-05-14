@@ -8,5 +8,4 @@ RUN apt update && \
 
 COPY . /opt
 WORKDIR /opt
-RUN yarn
-RUN yarn compile
+RUN yarn && yarn compile
