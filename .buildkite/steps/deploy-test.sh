@@ -28,6 +28,7 @@ case "${option}" in
 esac
 done
 
+export REVISION=latest
 docker run --rm --entrypoint cat cybercoredev/proxy:latest proxy/docker-compose-test.yml > node-and-proxy.yml
 
 docker-compose -f node-and-proxy.yml up -d
@@ -40,14 +41,14 @@ function cleanup_docker {
 trap cleanup_docker EXIT
 sleep 10
 
-REVISION=$(git rev-parse HEAD)
+export REVISION=$(git rev-parse HEAD)
 UNISWAP_V2_CORE_IMAGE=cybercoredev/uniswap-v2-core:${IMAGETAG:-$REVISION}
 
 PROXY_URL=http://127.0.0.1:9090/solana
 
 echo "Wait proxy..." && wait-for-proxy "$PROXY_URL"
 echo "Run tests..."
-docker run --rm --network proxy_net -ti \
+docker run --rm --network uniswap-v2-core_net -ti \
      -e PROXY_URL=http://proxy:9090/solana \
      --entrypoint ./deploy-test.sh \
      ${EXTRA_ARGS:-} \
