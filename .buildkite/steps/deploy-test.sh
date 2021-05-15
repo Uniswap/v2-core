@@ -41,11 +41,14 @@ function cleanup_docker {
 trap cleanup_docker EXIT
 sleep 10
 
+export REVISION=$(git rev-parse HEAD)
+UNISWAP_V2_CORE_IMAGE=cybercoredev/uniswap-v2-core:${IMAGETAG:-$REVISION}
+
 export PROXY_URL=http://127.0.0.1:9090/solana
 
 echo "Wait proxy..." && wait-for-proxy "$PROXY_URL"
 echo "Run tests..."
-docker run --rm --network host -ti \
+docker run --rm -ti --network=host \
      --entrypoint ./deploy-test.sh \
      ${EXTRA_ARGS:-} \
      $UNISWAP_V2_CORE_IMAGE
