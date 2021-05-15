@@ -44,9 +44,11 @@ sleep 10
 export PROXY_URL=http://127.0.0.1:9090/solana
 
 echo "Wait proxy..." && wait-for-proxy "$PROXY_URL"
-
-./deploy-test.sh
-
+echo "Run tests..."
+docker run --rm --network host -ti \
+     --entrypoint ./deploy-test.sh \
+     ${EXTRA_ARGS:-} \
+     $UNISWAP_V2_CORE_IMAGE
 echo "Run tests return"
 exit 0
 
