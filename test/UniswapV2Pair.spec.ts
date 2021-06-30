@@ -23,12 +23,12 @@ describe("UniswapV2Pair", () => {
       await ethers.getContractFactory("UniswapV2Factory")
     ).deploy(wallet.address)) as UniswapV2Factory;
 
-    const tokenA = (await (await ethers.getContractFactory("ERC20")).deploy(
-      expandTo18Decimals(10000)
-    )) as ERC20;
-    const tokenB = (await (await ethers.getContractFactory("ERC20")).deploy(
-      expandTo18Decimals(10000)
-    )) as ERC20;
+    const tokenA = (await (
+      await ethers.getContractFactory("ERC20")
+    ).deploy(expandTo18Decimals(10000))) as ERC20;
+    const tokenB = (await (
+      await ethers.getContractFactory("ERC20")
+    ).deploy(expandTo18Decimals(10000))) as ERC20;
 
     await factory.createPair(tokenA.address, tokenB.address);
     const pair = (await ethers.getContractFactory("UniswapV2Pair")).attach(
@@ -107,12 +107,8 @@ describe("UniswapV2Pair", () => {
         fixture
       );
 
-      const [
-        swapAmount,
-        token0Amount,
-        token1Amount,
-        expectedOutputAmount,
-      ] = swapTestCase;
+      const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] =
+        swapTestCase;
       await addLiquidity(
         token0,
         token1,
@@ -143,12 +139,8 @@ describe("UniswapV2Pair", () => {
     it(`optimistic:${i}`, async () => {
       const { pair, wallet, token0, token1 } = await loadFixture(fixture);
 
-      const [
-        outputAmount,
-        token0Amount,
-        token1Amount,
-        inputAmount,
-      ] = optimisticTestCase;
+      const [outputAmount, token0Amount, token1Amount, inputAmount] =
+        optimisticTestCase;
       await addLiquidity(
         token0,
         token1,

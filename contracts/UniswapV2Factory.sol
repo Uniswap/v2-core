@@ -26,8 +26,9 @@ contract UniswapV2Factory is IUniswapV2Factory {
         returns (address pair)
     {
         require(tokenA != tokenB, "UniswapV2: IDENTICAL_ADDRESSES");
-        (address token0, address token1) =
-            tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        (address token0, address token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
         require(token0 != address(0), "UniswapV2: ZERO_ADDRESS");
         require(
             getPair[token0][token1] == address(0),

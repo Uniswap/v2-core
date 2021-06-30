@@ -2,13 +2,8 @@ import { MockProvider } from "@ethereum-waffle/provider";
 import { BigNumber, Contract } from "ethers";
 import { utils as ethutil } from "ethers";
 
-const {
-  getAddress,
-  keccak256,
-  defaultAbiCoder,
-  toUtf8Bytes,
-  solidityPack,
-} = ethutil;
+const { getAddress, keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack } =
+  ethutil;
 
 const PERMIT_TYPEHASH = keccak256(
   toUtf8Bytes(
