@@ -216,15 +216,22 @@ describe('UniswapV2Pair', () => {
   })
 
   it('price{0,1}CumulativeLast', async () => {
+    function sleep(ms: number) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    }
     const token0Amount = expandTo18Decimals(3)
     const token1Amount = expandTo18Decimals(3)
     await addLiquidity(token0Amount, token1Amount)
 
     const reserves0 = (await pair.getReserves())
+    await sleep(1000);
     //await mineBlock(provider, blockTimestamp + 1)
 
     await pair.sync(overrides)
     const reserves1 = (await pair.getReserves())
+    await sleep(1000);
 
     const initialPrice = encodePrice(token0Amount, token1Amount)
     const timeElapsed1 = reserves1[2] - reserves0[2]
@@ -239,6 +246,7 @@ describe('UniswapV2Pair', () => {
     // swap to a new price eagerly instead of syncing
     await pair.swap(0, expandTo18Decimals(1), wallet.address, '0x', overrides) // make the price nice
     const reserves2 = (await pair.getReserves())
+    await sleep(1000);
 
     const timeElapsed2 = reserves2[2] - reserves1[2]
     expect(timeElapsed2).to.not.eq(0)
