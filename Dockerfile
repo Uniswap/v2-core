@@ -8,4 +8,4 @@ RUN apt update && \
 
 COPY . /opt
 WORKDIR /opt
-RUN yarn && yarn compile && patch -p0 <deploy_conytract.patch
+RUN yarn && yarn compile && patch -p0 <deploy_contract.patch
