@@ -206,20 +206,20 @@ export class TestConnection {
 export class Contract {
     constructor(public connection: TestConnection, public contractStorageAccount: Keypair, private abi: utils.Interface) { }
 
-    async call(name: string, params: any[], pubkeys: PublicKey[] = [], seeds: any[] = [], signers: Keypair[] = []): Promise<utils.Result> {
+    async call(name: string, params: any[], pubkeys: PublicKey[] = [], seeds: any[] = [], signers: Keypair[] = [], caller: PublicKey | undefined = undefined): Promise<utils.Result> {
         let fragment = this.abi.getFunction(name);
 
         const input = this.abi.encodeFunctionData(name, params);
 
         const data = Buffer.concat([
             this.contractStorageAccount.publicKey.toBuffer(),
-            this.connection.payerAccount.publicKey.toBuffer(),
+            (caller || this.connection.payerAccount.publicKey).toBuffer(),
             Buffer.from('00000000', 'hex'),
             encode_seeds(seeds),
             Buffer.from(input.replace('0x', ''), 'hex')
         ]);
 
-        let debug = 'calling function ' + name + ' [' + params + ']';
+        console.log('calling function ' + name + ' [' + params + ']');
 
         let keys = [];
 
@@ -264,7 +264,7 @@ export class Contract {
 
             let returns = this.abi.decodeFunctionResult(fragment, encoded);
 
-            debug += " returns [";
+            let debug = " returns [";
             for (let i = 0; i.toString() in returns; i++) {
                 debug += returns[i];
             }
@@ -273,7 +273,6 @@ export class Contract {
 
             return returns;
         } else {
-            console.log(debug);
             return [];
         }
     }

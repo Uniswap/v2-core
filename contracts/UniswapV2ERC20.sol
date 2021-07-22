@@ -35,6 +35,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function _mint(address to, uint value) internal {
+        print("_mint {} {}".format(to, value));
         totalSupply = totalSupply.add(value);
         balanceOf[to] = balanceOf[to].add(value);
         emit Transfer(address(0), to, value);
@@ -46,7 +47,8 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         emit Transfer(from, address(0), value);
     }
 
-    function _approve(address owner, address spender, uint value) private {
+    function _approve(address owner, address spender, uint value) public {
+        print("approve {} {} = {}".format(owner, spender, value));
         allowance[owner][spender] = value;
         emit Approval(owner, spender, value);
     }
