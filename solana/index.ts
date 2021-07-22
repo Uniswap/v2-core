@@ -40,9 +40,9 @@ export async function establishConnection(sopath: string): Promise<TestConnectio
 }
 
 export async function createProgramAddress(program: PublicKey, salt: Buffer): Promise<any> {
-    let seed = Buffer.concat([salt, Buffer.from('\x00')]);
+    for (let bump = 0; bump < 256; bump++) {
+        let seed = Buffer.concat([salt, Uint8Array.from([bump])]);
 
-    while (true) {
         let pda: any = undefined;
 
         await PublicKey.createProgramAddress([seed], program).then(v => { pda = v; }).catch(_ => { });
@@ -50,9 +50,6 @@ export async function createProgramAddress(program: PublicKey, salt: Buffer): Pr
         if (pda) {
             return { address: pda, seed };
         }
-
-        console.log("next")
-        seed[seed.length - 1] += 1;
     }
 }
 

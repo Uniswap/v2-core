@@ -60,10 +60,13 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     constructor() public {
         factory = msg.sender;
+        print("constructor {}".format(factory));
     }
 
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) external {
+        print("initialize {} == {}".format(factory, msg.sender));
+
         require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
