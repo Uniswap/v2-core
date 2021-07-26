@@ -2,7 +2,7 @@ import { Keypair, PublicKey } from '@solana/web3.js';
 import expect from 'expect';
 import { establishConnection, Contract, TestConnection, createProgramAddress } from './index';
 import { BigNumber, utils } from 'ethers';
-import { Key } from 'readline';
+import nacl from 'tweetnacl';
 
 const AddressZero = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -42,6 +42,8 @@ describe('Uniswap Pair', () => {
     let otherAddress: string;
     let spenderPair: Keypair;
     let spenderAddress: string;
+    let tokenAddress: string;
+    const coder = new utils.AbiCoder();
 
     before(async function () {
         this.timeout(50000);
@@ -62,10 +64,13 @@ describe('Uniswap Pair', () => {
     });
 
     beforeEach(async function () {
-        token = await con.deploy('ERC20.abi', 'ERC20', [TOTAL_SUPPLY], [], 8192);
+        token = await con.deploy('ERC20.abi', 'ERC20', [TOTAL_SUPPLY], [], 8192 * 8);
+        tokenAddress = '0x' + token.contractStorageAccount.publicKey.toBuffer().toString('hex');
     });
 
-    it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
+    it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async function () {
+        this.timeout(500000);
+
         let res = await token.call('name', []);
         const name = res[0].toString();
         expect(name).toEqual('Uniswap V2');
@@ -77,7 +82,24 @@ describe('Uniswap Pair', () => {
         expect(res[0]).toEqual(TOTAL_SUPPLY);
         res = await token.call('balanceOf', [wallet]);
         expect(res[0]).toEqual(TOTAL_SUPPLY);
+
+        res = await token.call('DOMAIN_SEPARATOR', []);
+        expect(res[0]).toEqual(domain_seperator('Uniswap V2'));
+
     })
+
+    function domain_seperator(name: string): string {
+        return utils.keccak256(coder.encode(['bytes32', 'bytes32', 'bytes32', 'uint256', 'uint256'], [
+            utils.keccak256(
+                utils.toUtf8Bytes('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+            ),
+            utils.keccak256(utils.toUtf8Bytes(name)),
+            utils.keccak256(utils.toUtf8Bytes('1')),
+            1,
+            tokenAddress
+        ]));
+    }
+
 
     // const name = await token.name()
     // expect(name).to.eq('Uniswap V2')
@@ -163,6 +185,40 @@ describe('Uniswap Pair', () => {
     //     expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY.sub(TEST_AMOUNT))
     //     expect(await token.balanceOf(other.address)).to.eq(TEST_AMOUNT)
     //   })
+
+    it('permit', async () => {
+        let res = await token.call('nonces', [wallet]);
+        const nonce = res[0].toNumber();
+
+        res = await token.call('DOMAIN_SEPARATOR', []);
+        expect(res[0]).toEqual(domain_seperator('Uniswap V2'));
+
+        // const nonce = await token.nonces(wallet.address)
+        const deadline = BigNumber.from(2).pow(256).sub(1);
+        const message = Buffer.concat([
+            Uint8Array.from([0x19, 0x1]),
+            Buffer.from(domain_seperator('Uniswap V2').replace('0x', ''), 'hex'),
+            Buffer.from(utils.keccak256(coder.encode(
+                ['bytes32', 'bytes32', 'bytes32', 'uint256', 'uint256', 'uint256'],
+                ['0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9',
+                    wallet, otherAddress, TEST_AMOUNT, nonce, deadline])).replace('0x', ''), 'hex'),
+        ]);
+
+        const digest = utils.keccak256(message);
+
+        let signature = nacl.sign.detached(Buffer.from(digest.replace('0x', ''), 'hex'), con.payerAccount.secretKey);
+        console.log("javascript digest:" + digest + " signer:" + con.payerAccount.publicKey.toBuffer().toString('hex') + " signature:" + Buffer.from(signature).toString('hex'));
+
+
+        const sig = '0x' + Buffer.from(signature).toString('hex');
+
+        await token.call('permit', [wallet, otherAddress, TEST_AMOUNT, deadline, sig]);
+
+        res = await token.call('allowance', [wallet, otherAddress]);
+        expect(res[0]).toEqual(TEST_AMOUNT);
+        res = await token.call('nonces', [wallet]);
+        expect(res[0].toNumber()).toEqual(1);
+    })
 
     //   it('permit', async () => {
     //     const nonce = await token.nonces(wallet.address)

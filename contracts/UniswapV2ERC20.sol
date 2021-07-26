@@ -86,7 +86,8 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
                 keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
             )
         );
-//	require(signatureVerify(owner, digest, signature), 'UniswapV2: INVALID_SIGNATURE');
+
+        require(signatureVerify(owner, digest, signature), 'UniswapV2: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
 }
