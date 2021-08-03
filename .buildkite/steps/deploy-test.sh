@@ -35,7 +35,7 @@ docker-compose -f node-and-proxy.yml up -d
 
 function cleanup_docker {
     echo "Cleanup docker-compose..."
-    docker-compose -f node-and-proxy.yml down
+    docker-compose -f node-and-proxy.yml down --rmi 'all'
     echo "Cleanup docker-compose done."
 }
 trap cleanup_docker EXIT
