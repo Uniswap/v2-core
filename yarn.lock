@@ -30,6 +30,11 @@
     ethers "^4.0.45"
     ganache-core "^2.10.2"
 
+"@openzeppelin/contracts@^4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.3.1.tgz#c01f791ce6c9d3989ac1a643267501dbe336b9e3"
+  integrity sha512-QjgbPPlmDK2clK1hzjw2ROfY8KA5q+PfhDUUxZFEBCZP9fi6d5FuNoh/Uq0oCTMEKPmue69vhX2jcl0N/tFKGw==
+
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@resolver-engine/core/-/core-0.3.3.tgz#590f77d85d45bc7ecc4e06c654f41345db6ca967"
