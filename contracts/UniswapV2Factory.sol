@@ -2,10 +2,10 @@ pragma solidity =0.5.16;
 
 import './interfaces/IUniswapV2Factory.sol';
 import './UniswapV2Pair.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+import './Ownable.sol';
 
 contract UniswapV2Factory is IUniswapV2Factory, Ownable {
-    address public feeTo;
+    address payable public feeTo;
 
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
@@ -20,23 +20,17 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
-    constructor(address _feeToSetter) public {
-        feeToSetter = _feeToSetter;
-    }
-
     constructor(
-        address _feeTo,
+        address payable _feeTo,
         uint256 _lpFee,
         uint256 _swapFee,
         bool _lpFeesInToken,
         bool _swapFeesInToken
     ) public {
         require(_feeTo != address(0), 'UniswapV2: WALLET_ZERO_ADDRESS');
-        admin = _admin;
         feeTo = _feeTo;
 
         Pair memory pair;
-
         pair.lpFeesInToken = _lpFeesInToken;
         pair.swapFeesInToken = _swapFeesInToken;
         pair.lpFee = _lpFee;
@@ -70,8 +64,7 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
         emit PairCreated(token0, token1, pair, allPairs.length);
     }
 
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+    function setFeeTo(address payable _feeTo) external onlyOwner {
         feeTo = _feeTo;
     }
 
