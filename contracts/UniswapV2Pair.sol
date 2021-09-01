@@ -110,36 +110,46 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _safeTransfer(token1, _feeTo, _feeInReserve1);
     }
 
-    function _deductETHFee(address payable _feeTo, uint256 _lpFee) internal {
-        _feeTo.transfer(_lpFee);
+    function _deductETHFee(address payable _feeTo, uint256 _fee) internal {
+        require(msg.value >= _fee, 'UniswapV2: REQUIRE_FEE');
+        _feeTo.transfer(_fee);
     }
 
-    function _mintFee(uint256 _reserve0, uint256 _reserve1)
-        private
-        returns (uint256 feeInReserve0, uint256 feeInReserve1)
-    {
+    function _mintFee(
+        uint256 _reserve0,
+        uint256 _reserve1,
+        bool isSwapFeeOn
+    ) private returns (uint256 feeInReserve0, uint256 feeInReserve1) {
         (bool lpFeesInToken, , uint256 lpFee, ) = IUniswapV2Factory(factory).pairConfigs(address(this));
         address payable feeTo = IUniswapV2Factory(factory).feeTo();
         bool feeOn = feeTo != address(0);
+
+        uint256 ethFee;
+        if (isSwapFeeOn) {
+            ethFee = IUniswapV2Factory(factory).AMMFee();
+        }
 
         if (feeOn) {
             if (lpFeesInToken) {
                 feeInReserve0 = (_reserve0.mul(lpFee)) / (100);
                 feeInReserve1 = (_reserve1.mul(lpFee)) / (100);
                 _deductTokenFee(feeTo, feeInReserve0, feeInReserve1);
-            } else _deductETHFee(feeTo, lpFee);
+            } else {
+                ethFee = ethFee.add(lpFee);
+                _deductETHFee(feeTo, ethFee);
+            }
         }
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to) external payable lock returns (uint256 liquidity) {
+    function mint(address to, bool isSwapFeeOn) external payable lock returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
         uint256 amount0 = balance0.sub(_reserve0);
         uint256 amount1 = balance1.sub(_reserve1);
 
-        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1);
+        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1, isSwapFeeOn);
         amount0 = amount0.sub(feeInReserve0);
         amount1 = amount1.sub(feeInReserve1);
 
@@ -171,7 +181,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
 
-        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1);
+        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1, false);
         amount0 = amount0.sub(feeInReserve0);
         amount1 = amount1.sub(feeInReserve1);
 
