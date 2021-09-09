@@ -115,19 +115,13 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _feeTo.transfer(_fee);
     }
 
-    function _mintFee(
-        uint256 _reserve0,
-        uint256 _reserve1,
-        bool isSwapFeeOn
-    ) private returns (uint256 feeInReserve0, uint256 feeInReserve1) {
+    function _mintFee(uint256 _reserve0, uint256 _reserve1)
+        private
+        returns (uint256 feeInReserve0, uint256 feeInReserve1)
+    {
         (bool lpFeesInToken, , uint256 lpFee, ) = IUniswapV2Factory(factory).pairConfigs(address(this));
         address payable feeTo = IUniswapV2Factory(factory).feeTo();
         bool feeOn = feeTo != address(0);
-
-        uint256 ethFee;
-        if (isSwapFeeOn) {
-            ethFee = IUniswapV2Factory(factory).AMMFee();
-        }
 
         if (feeOn) {
             if (lpFeesInToken) {
@@ -135,21 +129,20 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
                 feeInReserve1 = (_reserve1.mul(lpFee)) / (100);
                 _deductTokenFee(feeTo, feeInReserve0, feeInReserve1);
             } else {
-                ethFee = ethFee.add(lpFee);
-                _deductETHFee(feeTo, ethFee);
+                _deductETHFee(feeTo, lpFee);
             }
         }
     }
 
     // this low-level function should be called from a contract which performs important safety checks
-    function mint(address to, bool isSwapFeeOn) external payable lock returns (uint256 liquidity) {
+    function mint(address to) external payable lock returns (uint256 liquidity) {
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
         uint256 amount0 = balance0.sub(_reserve0);
         uint256 amount1 = balance1.sub(_reserve1);
 
-        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1, isSwapFeeOn);
+        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1);
         amount0 = amount0.sub(feeInReserve0);
         amount1 = amount1.sub(feeInReserve1);
 
@@ -164,7 +157,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Mint(msg.sender, amount0, amount1);
+        emit Mint(msgSender(), amount0, amount1);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -181,7 +174,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
 
-        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1, false);
+        (uint256 feeInReserve0, uint256 feeInReserve1) = _mintFee(amount0, amount1);
         amount0 = amount0.sub(feeInReserve0);
         amount1 = amount1.sub(feeInReserve1);
 
@@ -192,7 +185,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Burn(msg.sender, amount0, amount1, to);
+        emit Burn(msgSender(), amount0, amount1, to);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -215,7 +208,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msgSender(), amount0Out, amount1Out, data);
             balance0 = IERC20(_token0).balanceOf(address(this));
             balance1 = IERC20(_token1).balanceOf(address(this));
         }
@@ -237,7 +230,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        emit Swap(msgSender(), amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
     function _swapFee(address _token, uint256 _amount) internal returns (uint256 fee) {
