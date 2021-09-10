@@ -17,13 +17,11 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
         uint256 swapFee;
     }
     mapping(address => Pair) public pairConfigs;
-    uint256 public AMMFee;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
     constructor(
         address payable _feeTo,
-        uint256 _ammFee,
         uint256 _lpFee,
         uint256 _swapFee,
         bool _lpFeesInToken,
@@ -31,7 +29,6 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
     ) public {
         require(_feeTo != address(0), 'UniswapV2: WALLET_ZERO_ADDRESS');
         feeTo = _feeTo;
-        AMMFee = _ammFee;
 
         Pair memory pair;
         pair.lpFeesInToken = _lpFeesInToken;
@@ -91,10 +88,5 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;
         pair.lpFee = _fee;
-    }
-
-    function updateAMMFee(uint256 _ammFee) external onlyOwner {
-        //To set max and min limit for both fee types
-        AMMFee = _ammFee;
     }
 }
