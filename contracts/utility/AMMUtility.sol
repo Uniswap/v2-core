@@ -1,7 +1,8 @@
 pragma solidity 0.6.6;
 
 import '../libraries/SafeMath.sol';
-import '../interfaces/IUniswapV2Router02.sol';
+import '../interfaces/IUnifarmRouter02.sol';
+import '../interfaces/IERC20.sol';
 
 contract AMMUtility {
     using SafeMath for uint256;
@@ -33,7 +34,7 @@ contract AMMUtility {
 
         //transfer back the tokens swapped
         IERC20(_destToken).transfer(_userAddress, tokensReceived);
-        emit TokenSwapExecuted(_sourceToken, _destinationToken, _amount, tokensReceived);
+        emit TokenSwapExecuted(_sourceToken, _destToken, tokensReceived);
     }
 
     function _swap(

@@ -1,18 +1,18 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "unifarm",
+  "description": "🎛 Core contracts for the Unifarm AMM",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/themohitmadan/unifarm_amm"
   },
   "keywords": [
     "uniswap",
     "ethereum",
     "v2",
     "core",
-    "uniswap-v2"
+    "unifarm"
   ],
   "files": [
     "contracts",
@@ -51,6 +51,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@openzeppelin/contracts": "^4.3.1",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "solidity-docgen": "^0.5.13"
   }
 }

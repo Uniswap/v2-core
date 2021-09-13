@@ -1,6 +1,6 @@
 pragma solidity =0.6.6;
 
-interface IUniswapV2Router02 {
+interface IUnifarmRouter02 {
     function factory() external pure returns (address);
     function WETH() external pure returns (address);
 

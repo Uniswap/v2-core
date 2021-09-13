@@ -1,10 +1,10 @@
 pragma solidity =0.5.16;
 
-import './interfaces/IUniswapV2ERC20.sol';
+import './interfaces/IUnifarmERC20.sol';
 import './libraries/SafeMath.sol';
 import './BasicMetaTransaction.sol';
 
-contract UniswapV2ERC20 is IUniswapV2ERC20, BasicMetaTransaction {
+contract UnifarmERC20 is IUnifarmERC20, BasicMetaTransaction {
     using SafeMath for uint256;
 
     string public constant name = 'Unifarm Liquidity Token';
@@ -100,7 +100,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20, BasicMetaTransaction {
         bytes32 r,
         bytes32 s
     ) external {
-        require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
+        require(deadline >= block.timestamp, 'Unifarm: EXPIRED');
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
@@ -109,7 +109,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20, BasicMetaTransaction {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'Unifarm: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
 }

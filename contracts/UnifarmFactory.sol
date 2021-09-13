@@ -1,10 +1,10 @@
 pragma solidity =0.5.16;
 
-import './interfaces/IUniswapV2Factory.sol';
-import './UniswapV2Pair.sol';
+import './interfaces/IUnifarmFactory.sol';
+import './UnifarmPair.sol';
 import './Ownable.sol';
 
-contract UniswapV2Factory is IUniswapV2Factory, Ownable {
+contract UnifarmFactory is IUnifarmFactory, Ownable {
     address payable public feeTo;
 
     mapping(address => mapping(address => address)) public getPair;
@@ -27,7 +27,7 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
         bool _lpFeesInToken,
         bool _swapFeesInToken
     ) public {
-        require(_feeTo != address(0), 'UniswapV2: WALLET_ZERO_ADDRESS');
+        require(_feeTo != address(0), 'Unifarm: WALLET_ZERO_ADDRESS');
         feeTo = _feeTo;
 
         Pair memory pair;
@@ -44,16 +44,16 @@ contract UniswapV2Factory is IUniswapV2Factory, Ownable {
     }
 
     function createPair(address tokenA, address tokenB) external returns (address pair) {
-        require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');
+        require(tokenA != tokenB, 'Unifarm: IDENTICAL_ADDRESSES');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
-        require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient
-        bytes memory bytecode = type(UniswapV2Pair).creationCode;
+        require(token0 != address(0), 'Unifarm: ZERO_ADDRESS');
+        require(getPair[token0][token1] == address(0), 'Unifarm: PAIR_EXISTS'); // single check is sufficient
+        bytes memory bytecode = type(UnifarmPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IUniswapV2Pair(pair).initialize(token0, token1);
+        IUnifarmPair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
 
