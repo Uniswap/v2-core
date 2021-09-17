@@ -25,23 +25,18 @@
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@types/chai": "^4.2.6",
-    "@types/mocha": "^5.2.7",
     "chai": "^4.3.4",
-    "ethereum-waffle": "^2.5.1",
     "ethereumjs-util": "^6.2.0",
     "ethers": "^5.4.6",
     "hardhat": "^2.6.2",
-    "mocha": "^6.2.2",
     "prettier": "^1.19.1",
     "rimraf": "^3.0.0",
-    "solc": "0.5.16",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "solidity-coverage": "^0.7.17"
   },
   "scripts": {
-    "lint": "yarn prettier ./test/*.ts --check",
-    "lint:fix": "yarn prettier ./test/*.ts --write",
-    "clean": "rimraf ./build/",
+    "lint": "yarn prettier ./test/*.js --check",
+    "lint:fix": "yarn prettier ./test/*.js --write",
+    "clean": "rimraf ./artifacts/ && rimraf ./cache/",
     "precompile": "yarn clean",
     "compile": "npx hardhat compile",
     "pretest": "yarn compile",
@@ -52,6 +47,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.3.1",
     "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.4.0",
     "solidity-docgen": "^0.5.13"
   }
 }

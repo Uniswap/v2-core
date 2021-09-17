@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+require("solidity-coverage");
 require('@nomiclabs/hardhat-waffle')
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -22,15 +23,26 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: '0.5.16'
+        evmVersion: 'istanbul',
+        version: '0.5.16',
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
       },
       {
-        version: '0.6.6'
+        evmVersion: 'istanbul',
+        version: '0.6.6',
+        optimizer: {
+          enabled: true,
+          runs: 200
+        }
       }
     ]
   },
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true,
       initialBaseFeePerGas: 0 // workaround from https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136 . Remove when that issue is closed.
     },
     ropsten: {

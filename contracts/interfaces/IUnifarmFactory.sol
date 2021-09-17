@@ -4,8 +4,6 @@ interface IUnifarmFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
 
     function feeTo() external view returns (address payable);
-    function AMMFee() external view returns (uint256);
-
     function pairConfigs(address)
         external
         view
