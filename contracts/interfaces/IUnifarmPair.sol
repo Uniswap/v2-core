@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.5.0;
 
 interface IUnifarmPair {
@@ -47,5 +48,5 @@ interface IUnifarmPair {
     function skim(address to) external;
     function sync() external;
 
-    function initialize(address, address) external;
+    function initialize(address, address, address) external;
 }

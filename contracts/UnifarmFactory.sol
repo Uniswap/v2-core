@@ -3,8 +3,9 @@ pragma solidity =0.5.16;
 import './interfaces/IUnifarmFactory.sol';
 import './UnifarmPair.sol';
 import './Ownable.sol';
+import './BaseRelayRecipient.sol';
 
-contract UnifarmFactory is IUnifarmFactory, Ownable {
+contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
     address payable public feeTo;
 
     mapping(address => mapping(address => address)) public getPair;
@@ -22,6 +23,7 @@ contract UnifarmFactory is IUnifarmFactory, Ownable {
 
     constructor(
         address payable _feeTo,
+        address _trustedForwarder,
         uint256 _lpFee,
         uint256 _swapFee,
         bool _lpFeesInToken,
@@ -36,7 +38,18 @@ contract UnifarmFactory is IUnifarmFactory, Ownable {
         pair.lpFee = _lpFee;
         pair.swapFee = _swapFee;
 
+        trustedForwarder = _trustedForwarder;
+
         pairConfigs[address(0)] = pair;
+    }
+
+    /*
+     * Override this function.
+     * This version is to keep track of BaseRelayRecipient you are using
+     * in your contract.
+     */
+    function versionRecipient() external view returns (string memory) {
+        return '1';
     }
 
     function allPairsLength() external view returns (uint256) {
@@ -53,7 +66,7 @@ contract UnifarmFactory is IUnifarmFactory, Ownable {
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IUnifarmPair(pair).initialize(token0, token1);
+        IUnifarmPair(pair).initialize(token0, token1, trustedForwarder);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
 

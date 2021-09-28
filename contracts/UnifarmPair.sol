@@ -74,10 +74,15 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
+    function initialize(
+        address _token0,
+        address _token1,
+        address _trustedForwarder
+    ) external {
         require(msg.sender == factory, 'Unifarm: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
+        trustedForwarder = _trustedForwarder;
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -125,8 +130,8 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
 
         if (feeOn) {
             if (lpFeesInToken) {
-                feeInReserve0 = (_reserve0.mul(lpFee)) / (100);
-                feeInReserve1 = (_reserve1.mul(lpFee)) / (100);
+                feeInReserve0 = (_reserve0.mul(lpFee)) / (1000);
+                feeInReserve1 = (_reserve1.mul(lpFee)) / (1000);
                 _deductTokenFee(feeTo, feeInReserve0, feeInReserve1);
             } else {
                 _deductETHFee(feeTo, lpFee);
@@ -156,8 +161,11 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         require(liquidity > 0, 'Unifarm: INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
 
+        balance0 = IERC20(token0).balanceOf(address(this));
+        balance1 = IERC20(token1).balanceOf(address(this));
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Mint(msgSender(), amount0, amount1);
+
+        emit Mint(_msgSender(), amount0, amount1);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -185,7 +193,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         balance1 = IERC20(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Burn(msgSender(), amount0, amount1, to);
+        emit Burn(_msgSender(), amount0, amount1, to);
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -208,12 +216,13 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
             require(to != _token0 && to != _token1, 'Unifarm: INVALID_TO');
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-            if (data.length > 0) IUnifarmCallee(to).unifarmCall(msgSender(), amount0Out, amount1Out, data);
+            if (data.length > 0) IUnifarmCallee(to).unifarmCall(_msgSender(), amount0Out, amount1Out, data);
             balance0 = IERC20(_token0).balanceOf(address(this));
             balance1 = IERC20(_token1).balanceOf(address(this));
         }
         uint256 amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint256 amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+
         require(amount0In > 0 || amount1In > 0, 'Unifarm: INSUFFICIENT_INPUT_AMOUNT');
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
@@ -221,8 +230,8 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
             uint256 fee1;
             if (amount0In > 0) fee0 = _swapFee(token0, amount0In);
             if (amount1In > 0) fee1 = _swapFee(token1, amount1In);
-            uint256 balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(fee0));
-            uint256 balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(fee1));
+            uint256 balance0Adjusted = balance0.mul(1000).sub(fee0);
+            uint256 balance1Adjusted = balance1.mul(1000).sub(fee1);
             require(
                 balance0Adjusted.mul(balance1Adjusted) >= uint256(_reserve0).mul(_reserve1).mul(1000**2),
                 'Unifarm: K'
@@ -230,7 +239,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msgSender(), amount0In, amount1In, amount0Out, amount1Out, to);
+        emit Swap(_msgSender(), amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
     function _swapFee(address _token, uint256 _amount) internal returns (uint256 fee) {
@@ -240,7 +249,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
 
         if (feeOn) {
             if (swapFeesInToken) {
-                fee = (_amount.mul(swapFee)) / (100);
+                fee = (_amount.mul(swapFee)) / (1000);
                 _safeTransfer(_token, feeTo, fee);
             } else _deductETHFee(feeTo, swapFee);
         }
@@ -258,6 +267,4 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
     function sync() external lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
-
-    function() external payable {}
 }

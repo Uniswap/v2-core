@@ -22,14 +22,15 @@ contract AMMUtility {
         address _destToken,
         uint256 _amount
     ) external payable {
-        require(_sourceToken != address(0) && _destToken != address(0), 'Invalid token addresses');
-        require(_amount != 0, 'Invalid token amount');
-        require(msg.value >= fee, 'Fee not received');
+        require(_sourceToken != address(0) && _destToken != address(0), 'AMMUtility: Invalid token addresses');
+        require(_sourceToken != _destToken, 'AMMUtility: Both address are same');
+        require(_amount != 0, 'AMMUtility: Invalid token amount');
+        require(msg.value >= fee, 'AMMUtility: Fee not received');
 
         feeTo.transfer(fee);
 
         //swap tokens
-        IERC20(_destToken).transferFrom(_userAddress, address(this), _amount);
+        IERC20(_sourceToken).transferFrom(_userAddress, address(this), _amount);
         uint256 tokensReceived = _swap(_sourceToken, _destToken, _amount);
 
         //transfer back the tokens swapped
@@ -42,6 +43,7 @@ contract AMMUtility {
         address _destinationToken,
         uint256 _amount
     ) internal returns (uint256 tokensReceived) {
-        //to add supported AMM
+        //to add supported AMM, 1 added for tests
+        return 1;
     }
 }

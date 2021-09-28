@@ -1,4 +1,4 @@
-pragma solidity =0.5.16;
+pragma solidity 0.5.16;
 pragma experimental ABIEncoderV2;
 
 contract GovernorBravoEvents {
@@ -188,9 +188,4 @@ interface TimelockInterface {
 
 interface UfarmInterface {
     function getPriorVotes(address account, uint256 blockNumber) external view returns (uint96);
-}
-
-interface GovernorAlpha {
-    /// @notice The total number of proposals
-    function proposalCount() external returns (uint256);
 }

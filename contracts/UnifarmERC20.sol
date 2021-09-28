@@ -2,9 +2,9 @@ pragma solidity =0.5.16;
 
 import './interfaces/IUnifarmERC20.sol';
 import './libraries/SafeMath.sol';
-import './BasicMetaTransaction.sol';
+import './BaseRelayRecipient.sol';
 
-contract UnifarmERC20 is IUnifarmERC20, BasicMetaTransaction {
+contract UnifarmERC20 is IUnifarmERC20, BaseRelayRecipient {
     using SafeMath for uint256;
 
     string public constant name = 'Unifarm Liquidity Token';
@@ -36,6 +36,15 @@ contract UnifarmERC20 is IUnifarmERC20, BasicMetaTransaction {
                 address(this)
             )
         );
+    }
+
+    /*
+     * Override this function.
+     * This version is to keep track of BaseRelayRecipient you are using
+     * in your contract.
+     */
+    function versionRecipient() external view returns (string memory) {
+        return '1';
     }
 
     function _mint(address to, uint256 value) internal {
@@ -70,12 +79,12 @@ contract UnifarmERC20 is IUnifarmERC20, BasicMetaTransaction {
     }
 
     function approve(address spender, uint256 value) external returns (bool) {
-        _approve(msgSender(), spender, value);
+        _approve(_msgSender(), spender, value);
         return true;
     }
 
     function transfer(address to, uint256 value) external returns (bool) {
-        _transfer(msgSender(), to, value);
+        _transfer(_msgSender(), to, value);
         return true;
     }
 
@@ -84,8 +93,8 @@ contract UnifarmERC20 is IUnifarmERC20, BasicMetaTransaction {
         address to,
         uint256 value
     ) external returns (bool) {
-        if (allowance[from][msgSender()] != uint256(-1)) {
-            allowance[from][msgSender()] = allowance[from][msgSender()].sub(value);
+        if (allowance[from][_msgSender()] != uint256(-1)) {
+            allowance[from][_msgSender()] = allowance[from][_msgSender()].sub(value);
         }
         _transfer(from, to, value);
         return true;
