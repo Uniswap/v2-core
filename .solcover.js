@@ -1,3 +1,3 @@
 module.exports = {
-  skipFiles: ['test/', 'libraries/', 'utility/UniswapV2Router02.sol']
+  skipFiles: ['test/', 'libraries/', 'utility/UnifarmRouter02.sol']
 }
