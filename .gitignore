@@ -5,3 +5,5 @@ artifacts
 cache
 coverage
 .env
+
+coverage.json

@@ -36,18 +36,21 @@
   "scripts": {
     "lint": "yarn prettier ./test/*.js --check",
     "lint:fix": "yarn prettier ./test/*.js --write",
-    "clean": "rimraf ./artifacts/ && rimraf ./cache/",
+    "clean": "rimraf ./artifacts/ && rimraf ./cache/ && rimraf ./coverage/",
     "precompile": "yarn clean",
     "compile": "npx hardhat compile",
     "pretest": "yarn compile",
     "test": "mocha",
-    "prepublishOnly": "yarn test"
+    "prepublishOnly": "yarn test",
+    "coverage": "yarn clean && hardhat coverage --solcoverjs .solcover.js"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@openzeppelin/contracts": "^4.3.1",
     "dotenv": "^10.0.0",
     "ethereum-waffle": "^3.4.0",
-    "solidity-docgen": "^0.5.13"
+    "ethereumjs-abi": "^0.6.8",
+    "solidity-docgen": "^0.5.13",
+    "solparse": "^2.2.8"
   }
 }
