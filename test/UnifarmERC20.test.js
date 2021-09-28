@@ -1,40 +1,37 @@
-import chai, { expect } from 'chai'
-import { Contract } from 'ethers'
-import { MaxUint256 } from 'ethers/constants'
-import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from 'ethers/utils'
-import { solidity, MockProvider, deployContract } from 'ethereum-waffle'
-import { ecsign } from 'ethereumjs-util'
+const { use, expect } = require('chai')
+const { ethers, waffle } = require('hardhat')
+const { ecsign } = require('ethereumjs-util')
+const { getApprovalDigest } = require('./utils/utilities')
+const { solidity } = waffle
 
-import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
+use(solidity)
+const { hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } = ethers.utils
+const { MaxUint256 } = ethers.constants
 
-import ERC20 from '../build/ERC20.json'
+const TOTAL_SUPPLY = ethers.BigNumber.from('10000')
+const TEST_AMOUNT = ethers.BigNumber.from('10')
+const HARDHAT_DEFAULT_CHAIN_ID = 31337
 
-chai.use(solidity)
+describe('UnifarmERC20', function() {
+  let wallet, other
+  let token
 
-const TOTAL_SUPPLY = expandTo18Decimals(10000)
-const TEST_AMOUNT = expandTo18Decimals(10)
-
-describe('UnifarmERC20', () => {
-  const provider = new MockProvider({
-    hardfork: 'istanbul',
-    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-    gasLimit: 9999999
-  })
-  const [wallet, other] = provider.getWallets()
-
-  let token: Contract
   beforeEach(async () => {
-    token = await deployContract(wallet, ERC20, [TOTAL_SUPPLY])
+    permitWallet = ethers.Wallet.createRandom()
+    ;[wallet, other] = await ethers.getSigners()
+
+    const Token = await ethers.getContractFactory('ERC20')
+    token = await Token.deploy(TOTAL_SUPPLY)
   })
 
   it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
     const name = await token.name()
-    expect(name).to.eq('Unifarm Liquidity Token')
-    expect(await token.symbol()).to.eq('UFARM-LP')
-    expect(await token.decimals()).to.eq(18)
-    expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
-    expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)
-    expect(await token.DOMAIN_SEPARATOR()).to.eq(
+    expect(name).to.equal('Unifarm Liquidity Token')
+    expect(await token.symbol()).to.equal('UFARM-LP')
+    expect(await token.decimals()).to.equal(18)
+    expect(await token.totalSupply()).to.be.equal(ethers.BigNumber.from(TOTAL_SUPPLY))
+    expect(await token.balanceOf(wallet.address)).to.equal(ethers.BigNumber.from(TOTAL_SUPPLY))
+    expect(await token.DOMAIN_SEPARATOR()).to.equal(
       keccak256(
         defaultAbiCoder.encode(
           ['bytes32', 'bytes32', 'bytes32', 'uint256', 'address'],
@@ -44,7 +41,7 @@ describe('UnifarmERC20', () => {
             ),
             keccak256(toUtf8Bytes(name)),
             keccak256(toUtf8Bytes('1')),
-            1,
+            HARDHAT_DEFAULT_CHAIN_ID,
             token.address
           ]
         )
@@ -96,21 +93,24 @@ describe('UnifarmERC20', () => {
   })
 
   it('permit', async () => {
-    const nonce = await token.nonces(wallet.address)
+    const nonce = await token.nonces(permitWallet.address)
     const deadline = MaxUint256
     const digest = await getApprovalDigest(
       token,
-      { owner: wallet.address, spender: other.address, value: TEST_AMOUNT },
+      { owner: permitWallet.address, spender: wallet.address, value: TEST_AMOUNT },
       nonce,
       deadline
     )
 
-    const { v, r, s } = ecsign(Buffer.from(digest.slice(2), 'hex'), Buffer.from(wallet.privateKey.slice(2), 'hex'))
+    const { v, r, s } = ecsign(
+      Buffer.from(digest.slice(2), 'hex'),
+      Buffer.from(permitWallet.privateKey.slice(2), 'hex')
+    )
 
-    await expect(token.permit(wallet.address, other.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
+    await expect(token.permit(permitWallet.address, wallet.address, TEST_AMOUNT, deadline, v, hexlify(r), hexlify(s)))
       .to.emit(token, 'Approval')
-      .withArgs(wallet.address, other.address, TEST_AMOUNT)
-    expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-    expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
+      .withArgs(permitWallet.address, wallet.address, TEST_AMOUNT)
+    expect(await token.allowance(permitWallet.address, wallet.address)).to.eq(TEST_AMOUNT)
+    expect(await token.nonces(permitWallet.address)).to.eq(1)
   })
 })
