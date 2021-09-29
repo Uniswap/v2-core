@@ -15,6 +15,6 @@ else
     TAG=${BUILDKITE_BRANCH}
 fi
 
-docker pull cybercoredev/uniswap-v2-core:${REVISION}
-docker tag cybercoredev/uniswap-v2-core:${REVISION} cybercoredev/uniswap-v2-core:${TAG}
-docker push cybercoredev/uniswap-v2-core:${TAG}
+docker pull neonlabsorg/uniswap-v2-core:${REVISION}
+docker tag neonlabsorg/uniswap-v2-core:${REVISION} neonlabsorg/uniswap-v2-core:${TAG}
+docker push neonlabsorg/uniswap-v2-core:${TAG}

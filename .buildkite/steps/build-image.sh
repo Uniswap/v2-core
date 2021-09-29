@@ -3,4 +3,4 @@ set -euo pipefail
 
 REVISION=$(git rev-parse HEAD)
 
-docker build -t cybercoredev/uniswap-v2-core:${REVISION} .
+docker build -t neonlabsorg/uniswap-v2-core:${REVISION} .

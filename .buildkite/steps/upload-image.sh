@@ -7,4 +7,4 @@ docker images
 
 docker login -u=${DHUBU} -p=${DHUBP}
 
-docker push cybercoredev/uniswap-v2-core:${REVISION}
+docker push neonlabsorg/uniswap-v2-core:${REVISION}
