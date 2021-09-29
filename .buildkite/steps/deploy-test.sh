@@ -23,13 +23,13 @@ while getopts t: option; do
 case "${option}" in
     t) IMAGETAG=${OPTARG};;
     *) echo "Usage: $0 [OPTIONS]. Where OPTIONS can be:"
-       echo "    -t <IMAGETAG>  tag for cybercoredev/uniswap-v2-core Docker-image"
+       echo "    -t <IMAGETAG>  tag for neonlabsorg/uniswap-v2-core Docker-image"
        exit 1;;
 esac
 done
 
 export REVISION=latest
-docker run --rm --entrypoint cat cybercoredev/proxy:latest proxy/docker-compose-test.yml > node-and-proxy.yml
+docker run --rm --entrypoint cat neonlabsorg/proxy:latest proxy/docker-compose-test.yml > node-and-proxy.yml
 
 docker-compose -f node-and-proxy.yml up -d
 
@@ -42,7 +42,7 @@ trap cleanup_docker EXIT
 sleep 10
 
 export REVISION=$(git rev-parse HEAD)
-UNISWAP_V2_CORE_IMAGE=cybercoredev/uniswap-v2-core:${IMAGETAG:-$REVISION}
+UNISWAP_V2_CORE_IMAGE=neonlabsorg/uniswap-v2-core:${IMAGETAG:-$REVISION}
 
 export PROXY_URL=http://127.0.0.1:9090/solana
 
