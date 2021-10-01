@@ -14,8 +14,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using UQ112x112 for uint224;
 
     uint256 public constant override MINIMUM_LIQUIDITY = 10**3;
-    bytes4 private constant SELECTOR =
-        bytes4(keccak256(bytes("transfer(address,uint256)")));
 
     address public override factory;
     address public override token0;
@@ -58,7 +56,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint256 value
     ) private {
         (bool success, bytes memory data) = token.call(
-            abi.encodeWithSelector(SELECTOR, to, value)
+            abi.encodeWithSelector(IERC20.transfer.selector, to, value)
         );
         require(
             success && (data.length == 0 || abi.decode(data, (bool))),

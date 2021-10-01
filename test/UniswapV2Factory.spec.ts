@@ -73,7 +73,7 @@ describe("UniswapV2Factory", () => {
     const { factory } = await loadFixture(fixture);
     const tx = await factory.createPair(...TEST_ADDRESSES);
     const receipt = await tx.wait();
-    expect(receipt.gasUsed).to.eq(2391560);
+    expect(receipt.gasUsed).to.eq(2381927);
   });
 
   it("setFeeTo", async () => {
