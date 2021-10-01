@@ -2,8 +2,7 @@ import { MockProvider } from "@ethereum-waffle/provider";
 import { BigNumber, Contract } from "ethers";
 import { utils as ethutil } from "ethers";
 
-const { getAddress, keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack } =
-  ethutil;
+const { keccak256, defaultAbiCoder, toUtf8Bytes, solidityPack } = ethutil;
 
 const PERMIT_TYPEHASH = keccak256(
   toUtf8Bytes(
@@ -41,14 +40,11 @@ export function getCreate2Address(
 ): string {
   const [token0, token1] =
     tokenA < tokenB ? [tokenA, tokenB] : [tokenB, tokenA];
-  const create2Inputs = [
-    "0xff",
+  return ethutil.getCreate2Address(
     factoryAddress,
     keccak256(solidityPack(["address", "address"], [token0, token1])),
-    keccak256(bytecode),
-  ];
-  const sanitizedInputs = `0x${create2Inputs.map((i) => i.slice(2)).join("")}`;
-  return getAddress(`0x${keccak256(sanitizedInputs).slice(-40)}`);
+    keccak256(bytecode)
+  );
 }
 
 export async function getApprovalDigest(
