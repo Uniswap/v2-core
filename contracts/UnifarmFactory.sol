@@ -30,6 +30,8 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         bool _swapFeesInToken
     ) public {
         require(_feeTo != address(0), 'Unifarm: WALLET_ZERO_ADDRESS');
+        require(_trustedForwarder != address(0), 'Unifarm: TRUSTED_FORWARDER_ZERO_ADDRESS');
+
         feeTo = _feeTo;
 
         Pair memory pair;
@@ -78,6 +80,7 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
     }
 
     function setFeeTo(address payable _feeTo) external onlyOwner {
+        require(_feeTo != address(0), 'Unifarm: WALLET_ZERO_ADDRESS');
         feeTo = _feeTo;
     }
 
@@ -86,7 +89,9 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         bool _feeInToken,
         uint256 _fee
     ) external onlyOwner {
-        //To set max and min limit for both fee types
+        require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
+        require(_fee >= 0 && _fee < 1000, 'Unifarm: INVALID_FEE');
+
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;
         pair.lpFee = _fee;
@@ -97,7 +102,9 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         bool _feeInToken,
         uint256 _fee
     ) external onlyOwner {
-        //To set max and min limit for both fee types
+        require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
+        require(_fee >= 0 && _fee < 1000, 'Unifarm: INVALID_FEE');
+
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;
         pair.lpFee = _fee;

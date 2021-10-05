@@ -79,6 +79,10 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         address _token1,
         address _trustedForwarder
     ) external {
+        require(_token0 != address(0), 'Unifarm: _token0 ZERO ADDRESS');
+        require(_token1 != address(0), 'Unifarm: _token1 ZERO ADDRESS');
+        require(_trustedForwarder != address(0), 'Unifarm: _trustedForwarder ZERO ADDRESS');
+
         require(msg.sender == factory, 'Unifarm: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
@@ -141,6 +145,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external payable lock returns (uint256 liquidity) {
+        require(to != address(0), 'Unifarm: to ZERO ADDRESS');
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
@@ -170,6 +175,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external payable lock returns (uint256 amount0, uint256 amount1) {
+        require(to != address(0), 'Unifarm: to ZERO ADDRESS');
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
@@ -206,6 +212,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         require(amount0Out > 0 || amount1Out > 0, 'Unifarm: INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'Unifarm: INSUFFICIENT_LIQUIDITY');
+        require(to != address(0), 'Unifarm: to ZERO ADDRESS');
 
         uint256 balance0;
         uint256 balance1;
@@ -257,6 +264,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
 
     // force balances to match reserves
     function skim(address to) external lock {
+        require(to != address(0), 'Unifarm: to ZERO ADDRESS');
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
         _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));

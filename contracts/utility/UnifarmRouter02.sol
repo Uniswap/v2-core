@@ -21,6 +21,9 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
     }
 
     constructor(address _factory, address _WETH) public {
+        require(_factory != address(0), 'AMMUtility::constructor: ZERO_FACTORY_ADDRESS');
+        require(_WETH != address(0), 'AMMUtility::constructor: ZERO_WETH_ADDRESS');
+
         factory = _factory;
         WETH = _WETH;
     }
@@ -255,12 +258,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
                 ? (uint256(0), amountOut)
                 : (amountOut, uint256(0));
             address to = i < path.length - 2 ? UnifarmLibrary.pairFor(factory, output, path[i + 2]) : _to;
-            IUnifarmPair(UnifarmLibrary.pairFor(factory, input, output)).swap(
-                amount0Out,
-                amount1Out,
-                to,
-                new bytes(0)
-            );
+            IUnifarmPair(UnifarmLibrary.pairFor(factory, input, output)).swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
 

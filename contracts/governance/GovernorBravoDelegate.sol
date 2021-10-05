@@ -63,6 +63,8 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         require(_msgSender() == admin, 'GovernorBravo::initialize: admin only');
         require(timelock_ != address(0), 'GovernorBravo::initialize: invalid timelock address');
         require(ufarm_ != address(0), 'GovernorBravo::initialize: invalid ufarm address');
+        require(trustedForwarder_ != address(0), 'GovernorBravo::initialize: invalid trustedForwarder address');
+
         require(
             votingPeriod_ >= MIN_VOTING_PERIOD && votingPeriod_ <= MAX_VOTING_PERIOD,
             'GovernorBravo::initialize: invalid voting period'
@@ -140,7 +142,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         uint256 startBlock = add256(block.number, votingDelay);
         uint256 endBlock = add256(startBlock, votingPeriod);
 
-        proposalCount++;
+        proposalCount = add256(proposalCount, 1);
         Proposal memory newProposal = Proposal({
             id: proposalCount,
             proposer: _msgSender(),
@@ -458,7 +460,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         require(_msgSender() == admin, 'GovernorBravo::_initiate: admin only');
         require(initialProposalId == 0, 'GovernorBravo::_initiate: can only initiate once');
         initialProposalId = 1;
-        proposalCount++;
+        proposalCount = add256(proposalCount, 1);
         timelock.acceptAdmin();
     }
 

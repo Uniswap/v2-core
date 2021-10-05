@@ -79,11 +79,13 @@ contract UnifarmERC20 is IUnifarmERC20, BaseRelayRecipient {
     }
 
     function approve(address spender, uint256 value) external returns (bool) {
+        require(spender != address(0));
         _approve(_msgSender(), spender, value);
         return true;
     }
 
     function transfer(address to, uint256 value) external returns (bool) {
+        require(to != address(0));
         _transfer(_msgSender(), to, value);
         return true;
     }
@@ -93,10 +95,27 @@ contract UnifarmERC20 is IUnifarmERC20, BaseRelayRecipient {
         address to,
         uint256 value
     ) external returns (bool) {
+        require(from != address(0) && to != address(0));
         if (allowance[from][_msgSender()] != uint256(-1)) {
             allowance[from][_msgSender()] = allowance[from][_msgSender()].sub(value);
         }
         _transfer(from, to, value);
+        return true;
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
+        require(spender != address(0));
+
+        allowance[msg.sender][spender] = (allowance[msg.sender][spender].add(addedValue));
+        emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
+        require(spender != address(0));
+
+        allowance[msg.sender][spender] = (allowance[msg.sender][spender].sub(subtractedValue));
+        emit Approval(msg.sender, spender, allowance[msg.sender][spender]);
         return true;
     }
 
@@ -109,14 +128,18 @@ contract UnifarmERC20 is IUnifarmERC20, BaseRelayRecipient {
         bytes32 r,
         bytes32 s
     ) external {
+        require(owner != address(0) && spender != address(0));
         require(deadline >= block.timestamp, 'Unifarm: EXPIRED');
+
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
                 DOMAIN_SEPARATOR,
-                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner], deadline))
             )
         );
+        nonces[owner] = nonces[owner] + 1;
+
         address recoveredAddress = ecrecover(digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'Unifarm: INVALID_SIGNATURE');
         _approve(owner, spender, value);

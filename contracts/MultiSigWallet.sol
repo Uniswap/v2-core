@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.5.16;
 
+import './libraries/SafeMath.sol';
+
 /**
  * @title Multisignature wallet - Allows multiple parties to agree on
  *   transactions before execution.
@@ -8,6 +10,8 @@ pragma solidity =0.5.16;
  * @author Stefan George - <stefan.george@consensys.net>
  * */
 contract MultiSigWallet {
+    using SafeMath for uint256;
+
     /*
      *  Events
      */
@@ -311,7 +315,7 @@ contract MultiSigWallet {
     function isConfirmed(uint256 transactionId) public view returns (bool) {
         uint256 count = 0;
         for (uint256 i = 0; i < owners.length; i++) {
-            if (confirmations[transactionId][owners[i]]) count += 1;
+            if (confirmations[transactionId][owners[i]]) count = count.add(1);
             if (count == required) return true;
         }
 
@@ -344,7 +348,7 @@ contract MultiSigWallet {
             data: data,
             executed: false
         });
-        transactionCount += 1;
+        transactionCount = transactionCount.add(1);
         emit Submission(transactionId);
     }
 
@@ -358,7 +362,7 @@ contract MultiSigWallet {
      * @return count Number of confirmations.
      * */
     function getConfirmationCount(uint256 transactionId) public view returns (uint256 count) {
-        for (uint256 i = 0; i < owners.length; i++) if (confirmations[transactionId][owners[i]]) count += 1;
+        for (uint256 i = 0; i < owners.length; i++) if (confirmations[transactionId][owners[i]]) count = count.add(1);
     }
 
     /**
@@ -369,7 +373,7 @@ contract MultiSigWallet {
      * */
     function getTransactionCount(bool pending, bool executed) public view returns (uint256 count) {
         for (uint256 i = 0; i < transactionCount; i++)
-            if ((pending && !transactions[i].executed) || (executed && transactions[i].executed)) count += 1;
+            if ((pending && !transactions[i].executed) || (executed && transactions[i].executed)) count = count.add(1);
     }
 
     /**
@@ -392,7 +396,7 @@ contract MultiSigWallet {
         for (i = 0; i < owners.length; i++)
             if (confirmations[transactionId][owners[i]]) {
                 confirmationsTemp[count] = owners[i];
-                count += 1;
+                count = count.add(1);
             }
         _confirmations = new address[](count);
         for (i = 0; i < count; i++) _confirmations[i] = confirmationsTemp[i];
@@ -420,7 +424,7 @@ contract MultiSigWallet {
         for (i = 0; i < transactionCount; i++)
             if ((pending && !transactions[i].executed) || (executed && transactions[i].executed)) {
                 transactionIdsTemp[count] = i;
-                count += 1;
+                count = count.add(1);
             }
         _transactionIds = new uint256[](to - from);
         for (i = from; i < to; i++) _transactionIds[i - from] = transactionIdsTemp[i];
