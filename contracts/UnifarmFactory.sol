@@ -87,10 +87,13 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
     function updateLPFeeConfig(
         address _pairAddress,
         bool _feeInToken,
-        uint256 _fee
+        uint256 _fee,
+        bool increase
     ) external onlyOwner {
         require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
-        require(_fee >= 0 && _fee < 1000, 'Unifarm: INVALID_FEE');
+        if (_feeInToken) {
+            require(_fee >= 0 && _fee <= 1000, 'Unifarm: INVALID_FEE');
+        }
 
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;
@@ -103,7 +106,9 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         uint256 _fee
     ) external onlyOwner {
         require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
-        require(_fee >= 0 && _fee < 1000, 'Unifarm: INVALID_FEE');
+        if (_feeInToken) {
+            require(_fee >= 0 && _fee <= 1000, 'Unifarm: INVALID_FEE');
+        }
 
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;

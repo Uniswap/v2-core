@@ -14,10 +14,6 @@ describe('AMMUtility', () => {
   let owner, user
   let fee = expandTo18Decimals(2).div(100) //0.02 ETH
 
-  async function balanceOf(provider, account) {
-    return await provider.getBalance(account)
-  }
-
   beforeEach(async () => {
     ;[owner, user] = await ethers.getSigners()
     ammUtilityInstance = await deploy(owner.address, fee)
@@ -42,23 +38,23 @@ describe('AMMUtility', () => {
 
     await expect(
       ammUtilityInstance.connect(user).swapTokens(user.address, zeroAddress, zeroAddress, amount, { value: fee })
-    ).to.be.revertedWith('AMMUtility: Invalid token addresses')
+    ).to.be.revertedWith('AMMUtility::swapTokens: ZERO_TOKEN_ADDRESS')
 
     await expect(
       ammUtilityInstance
         .connect(user)
         .swapTokens(user.address, sourceToken.address, destToken.address, 0, { value: fee })
-    ).to.be.revertedWith('AMMUtility: Invalid token amount')
+    ).to.be.revertedWith('AMMUtility::swapTokens: ZERO_AMOUNT')
 
     await expect(
       ammUtilityInstance.connect(user).swapTokens(user.address, sourceToken.address, destToken.address, amount)
-    ).to.be.revertedWith('AMMUtility: Fee not received')
+    ).to.be.revertedWith('AMMUtility::swapTokens: INVALID_FEE_PROVIDED')
 
     await expect(
       ammUtilityInstance
         .connect(user)
         .swapTokens(user.address, sourceToken.address, sourceToken.address, amount, { value: fee })
-    ).to.be.revertedWith('AMMUtility: Both address are same')
+    ).to.be.revertedWith('AMMUtility::swapTokens: SAME_ADDRESS')
 
     await expect(
       ammUtilityInstance

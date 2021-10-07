@@ -12,15 +12,15 @@ async function enfranchise(ufarm, actor, amount) {
   await ufarm.connect(actor).delegate(actor.address)
 }
 
-describe('governorBravo#castVote/2', () => {
-  let ufarm, gov, root, a1, accounts, timelock, signWallet
+describe('governorBravo', () => {
+  let ufarm, gov, root, a1, accounts, timelock, signWallet, acct
   let targets, values, signatures, callDatas, proposalId
 
   const delay = 259200 //3 days
   const ABI = ['function setPendingAdmin(address pendingAdmin_)']
 
   beforeEach(async () => {
-    ;[root, a1, ...accounts] = await ethers.getSigners()
+    ;[root, a1, acct, ...accounts] = await ethers.getSigners()
     signWallet = ethers.Wallet.createRandom()
 
     const UnifarmToken = await ethers.getContractFactory('UnifarmToken')
@@ -57,6 +57,9 @@ describe('governorBravo#castVote/2', () => {
     await ufarm.delegate(a1.address)
     await gov.connect(a1).propose(targets, values, signatures, callDatas, 'do nothing')
     proposalId = await gov.latestProposalIds(a1.address)
+    proposalBlock = +(await ethers.provider.getBlockNumber())
+
+    trivialProposal = await gov.proposals(proposalId)
   })
 
   describe('We must revert if:', () => {
@@ -179,6 +182,107 @@ describe('governorBravo#castVote/2', () => {
       expect(receipt2.votes).to.be.equal(expandTo18Decimals(votes))
       expect(receipt2.hasVoted).to.be.true
       expect(receipt2.support).to.be.equal(0)
+    })
+  })
+
+  describe('simple initialization', () => {
+    it('ID is set to a globally unique identifier', async () => {
+      expect(trivialProposal.id).to.equal(proposalId)
+    })
+
+    it('Proposer is set to the sender', async () => {
+      expect(trivialProposal.proposer).to.equal(a1.address)
+    })
+
+    it('Start block is set to the current block number plus vote delay', async () => {
+      expect(trivialProposal.startBlock).to.equal(proposalBlock + 1 + '')
+    })
+
+    it('End block is set to the current block number plus the sum of vote delay and vote period', async () => {
+      expect(trivialProposal.endBlock).to.equal(proposalBlock + 1 + 17280 + '')
+    })
+
+    it('ForVotes and AgainstVotes are initialized to zero', async () => {
+      expect(trivialProposal.forVotes).to.equal('0')
+      expect(trivialProposal.againstVotes).to.equal('0')
+    })
+
+    it('Executed and Canceled flags are initialized to false', async () => {
+      expect(trivialProposal.canceled).to.equal(false)
+      expect(trivialProposal.executed).to.equal(false)
+    })
+
+    it('ETA is initialized to zero', async () => {
+      expect(trivialProposal.eta).to.equal('0')
+    })
+
+    it('Targets, Values, Signatures, Calldatas are set according to parameters', async () => {
+      let dynamicFields = await gov.getActions(trivialProposal.id)
+      expect(dynamicFields.targets).to.deep.equal(targets)
+      expect(dynamicFields.signatures).to.deep.equal(signatures)
+      expect(dynamicFields.calldatas).to.deep.equal(callDatas)
+    })
+
+    describe('This function must revert if', () => {
+      it('the length of the values, signatures or calldatas arrays are not the same length,', async () => {
+        await expect(
+          gov.connect(a1).propose(targets.concat(root.address), values, signatures, callDatas, 'do nothing')
+        ).to.be.revertedWith('GovernorBravo::propose: proposal function information arity mismatch')
+        await expect(
+          gov.connect(a1).propose(targets, values.concat(values), signatures, callDatas, 'do nothing')
+        ).to.be.revertedWith('GovernorBravo::propose: proposal function information arity mismatch')
+        await expect(
+          gov.connect(a1).propose(targets, values, signatures.concat(signatures), callDatas, 'do nothing')
+        ).to.be.revertedWith('GovernorBravo::propose: proposal function information arity mismatch')
+        await expect(
+          gov.connect(a1).propose(targets, values, signatures, callDatas.concat(callDatas), 'do nothing')
+        ).to.be.revertedWith('GovernorBravo::propose: proposal function information arity mismatch')
+      })
+      it('or if that length is zero or greater than Max Operations.', async () => {
+        await expect(gov.connect(a1).propose([], [], [], [], 'do nothing')).to.be.revertedWith(
+          'GovernorBravo::propose: must provide actions'
+        )
+      })
+      describe('Additionally, if there exists a pending or active proposal from the same proposer, we must revert.', () => {
+        it('reverts with pending', async () => {
+          await expect(
+            gov.connect(a1).propose(targets, values, signatures, callDatas, 'do nothing')
+          ).to.be.revertedWith(
+            'GovernorBravo::propose: one live proposal per proposer, found an already pending proposal'
+          )
+        })
+        it('reverts with active', async () => {
+          await ethers.provider.send('evm_mine')
+          await ethers.provider.send('evm_mine')
+          await expect(
+            gov.connect(a1).propose(targets, values, signatures, callDatas, 'do nothing')
+          ).to.be.revertedWith(
+            'GovernorBravo::propose: one live proposal per proposer, found an already active proposal'
+          )
+        })
+      })
+    })
+
+    it('emits log with id and description', async () => {
+      await ufarm.transfer(accounts[3].address, expandTo18Decimals(400001))
+      await ufarm.connect(accounts[3]).delegate(accounts[3].address)
+
+      await ethers.provider.send('evm_mine')
+
+      let proposalBlock = 2 + (await ethers.provider.getBlockNumber())
+      await expect(gov.connect(accounts[3]).propose(targets, values, signatures, callDatas, 'second proposal'))
+        .to.emit(gov, 'ProposalCreated')
+        .withArgs(
+          3,
+          accounts[3].address,
+          targets,
+          values,
+          signatures,
+          callDatas,
+          proposalBlock,
+          17280 + proposalBlock,
+          'second proposal'
+        )
     })
   })
 })
