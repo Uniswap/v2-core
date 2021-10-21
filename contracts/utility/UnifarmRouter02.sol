@@ -40,7 +40,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin
-    ) internal virtual returns (uint256 amountA, uint256 amountB) {
+    ) internal returns (uint256 amountA, uint256 amountB) {
         // create the pair if it doesn't exist yet
         if (IUnifarmFactory(factory).getPair(tokenA, tokenB) == address(0)) {
             IUnifarmFactory(factory).createPair(tokenA, tokenB);
@@ -73,7 +73,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 deadline
     )
         external
-        virtual
         ensure(deadline)
         returns (
             uint256 amountA,
@@ -98,7 +97,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
     )
         external
         payable
-        virtual
         ensure(deadline)
         returns (
             uint256 amountToken,
@@ -132,7 +130,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountBMin,
         address to,
         uint256 deadline
-    ) public virtual ensure(deadline) returns (uint256 amountA, uint256 amountB) {
+    ) public ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         address pair = UnifarmLibrary.pairFor(factory, tokenA, tokenB);
         IUnifarmPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint256 amount0, uint256 amount1) = IUnifarmPair(pair).burn(to);
@@ -149,7 +147,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountETHMin,
         address to,
         uint256 deadline
-    ) public virtual ensure(deadline) returns (uint256 amountToken, uint256 amountETH) {
+    ) public ensure(deadline) returns (uint256 amountToken, uint256 amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -176,7 +174,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual returns (uint256 amountA, uint256 amountB) {
+    ) external returns (uint256 amountA, uint256 amountB) {
         address pair = UnifarmLibrary.pairFor(factory, tokenA, tokenB);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -194,7 +192,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual returns (uint256 amountToken, uint256 amountETH) {
+    ) external returns (uint256 amountToken, uint256 amountETH) {
         address pair = UnifarmLibrary.pairFor(factory, token, WETH);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -209,7 +207,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountETHMin,
         address to,
         uint256 deadline
-    ) public virtual ensure(deadline) returns (uint256 amountETH) {
+    ) public ensure(deadline) returns (uint256 amountETH) {
         (, amountETH) = removeLiquidity(token, WETH, liquidity, amountTokenMin, amountETHMin, address(this), deadline);
         TransferHelper.safeTransfer(token, to, IERC20(token).balanceOf(address(this)));
         IWETH(WETH).withdraw(amountETH);
@@ -227,7 +225,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual returns (uint256 amountETH) {
+    ) external returns (uint256 amountETH) {
         address pair = UnifarmLibrary.pairFor(factory, token, WETH);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -247,7 +245,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256[] memory amounts,
         address[] memory path,
         address _to
-    ) internal virtual {
+    ) internal {
         for (uint256 i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0, ) = UnifarmLibrary.sortTokens(input, output);
@@ -266,7 +264,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external ensure(deadline) returns (uint256[] memory amounts) {
         amounts = UnifarmLibrary.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -284,7 +282,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external ensure(deadline) returns (uint256[] memory amounts) {
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -301,7 +299,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external payable ensure(deadline) returns (uint256[] memory amounts) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsOut(factory, msg.value, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
@@ -316,7 +314,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external ensure(deadline) returns (uint256[] memory amounts) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
@@ -337,7 +335,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external ensure(deadline) returns (uint256[] memory amounts) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
@@ -357,7 +355,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual ensure(deadline) returns (uint256[] memory amounts) {
+    ) external payable ensure(deadline) returns (uint256[] memory amounts) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= msg.value, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
@@ -370,7 +368,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
     // requires the initial amount to have already been sent to the first pair
-    function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
+    function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal {
         for (uint256 i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0, ) = UnifarmLibrary.sortTokens(input, output);
@@ -400,7 +398,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) {
+    ) external ensure(deadline) {
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -420,7 +418,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual ensure(deadline) {
+    ) external payable ensure(deadline) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         uint256 amountIn = msg.value;
         IWETH(WETH).deposit.value(amountIn)();
@@ -439,7 +437,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual ensure(deadline) {
+    ) external ensure(deadline) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         TransferHelper.safeTransferFrom(
             path[0],
@@ -459,7 +457,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountA,
         uint256 reserveA,
         uint256 reserveB
-    ) public pure virtual returns (uint256 amountB) {
+    ) public pure returns (uint256 amountB) {
         return UnifarmLibrary.quote(amountA, reserveA, reserveB);
     }
 
@@ -467,7 +465,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut
-    ) public pure virtual returns (uint256 amountOut) {
+    ) public pure returns (uint256 amountOut) {
         return UnifarmLibrary.getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
@@ -475,25 +473,15 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountOut,
         uint256 reserveIn,
         uint256 reserveOut
-    ) public pure virtual returns (uint256 amountIn) {
+    ) public pure returns (uint256 amountIn) {
         return UnifarmLibrary.getAmountIn(amountOut, reserveIn, reserveOut);
     }
 
-    function getAmountsOut(uint256 amountIn, address[] memory path)
-        public
-        view
-        virtual
-        returns (uint256[] memory amounts)
-    {
+    function getAmountsOut(uint256 amountIn, address[] memory path) public view returns (uint256[] memory amounts) {
         return UnifarmLibrary.getAmountsOut(factory, amountIn, path);
     }
 
-    function getAmountsIn(uint256 amountOut, address[] memory path)
-        public
-        view
-        virtual
-        returns (uint256[] memory amounts)
-    {
+    function getAmountsIn(uint256 amountOut, address[] memory path) public view returns (uint256[] memory amounts) {
         return UnifarmLibrary.getAmountsIn(factory, amountOut, path);
     }
 }
