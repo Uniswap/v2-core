@@ -87,5 +87,17 @@ describe('MultiSigWallet', () => {
     await expect(multisigInstance.connect(accounts0).executeTransaction(transactionId0))
       .to.emit(multisigInstance, 'Execution')
       .withArgs(transactionId0)
+
+    await multisigInstance.connect(accounts1).getConfirmationCount(transactionId1)
+    await multisigInstance.connect(accounts1).getTransactionCount(false, true)
+    await multisigInstance.connect(accounts1).getOwners()
+    await multisigInstance.connect(accounts1).getConfirmations(transactionId1) //.to.equal(requiredConfirmations))
+    await multisigInstance
+      .connect(accounts1)
+      .getTransactionIds(accounts0.address, multisigInstance.address, false, true)
+    await multisigInstance.connect(accounts1).removeOwner(accounts2.address)
+    await multisigInstance.connect(accounts1).addOwner(accounts2.address)
+    await multisigInstance.connect(accounts1).replaceOwner(accounts2.address, accounts3.address)
+    await multisigInstance.connect(accounts1).changeRequirement(3)
   })
 })

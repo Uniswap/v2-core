@@ -79,6 +79,28 @@ describe('UnifarmPair', () => {
     expect(reserves[1]).to.eq(token1WithoutFees)
   })
 
+  it('burn', async () => {
+    const token0Amount = BigNumber.from(expandTo18Decimals(1))
+    const token1Amount = BigNumber.from(expandTo18Decimals(4))
+    await token0.transfer(pair.address, token0Amount)
+    await token1.transfer(pair.address, token1Amount)
+
+    const token1WithoutFees = token1Amount.mul(1000 - lpFee).div(1000)
+    const token0WithoutFees = token0Amount.mul(1000 - lpFee).div(1000)
+
+    //deduct fees and min liquidity
+    const expectedLiquidity = BigNumber.from(expandTo18Decimals(2)).sub(expandTo18Decimals(lpFee * 2).div(1000))
+
+    await expect(pair.mint(wallet.address))
+      .to.emit(pair, 'Transfer')
+      .withArgs(AddressZero, AddressZero, MINIMUM_LIQUIDITY)
+      .to.emit(pair, 'Sync')
+      .withArgs(token0WithoutFees, token1WithoutFees)
+      .to.emit(pair, 'Mint')
+      .withArgs(wallet.address, token0WithoutFees, token1WithoutFees)
+    await expect(pair.burn(wallet.address)).to.emit(pair, 'Burn')
+  })
+
   async function addLiquidity(token0Amount, token1Amount, signer) {
     await token0.connect(signer).transfer(pair.address, token0Amount)
     await token1.connect(signer).transfer(pair.address, token1Amount)
@@ -137,5 +159,16 @@ describe('UnifarmPair', () => {
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x')
     const receipt = await tx.wait()
     expect(receipt.gasUsed).to.gte(73462)
+  })
+
+  it('skim', async () => {
+    await expect(pair.connect(other).skim(AddressZero)).to.be.revertedWith('Unifarm: to ZERO ADDRESS')
+    await pair.skim(wallet.address)
+    expect().to.eq()
+  })
+
+  it('sync', async () => {
+    await pair.sync()
+    expect().to.eq()
   })
 })

@@ -72,6 +72,9 @@ describe('GovernorBravo#queue/1', () => {
       await expect(gov.queue(proposalId)).to.be.revertedWith(
         'GovernorBravo::queue: proposal can only be queued if it is succeeded'
       )
+
+      await expect(gov.execute(proposalId)).to.emit(gov, 'ProposalExecuted')
+      await expect(gov.cancel(proposalId)).to.emit(gov, 'ProposalCanceled')
     })
   })
 })
