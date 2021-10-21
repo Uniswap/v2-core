@@ -2,7 +2,15 @@
 pragma solidity >=0.5.0;
 
 interface IUnifarmFactory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
+    event PairCreated(
+        address indexed token0,
+        address indexed token1,
+        address pair,
+        bool lpFeesInToken,
+        bool swapFeesInToken,
+        uint256 lpFee,
+        uint256 swapFee
+    );
 
     function feeTo() external view returns (address payable);
     function pairConfigs(address)

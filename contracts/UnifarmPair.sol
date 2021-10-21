@@ -68,6 +68,8 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
         address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
+    // zero address for ETH
+    event FeeDeducted(uint256 fee, bool feeInToken, address feeToken);
 
     constructor() public {
         factory = msg.sender;
@@ -117,11 +119,14 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
     ) internal {
         _safeTransfer(token0, _feeTo, _feeInReserve0);
         _safeTransfer(token1, _feeTo, _feeInReserve1);
+        emit FeeDeducted(_feeInReserve0, true, token0);
+        emit FeeDeducted(_feeInReserve1, true, token1);
     }
 
     function _deductETHFee(address payable _feeTo, uint256 _fee) internal {
         require(msg.value >= _fee, 'Unifarm: REQUIRE_FEE');
         _feeTo.transfer(_fee);
+        emit FeeDeducted(_fee, false, address(0));
     }
 
     function _mintFee(uint256 _reserve0, uint256 _reserve1)
@@ -258,6 +263,7 @@ contract UnifarmPair is IUnifarmPair, UnifarmERC20 {
             if (swapFeesInToken) {
                 fee = (_amount.mul(swapFee)) / (1000);
                 _safeTransfer(_token, feeTo, fee);
+                emit FeeDeducted(fee, true, _token);
             } else _deductETHFee(feeTo, swapFee);
         }
     }

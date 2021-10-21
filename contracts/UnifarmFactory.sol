@@ -19,7 +19,17 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
     }
     mapping(address => Pair) public pairConfigs;
 
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
+    event PairCreated(
+        address indexed token0,
+        address indexed token1,
+        address pair,
+        bool lpFeesInToken,
+        bool swapFeesInToken,
+        uint256 lpFee,
+        uint256 swapFee
+    );
+    event UpdatedLPFee(address indexed pair, bool feeInToken, uint256 fee);
+    event UpdatedSwapFee(address indexed pair, bool feeInToken, uint256 fee);
 
     constructor(
         address payable _feeTo,
@@ -76,7 +86,15 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         pairConfigs[pair] = globalConfig;
 
         allPairs.push(pair);
-        emit PairCreated(token0, token1, pair, allPairs.length);
+        emit PairCreated(
+            token0,
+            token1,
+            pair,
+            globalConfig.lpFeesInToken,
+            globalConfig.swapFeesInToken,
+            globalConfig.lpFee,
+            globalConfig.swapFee
+        );
     }
 
     function setFeeTo(address payable _feeTo) external onlyOwner {
@@ -85,26 +103,12 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
     }
 
     function updateLPFeeConfig(
-        address _pairAddress,
-        bool _feeInToken,
-        uint256 _fee,
-        bool increase
-    ) external onlyOwner {
-        require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
-        if (_feeInToken) {
-            require(_fee >= 0 && _fee <= 1000, 'Unifarm: INVALID_FEE');
-        }
-
-        Pair storage pair = pairConfigs[_pairAddress];
-        pair.lpFeesInToken = _feeInToken;
-        pair.lpFee = _fee;
-    }
-
-    function updateSwapFeeConfig(
-        address _pairAddress,
+        address tokenA,
+        address tokenB,
         bool _feeInToken,
         uint256 _fee
     ) external onlyOwner {
+        address _pairAddress = getPair[tokenA][tokenB];
         require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
         if (_feeInToken) {
             require(_fee >= 0 && _fee <= 1000, 'Unifarm: INVALID_FEE');
@@ -113,5 +117,26 @@ contract UnifarmFactory is IUnifarmFactory, Ownable, BaseRelayRecipient {
         Pair storage pair = pairConfigs[_pairAddress];
         pair.lpFeesInToken = _feeInToken;
         pair.lpFee = _fee;
+
+        emit UpdatedLPFee(_pairAddress, _feeInToken, _fee);
+    }
+
+    function updateSwapFeeConfig(
+        address tokenA,
+        address tokenB,
+        bool _feeInToken,
+        uint256 _fee
+    ) external onlyOwner {
+        address _pairAddress = getPair[tokenA][tokenB];
+        require(_pairAddress != address(0), 'Unifarm: ZERO_ADDRESS_FOR_PAIR');
+        if (_feeInToken) {
+            require(_fee >= 0 && _fee <= 1000, 'Unifarm: INVALID_FEE');
+        }
+
+        Pair storage pair = pairConfigs[_pairAddress];
+        pair.lpFeesInToken = _feeInToken;
+        pair.lpFee = _fee;
+
+        emit UpdatedSwapFee(_pairAddress, _feeInToken, _fee);
     }
 }
