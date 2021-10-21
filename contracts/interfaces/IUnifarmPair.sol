@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity >=0.5.0;
+pragma solidity =0.5.16;
 
 interface IUnifarmPair {
     event Approval(address indexed owner, address indexed spender, uint value);

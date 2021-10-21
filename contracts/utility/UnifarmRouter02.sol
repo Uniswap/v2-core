@@ -1,4 +1,4 @@
-pragma solidity 0.6.6;
+pragma solidity =0.5.16;
 
 import '../interfaces/IUnifarmFactory.sol';
 import '../interfaces/IUnifarmRouter02.sol';
@@ -12,8 +12,8 @@ import '../libraries/SafeMath.sol';
 contract UnifarmRouter02 is IUnifarmRouter02 {
     using SafeMath for uint256;
 
-    address public immutable override factory;
-    address public immutable override WETH;
+    address public factory;
+    address public WETH;
 
     modifier ensure(uint256 deadline) {
         require(deadline >= block.timestamp, 'UnifarmRouter: EXPIRED');
@@ -28,7 +28,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         WETH = _WETH;
     }
 
-    receive() external payable {
+    function() external payable {
         assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
     }
 
@@ -74,7 +74,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
     )
         external
         virtual
-        override
         ensure(deadline)
         returns (
             uint256 amountA,
@@ -100,7 +99,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         external
         payable
         virtual
-        override
         ensure(deadline)
         returns (
             uint256 amountToken,
@@ -118,7 +116,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         );
         address pair = UnifarmLibrary.pairFor(factory, token, WETH);
         TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
-        IWETH(WETH).deposit{value: amountETH}();
+        IWETH(WETH).deposit.value(amountETH)();
         assert(IWETH(WETH).transfer(pair, amountETH));
         liquidity = IUnifarmPair(pair).mint(to);
         // refund dust eth, if any
@@ -134,7 +132,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountBMin,
         address to,
         uint256 deadline
-    ) public virtual override ensure(deadline) returns (uint256 amountA, uint256 amountB) {
+    ) public virtual ensure(deadline) returns (uint256 amountA, uint256 amountB) {
         address pair = UnifarmLibrary.pairFor(factory, tokenA, tokenB);
         IUnifarmPair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint256 amount0, uint256 amount1) = IUnifarmPair(pair).burn(to);
@@ -151,7 +149,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountETHMin,
         address to,
         uint256 deadline
-    ) public virtual override ensure(deadline) returns (uint256 amountToken, uint256 amountETH) {
+    ) public virtual ensure(deadline) returns (uint256 amountToken, uint256 amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -178,7 +176,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual override returns (uint256 amountA, uint256 amountB) {
+    ) external virtual returns (uint256 amountA, uint256 amountB) {
         address pair = UnifarmLibrary.pairFor(factory, tokenA, tokenB);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -196,7 +194,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual override returns (uint256 amountToken, uint256 amountETH) {
+    ) external virtual returns (uint256 amountToken, uint256 amountETH) {
         address pair = UnifarmLibrary.pairFor(factory, token, WETH);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -211,7 +209,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountETHMin,
         address to,
         uint256 deadline
-    ) public virtual override ensure(deadline) returns (uint256 amountETH) {
+    ) public virtual ensure(deadline) returns (uint256 amountETH) {
         (, amountETH) = removeLiquidity(token, WETH, liquidity, amountTokenMin, amountETHMin, address(this), deadline);
         TransferHelper.safeTransfer(token, to, IERC20(token).balanceOf(address(this)));
         IWETH(WETH).withdraw(amountETH);
@@ -229,7 +227,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) external virtual override returns (uint256 amountETH) {
+    ) external virtual returns (uint256 amountETH) {
         address pair = UnifarmLibrary.pairFor(factory, token, WETH);
         uint256 value = approveMax ? uint256(-1) : liquidity;
         IUnifarmPair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
@@ -268,7 +266,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
         amounts = UnifarmLibrary.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -286,7 +284,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -303,11 +301,11 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external payable virtual ensure(deadline) returns (uint256[] memory amounts) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsOut(factory, msg.value, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
-        IWETH(WETH).deposit{value: amounts[0]}();
+        IWETH(WETH).deposit.value(amounts[0])();
         assert(IWETH(WETH).transfer(UnifarmLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
@@ -318,7 +316,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
@@ -339,7 +337,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external virtual ensure(deadline) returns (uint256[] memory amounts) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UnifarmRouter: INSUFFICIENT_OUTPUT_AMOUNT');
@@ -359,11 +357,11 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual override ensure(deadline) returns (uint256[] memory amounts) {
+    ) external payable virtual ensure(deadline) returns (uint256[] memory amounts) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         amounts = UnifarmLibrary.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= msg.value, 'UnifarmRouter: EXCESSIVE_INPUT_AMOUNT');
-        IWETH(WETH).deposit{value: amounts[0]}();
+        IWETH(WETH).deposit.value(amounts[0])();
         assert(IWETH(WETH).transfer(UnifarmLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
         // refund dust eth, if any
@@ -402,7 +400,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) {
+    ) external virtual ensure(deadline) {
         TransferHelper.safeTransferFrom(
             path[0],
             msg.sender,
@@ -422,10 +420,10 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external payable virtual override ensure(deadline) {
+    ) external payable virtual ensure(deadline) {
         require(path[0] == WETH, 'UnifarmRouter: INVALID_PATH');
         uint256 amountIn = msg.value;
-        IWETH(WETH).deposit{value: amountIn}();
+        IWETH(WETH).deposit.value(amountIn)();
         assert(IWETH(WETH).transfer(UnifarmLibrary.pairFor(factory, path[0], path[1]), amountIn));
         uint256 balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);
@@ -441,7 +439,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         address[] calldata path,
         address to,
         uint256 deadline
-    ) external virtual override ensure(deadline) {
+    ) external virtual ensure(deadline) {
         require(path[path.length - 1] == WETH, 'UnifarmRouter: INVALID_PATH');
         TransferHelper.safeTransferFrom(
             path[0],
@@ -461,7 +459,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountA,
         uint256 reserveA,
         uint256 reserveB
-    ) public pure virtual override returns (uint256 amountB) {
+    ) public pure virtual returns (uint256 amountB) {
         return UnifarmLibrary.quote(amountA, reserveA, reserveB);
     }
 
@@ -469,7 +467,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountIn,
         uint256 reserveIn,
         uint256 reserveOut
-    ) public pure virtual override returns (uint256 amountOut) {
+    ) public pure virtual returns (uint256 amountOut) {
         return UnifarmLibrary.getAmountOut(amountIn, reserveIn, reserveOut);
     }
 
@@ -477,7 +475,7 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         uint256 amountOut,
         uint256 reserveIn,
         uint256 reserveOut
-    ) public pure virtual override returns (uint256 amountIn) {
+    ) public pure virtual returns (uint256 amountIn) {
         return UnifarmLibrary.getAmountIn(amountOut, reserveIn, reserveOut);
     }
 
@@ -485,7 +483,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         public
         view
         virtual
-        override
         returns (uint256[] memory amounts)
     {
         return UnifarmLibrary.getAmountsOut(factory, amountIn, path);
@@ -495,7 +492,6 @@ contract UnifarmRouter02 is IUnifarmRouter02 {
         public
         view
         virtual
-        override
         returns (uint256[] memory amounts)
     {
         return UnifarmLibrary.getAmountsIn(factory, amountOut, path);

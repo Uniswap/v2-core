@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity 0.6.6;
+pragma solidity =0.5.16;
 
 contract WETH9 {
-    string public name = "Wrapped Ether";
-    string public symbol = "WETH";
+    string public name = 'Wrapped Ether';
+    string public symbol = 'WETH';
     uint8 public decimals = 18;
 
     event Approval(address indexed src, address indexed guy, uint256 wad);
@@ -21,7 +20,7 @@ contract WETH9 {
     }
 
     function withdraw(uint256 wad) public {
-        require(balanceOf[msg.sender] >= wad, "WETH9: Error");
+        require(balanceOf[msg.sender] >= wad, 'WETH9: Error');
         balanceOf[msg.sender] -= wad;
         msg.sender.transfer(wad);
         emit Withdrawal(msg.sender, wad);
@@ -46,10 +45,10 @@ contract WETH9 {
         address dst,
         uint256 wad
     ) public returns (bool) {
-        require(balanceOf[src] >= wad, "WETH9: Error");
+        require(balanceOf[src] >= wad, 'WETH9: Error');
 
         if (src != msg.sender && allowance[src][msg.sender] != uint256(-1)) {
-            require(allowance[src][msg.sender] >= wad, "WETH9: Error");
+            require(allowance[src][msg.sender] >= wad, 'WETH9: Error');
             allowance[src][msg.sender] -= wad;
         }
 
