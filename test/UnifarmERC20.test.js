@@ -119,6 +119,7 @@ describe('UnifarmERC20', function() {
   })
 
   it('decreaseAllowance', async () => {
+    await token.increaseAllowance(wallet.address, TEST_AMOUNT)
     await expect(token.decreaseAllowance(wallet.address, TEST_AMOUNT)).to.emit(token, 'Approval') // ds-math-sub-underflow
   })
 })

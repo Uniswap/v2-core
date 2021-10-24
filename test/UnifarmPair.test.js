@@ -161,6 +161,46 @@ describe('UnifarmPair', () => {
     expect(receipt.gasUsed).to.gte(73462)
   })
 
+  describe('should swap for various liquidity levels in a pool', () => {
+    // taking liquidity precision as 100000
+    const percentage = [1, 10, 100, 1000, 2000, 10000, 20000, 30000, 40000, 50000, 80000, 100000]
+    const token0Amount = BigNumber.from(expandTo18Decimals(10))
+    const token1Amount = BigNumber.from(expandTo18Decimals(10))
+    const token1WithoutFees = token1Amount.mul(1000 - lpFee).div(1000)
+    const token0WithoutFees = token0Amount.mul(1000 - lpFee).div(1000)
+    let reserves
+
+    beforeEach(async () => {
+      await token0.transfer(pair.address, token0Amount)
+      await token1.transfer(pair.address, token1Amount)
+
+      await addLiquidity(token0Amount, token1Amount, other)
+
+      reserves = await pair.getReserves()
+
+      await ethers.provider.send('evm_mine')
+      await pair.sync()
+    })
+
+    for (let index = 0; index < percentage.length; index++) {
+      const swapAmount = token0WithoutFees.mul(percentage[index]).div(100000)
+
+      it(`(swap ${swapAmount}`, async () => {
+        await token0.transfer(pair.address, swapAmount)
+        await ethers.provider.send('evm_mine')
+
+        const amountInWithFee = swapAmount.mul(997)
+        const numerator = amountInWithFee.mul(reserves[1])
+        const denominator = reserves[0].mul(1000).add(amountInWithFee)
+        const amountOut = numerator.div(denominator)
+
+        await expect(pair.swap(0, amountOut, wallet.address, '0x'))
+          .to.emit(pair, 'Swap')
+          .withArgs(wallet.address, swapAmount, 0, 0, amountOut, wallet.address)
+      })
+    }
+  })
+
   it('skim', async () => {
     await expect(pair.connect(other).skim(AddressZero)).to.be.revertedWith('Unifarm: to ZERO ADDRESS')
     await pair.skim(wallet.address)
