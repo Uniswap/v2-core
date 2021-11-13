@@ -57,7 +57,7 @@
     "typescript": "^4.3.5"
   },
   "scripts": {
-    "lint": "prettier --check test contracts",
+    "lint": "prettier --check test contracts tasks && solhint 'contracts/**/*.sol'",
     "lint:fix": "prettier --write test contracts tasks",
     "clean": "rimraf artifacts cache types",
     "precompile": "yarn clean",

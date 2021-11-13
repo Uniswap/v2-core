@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+//solhint-disable-next-line compiler-version
 pragma solidity >=0.5.0;
+
+//solhint-disable func-name-mixedcase
 
 interface IUniswapV2Pair {
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
