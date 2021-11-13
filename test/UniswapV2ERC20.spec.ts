@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
-import { ERC20 } from "../types";
+import { ERC20 } from "../typechain";
 import { expandTo18Decimals, getApprovalDigest } from "./shared/utilities";
 import type { Wallet } from "ethers";
 import { BigNumber } from "ethers";

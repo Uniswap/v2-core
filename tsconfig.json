@@ -1,12 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
-    "strict": true,
     "esModuleInterop": true,
-    "outDir": "build",
-    "resolveJsonModule": true
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2021"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2021"
   },
-  "include": ["./scripts", "./test", "./types"],
-  "files": ["./hardhat.config.ts"]
+  "exclude": ["node_modules"],
+  "files": ["./hardhat.config.ts"],
+  "include": ["tasks", "test", "typechain", "scripts", "deploy"]
 }

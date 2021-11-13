@@ -7,7 +7,7 @@ import {
   encodePrice,
   setNextBlockTime,
 } from "./shared/utilities";
-import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../types";
+import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../typechain";
 import { MockProvider } from "@ethereum-waffle/provider";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3);

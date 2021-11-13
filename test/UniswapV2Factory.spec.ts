@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { constants as ethconst, Wallet } from "ethers";
-import { UniswapV2Factory } from "../types";
+import { UniswapV2Factory } from "../typechain";
 
 import { getCreate2Address } from "./shared/utilities";
 import { ethers, waffle } from "hardhat";
