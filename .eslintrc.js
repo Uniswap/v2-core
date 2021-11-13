@@ -5,33 +5,30 @@ module.exports = {
     mocha: true,
     node: true,
   },
-  plugins: ["@typescript-eslint"],
   extends: [
-    "standard",
-    "plugin:prettier/recommended",
-    "plugin:node/recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
   ],
   parser: "@typescript-eslint/parser",
-  parserOptions: {
-    ecmaVersion: 12,
-  },
+  plugins: ["@typescript-eslint"],
+  root: true,
   rules: {
-    "node/no-unsupported-features/es-syntax": [
+    "@typescript-eslint/no-floating-promises": [
       "error",
-      { ignores: ["modules"] },
-    ],
-    "import/resolver": {
-      node: {
-        extensions: [".js", ".jsx", ".ts", ".tsx"],
-        moduleDirectory: [
-          "node_modules",
-          "test",
-          "typechain",
-          "tasks",
-          "scripts",
-          "deploy",
-        ],
+      {
+        ignoreIIFE: true,
+        ignoreVoid: true,
       },
-    },
+    ],
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "_",
+        varsIgnorePattern: "_",
+      },
+    ],
   },
 };
