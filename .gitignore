@@ -5,7 +5,7 @@ cache
 artifacts
 build
 .env
-types
+typechain
 
 # yarn cache
 # https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
