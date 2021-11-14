@@ -5,5 +5,8 @@
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["node_modules"],
+  "include": ["./deploy", "./test"],
+  "files": ["./hardhat.config.ts"]
 }
