@@ -8,7 +8,7 @@ import { BigNumber } from "ethers";
 const TOTAL_SUPPLY = expandTo18Decimals(10000);
 const TEST_AMOUNT = expandTo18Decimals(10);
 
-describe("UniswapV2ERC20", () => {
+describe("KodiaqERC20", () => {
   const loadFixture = waffle.createFixtureLoader(
     waffle.provider.getWallets(),
     waffle.provider

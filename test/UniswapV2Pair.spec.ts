@@ -7,12 +7,12 @@ import {
   encodePrice,
   setNextBlockTime,
 } from "./shared/utilities";
-import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../typechain";
+import { KodiaqFactory, KodiaqPair, ERC20 } from "../typechain";
 import { MockProvider } from "@ethereum-waffle/provider";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3);
 
-describe("UniswapV2Pair", () => {
+describe("KodiaqPair", () => {
   const loadFixture = waffle.createFixtureLoader(
     waffle.provider.getWallets(),
     waffle.provider
@@ -20,8 +20,8 @@ describe("UniswapV2Pair", () => {
 
   async function fixture([wallet, other]: Wallet[], provider: MockProvider) {
     const factory = (await (
-      await ethers.getContractFactory("UniswapV2Factory")
-    ).deploy(wallet.address)) as UniswapV2Factory;
+      await ethers.getContractFactory("KodiaqFactory")
+    ).deploy(wallet.address)) as KodiaqFactory;
 
     const tokenA = (await (
       await ethers.getContractFactory("ERC20")
@@ -31,9 +31,9 @@ describe("UniswapV2Pair", () => {
     ).deploy(expandTo18Decimals(10000))) as ERC20;
 
     await factory.createPair(tokenA.address, tokenB.address);
-    const pair = (await ethers.getContractFactory("UniswapV2Pair")).attach(
+    const pair = (await ethers.getContractFactory("KodiaqPair")).attach(
       await factory.getPair(tokenA.address, tokenB.address)
-    ) as UniswapV2Pair;
+    ) as KodiaqPair;
     const token0Address = await pair.token0();
     const token0 = tokenA.address === token0Address ? tokenA : tokenB;
     const token1 = tokenA.address === token0Address ? tokenB : tokenA;
@@ -76,7 +76,7 @@ describe("UniswapV2Pair", () => {
   async function addLiquidity(
     token0: ERC20,
     token1: ERC20,
-    pair: UniswapV2Pair,
+    pair: KodiaqPair,
     wallet: Wallet,
     token0Amount: BigNumber,
     token1Amount: BigNumber
@@ -120,7 +120,7 @@ describe("UniswapV2Pair", () => {
       await token0.transfer(pair.address, swapAmount);
       await expect(
         pair.swap(0, expectedOutputAmount.add(1), wallet.address, "0x")
-      ).to.be.revertedWith("UniswapV2: K");
+      ).to.be.revertedWith("Kodiaq: K");
       await pair.swap(0, expectedOutputAmount, wallet.address, "0x");
     });
   });
@@ -152,7 +152,7 @@ describe("UniswapV2Pair", () => {
       await token0.transfer(pair.address, inputAmount);
       await expect(
         pair.swap(outputAmount.add(1), 0, wallet.address, "0x")
-      ).to.be.revertedWith("UniswapV2: K");
+      ).to.be.revertedWith("Kodiaq: K");
       await pair.swap(outputAmount, 0, wallet.address, "0x");
     });
   });
@@ -301,7 +301,7 @@ describe("UniswapV2Pair", () => {
     );
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, "0x");
     const receipt = await tx.wait();
-    expect(receipt.gasUsed).to.eq(74345);
+    expect(receipt.gasUsed).to.eq(73952);
   });
 
   it("burn", async () => {

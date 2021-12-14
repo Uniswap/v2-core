@@ -1,21 +1,20 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity =0.8.4;
+pragma solidity ^0.8.10;
 
-import "./interfaces/IUniswapV2Pair.sol";
-import "./UniswapV2ERC20.sol";
+import "./interfaces/IKodiaqPair.sol";
+import "./KodiaqERC20.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
 import "./interfaces/IERC20.sol";
-import "./interfaces/IUniswapV2Factory.sol";
-import "./interfaces/IUniswapV2Callee.sol";
-
+import "./interfaces/IKodiaqFactory.sol";
+import "./interfaces/IKodiaqCallee.sol";
 //solhint-disable func-name-mixedcase
 //solhint-disable avoid-low-level-calls
 //solhint-disable reason-string
 //solhint-disable not-rely-on-time
 
-contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
+contract KodiaqPair is IKodiaqPair, KodiaqERC20 {
     using UQ112x112 for uint224;
 
     uint256 public constant override MINIMUM_LIQUIDITY = 10**3;
@@ -33,8 +32,9 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     uint256 public override kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
     uint256 private unlocked = 1;
+
     modifier lock() {
-        require(unlocked == 1, "UniswapV2: LOCKED");
+        require(unlocked == 1, "Kodiaq: LOCKED");
         unlocked = 0;
         _;
         unlocked = 1;
@@ -65,17 +65,17 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         );
         require(
             success && (data.length == 0 || abi.decode(data, (bool))),
-            "UniswapV2: TRANSFER_FAILED"
+            "Kodiaq: TRANSFER_FAILED"
         );
     }
 
-    constructor() {
+    constructor() KodiaqERC20("Kodiaq LP", "KDAQ-LP", 18) {
         factory = msg.sender;
     }
 
     // called once by the factory at time of deployment
     function initialize(address _token0, address _token1) external override {
-        require(msg.sender == factory, "UniswapV2: FORBIDDEN"); // sufficient check
+        require(msg.sender == factory, "Kodiaq: FORBIDDEN"); // sufficient check
         token0 = _token0;
         token1 = _token1;
     }
@@ -89,7 +89,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     ) private {
         require(
             balance0 <= type(uint112).max && balance1 <= type(uint112).max,
-            "UniswapV2: OVERFLOW"
+            "Kodiaq: OVERFLOW"
         );
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
@@ -113,7 +113,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         private
         returns (bool feeOn)
     {
-        address feeTo = IUniswapV2Factory(factory).feeTo();
+        address feeTo = IKodiaqFactory(factory).feeTo();
         feeOn = feeTo != address(0);
         uint256 _kLast = kLast; // gas savings
         if (feeOn) {
@@ -156,7 +156,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
                 (amount1 * _totalSupply) / _reserve1
             );
         }
-        require(liquidity > 0, "UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED");
+        require(liquidity > 0, "Kodiaq: INSUFFICIENT_LIQUIDITY_MINTED");
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -184,7 +184,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         amount1 = (liquidity * balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(
             amount0 > 0 && amount1 > 0,
-            "UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED"
+            "Kodiaq: INSUFFICIENT_LIQUIDITY_BURNED"
         );
         _burn(address(this), liquidity);
         _safeTransfer(_token0, to, amount0);
@@ -206,12 +206,12 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     ) external override lock {
         require(
             amount0Out > 0 || amount1Out > 0,
-            "UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT"
+            "Kodiaq: INSUFFICIENT_OUTPUT_AMOUNT"
         );
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         require(
             amount0Out < _reserve0 && amount1Out < _reserve1,
-            "UniswapV2: INSUFFICIENT_LIQUIDITY"
+            "Kodiaq: INSUFFICIENT_LIQUIDITY"
         );
 
         uint256 balance0;
@@ -220,11 +220,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             // scope for _token{0,1}, avoids stack too deep errors
             address _token0 = token0;
             address _token1 = token1;
-            require(to != _token0 && to != _token1, "UniswapV2: INVALID_TO");
+            require(to != _token0 && to != _token1, "Kodiaq: INVALID_TO");
             if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
             if (data.length > 0)
-                IUniswapV2Callee(to).uniswapV2Call(
+                IKodiaqCallee(to).KodiaqCall(
                     msg.sender,
                     amount0Out,
                     amount1Out,
@@ -241,7 +241,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             : 0;
         require(
             amount0In > 0 || amount1In > 0,
-            "UniswapV2: INSUFFICIENT_INPUT_AMOUNT"
+            "Kodiaq: INSUFFICIENT_INPUT_AMOUNT"
         );
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
@@ -250,7 +250,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
             require(
                 balance0Adjusted * balance1Adjusted >=
                     uint256(_reserve0) * _reserve1 * 1e6,
-                "UniswapV2: K"
+                "Kodiaq: K"
             );
         }
 

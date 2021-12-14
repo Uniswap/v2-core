@@ -4,7 +4,7 @@
 pragma solidity >=0.5.0;
 
 //solhint-disable func-name-mixedcase
-interface IUniswapV2ERC20 {
+interface IKodiaqERC20 {
     event Approval(
         address indexed owner,
         address indexed spender,

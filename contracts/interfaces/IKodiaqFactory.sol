@@ -3,7 +3,7 @@
 //solhint-disable-next-line compiler-version
 pragma solidity >=0.5.0;
 
-interface IUniswapV2Factory {
+interface IKodiaqFactory {
     event PairCreated(
         address indexed token0,
         address indexed token1,

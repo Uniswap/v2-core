@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity =0.8.4;
+pragma solidity ^0.8.10;
 
-import "./interfaces/IUniswapV2Factory.sol";
-import "./UniswapV2Pair.sol";
+import "./interfaces/IKodiaqFactory.sol";
+import "./KodiaqPair.sol";
 
-contract UniswapV2Factory is IUniswapV2Factory {
+contract KodiaqFactory is IKodiaqFactory {
     address public override feeTo;
     address public override feeToSetter;
 
@@ -25,22 +25,22 @@ contract UniswapV2Factory is IUniswapV2Factory {
         override
         returns (address pair)
     {
-        require(tokenA != tokenB, "UniswapV2: IDENTICAL_ADDRESSES");
+        require(tokenA != tokenB, "Kodiaq: IDENTICAL_ADDRESSES");
         (address token0, address token1) = tokenA < tokenB
             ? (tokenA, tokenB)
             : (tokenB, tokenA);
-        require(token0 != address(0), "UniswapV2: ZERO_ADDRESS");
+        require(token0 != address(0), "Kodiaq: ZERO_ADDRESS");
         require(
             getPair[token0][token1] == address(0),
-            "UniswapV2: PAIR_EXISTS"
+            "Kodiaq: PAIR_EXISTS"
         ); // single check is sufficient
 
         pair = address(
-            new UniswapV2Pair{
+            new KodiaqPair{
                 salt: keccak256(abi.encodePacked(token0, token1))
             }()
         );
-        IUniswapV2Pair(pair).initialize(token0, token1);
+        IKodiaqPair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -48,12 +48,12 @@ contract UniswapV2Factory is IUniswapV2Factory {
     }
 
     function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, "UniswapV2: FORBIDDEN");
+        require(msg.sender == feeToSetter, "Kodiaq: FORBIDDEN");
         feeTo = _feeTo;
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, "UniswapV2: FORBIDDEN");
+        require(msg.sender == feeToSetter, "Kodiaq: FORBIDDEN");
         feeToSetter = _feeToSetter;
     }
 }
