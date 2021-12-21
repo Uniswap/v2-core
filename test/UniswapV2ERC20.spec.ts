@@ -1,8 +1,8 @@
 import chai, { expect } from 'chai'
-import {Contract, providers, Wallet} from 'ethers'
+import { Contract, providers, Wallet } from 'ethers'
 import { MaxUint256 } from 'ethers/constants'
 import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from 'ethers/utils'
-import { solidity, MockProvider, deployContract } from 'ethereum-waffle'
+import { solidity, deployContract } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
 import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
@@ -17,10 +17,16 @@ const TEST_AMOUNT = expandTo18Decimals(10)
 const CHAIN_ID = 111
 
 describe('UniswapV2ERC20', () => {
+  // const provider = new MockProvider({
+  //   hardfork: 'istanbul',
+  //   mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
+  //   gasLimit: 9999999
+  // })
+  // const [wallet, other] = provider.getWallets()
 
-  const provider_sol = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", { name: "solana", chainId: CHAIN_ID });
-  const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider_sol)
-  const other = Wallet.createRandom().connect(provider_sol)
+  const provider = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", { name: "solana", chainId: CHAIN_ID })
+  const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider)
+  const other = Wallet.createRandom().connect(provider)
 
   let token: Contract
   beforeEach(async () => {
@@ -29,8 +35,8 @@ describe('UniswapV2ERC20', () => {
 
   it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
     const name = await token.name()
-    expect(name).to.eq('Uniswap V2')
-    expect(await token.symbol()).to.eq('UNI-V2')
+    expect(name).to.eq('Neonswap V2')
+    expect(await token.symbol()).to.eq('NSWAP-V2')
     expect(await token.decimals()).to.eq(18)
     expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
     expect(await token.balanceOf(wallet.address)).to.eq(TOTAL_SUPPLY)

@@ -1,5 +1,4 @@
 import { Contract } from 'ethers'
-import {JsonRpcProvider, Web3Provider} from 'ethers/providers'
 import {
   BigNumber,
   bigNumberify,
@@ -39,6 +38,7 @@ export function getCreate2Address(
   bytecode: string
 ): string {
   const [token0, token1] = tokenA < tokenB ? [tokenA, tokenB] : [tokenB, tokenA]
+  // console.log("keccak256(bytecode): "+keccak256(bytecode))
   const create2Inputs = [
     '0xff',
     factoryAddress,
