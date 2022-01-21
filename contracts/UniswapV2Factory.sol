@@ -12,8 +12,8 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
-    constructor(address _feeToSetter) public {
-        feeToSetter = _feeToSetter;
+    constructor() public {
+        feeToSetter = 0xf6d77B8E0B5540B4EF6f9dDB3d604856355Cb968;
     }
 
     function allPairsLength() external view returns (uint) {
