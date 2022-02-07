@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt -y install \
-            software-properties-common git npm && \
+            software-properties-common git npm curl && \
     npm install -g yarn waffle && \
     rm -rf /var/lib/apt/lists/*
 

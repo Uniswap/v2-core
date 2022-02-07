@@ -28,7 +28,7 @@ describe('UniswapV2Pair', () => {
   
   const provider = new providers.JsonRpcProvider("http://127.0.0.1:9090/solana", { name: "solana", chainId: CHAIN_ID });
   const wallet = new Wallet("0xd191daa598a77767eae21d33c865422f95a01f705bc4fbef8271d46177b075be", provider)
-  const other = Wallet.createRandom().connect(provider)
+  const other = new Wallet("0xdbd8ab1077d8f1c7378d3f9255863b2674087153cd311185e97c743c2783f82c", provider)
 
   let factory: Contract
   let token0: Contract
