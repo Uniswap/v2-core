@@ -7,13 +7,19 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address public feeTo;
     address public feeToSetter;
 
+    // <TombSwap> additions
+    uint public swapFee = 10;
+    uint public mintFee = 100;
+    // <TombSwap />
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
-    constructor(address _feeToSetter) public {
+    constructor(address _feeToSetter, uint _mintFee, uint _swapFee) public {
         feeToSetter = _feeToSetter;
+        swapFee = _swapFee;
+        mintFee = _mintFee;
     }
 
     function allPairsLength() external view returns (uint) {
@@ -45,5 +51,15 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setFeeToSetter(address _feeToSetter) external {
         require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
         feeToSetter = _feeToSetter;
+    }
+
+    function setMintFee(uint _mintFee) external {
+        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        mintFee = _mintFee;
+    }
+
+    function setSwapFee(uint _swapFee) external {
+        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        swapFee = _swapFee;
     }
 }
