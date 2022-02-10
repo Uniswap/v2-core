@@ -6,6 +6,11 @@ interface IUniswapV2Factory {
     function feeTo() external view returns (address);
     function feeToSetter() external view returns (address);
 
+    // <TombSwap> additions
+    function mintFee() external view returns (uint);
+    function swapFee() external view returns (uint);
+    // <TombSwap />
+
     function getPair(address tokenA, address tokenB) external view returns (address pair);
     function allPairs(uint) external view returns (address pair);
     function allPairsLength() external view returns (uint);

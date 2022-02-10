@@ -11,6 +11,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
     uint public swapFee = 10;
     uint public mintFee = 100;
     // <TombSwap />
+    
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
