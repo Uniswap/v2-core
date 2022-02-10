@@ -8,10 +8,10 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address public feeToSetter;
 
     // <TombSwap> additions
-    uint public swapFee = 10;
-    uint public mintFee = 100;
+    uint public mintFee;
+    uint public swapFee;
     // <TombSwap />
-    
+
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
@@ -19,8 +19,8 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     constructor(address _feeToSetter, uint _mintFee, uint _swapFee) public {
         feeToSetter = _feeToSetter;
-        swapFee = _swapFee;
         mintFee = _mintFee;
+        swapFee = _swapFee;
     }
 
     function allPairsLength() external view returns (uint) {
