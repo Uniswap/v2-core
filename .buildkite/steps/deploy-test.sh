@@ -48,12 +48,14 @@ export PROXY_URL=http://127.0.0.1:9090/solana
 
 echo "Wait proxy..." && wait-for-proxy "$PROXY_URL"
 
+export FAUCET_URL=$(docker exec proxy bash -c 'echo "$FAUCET_URL"')
+
 echo "Run tests..."
-docker run --rm -ti --network=host \
+docker run --rm -ti --network=container:proxy \
+     -e FAUCET_URL \
      --entrypoint ./deploy-test.sh \
      $UNISWAP_V2_CORE_IMAGE \
      ${EXTRA_ARGS:-"all"}
 
 echo "Run tests return"
 exit 0
-
