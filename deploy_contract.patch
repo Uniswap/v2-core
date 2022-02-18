@@ -5,7 +5,7 @@
  import { isStandard, hasByteCode } from './ContractJSON';
  const defaultDeployOptions = {
 -    gasLimit: 4000000,
-+    gasLimit: 5000000,
++    gasLimit: 1000000000,
      gasPrice: 9000000000
  };
  export async function deployContract(wallet, contractJSON, args = [], overrideOptions = {}) {
@@ -16,7 +16,7 @@
  const ContractJSON_1 = require("./ContractJSON");
  const defaultDeployOptions = {
 -    gasLimit: 4000000,
-+    gasLimit: 5000000,
++    gasLimit: 1000000000,
      gasPrice: 9000000000
  };
  async function deployContract(wallet, contractJSON, args = [], overrideOptions = {}) {

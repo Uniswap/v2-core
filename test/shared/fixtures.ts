@@ -13,7 +13,7 @@ interface FactoryFixture {
 }
 
 const overrides = {
-  gasLimit: 9999999
+  gasLimit: 1000000000
 }
 export async function factoryFixture(_: JsonRpcProvider, [wallet]: Wallet[]): Promise<FactoryFixture> {
   const factory = await deployContract(wallet, UniswapV2Factory, [wallet.address], overrides)
