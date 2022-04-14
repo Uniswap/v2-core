@@ -1,2 +1,19 @@
-node_modules/
-build/
+#Hardhat files
+cache
+artifacts
+node_modules
+build
+
+#coverage file
+coverage
+coverage.json
+
+
+#vs code files
+.vscode
+
+#environment file
+.env
+
+#notebook file
+simulation/.ipynb_checkpoints/

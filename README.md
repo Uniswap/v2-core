@@ -1,15 +1,32 @@
-# Uniswap V2
+# Dynamic Automated Market Maker
+## Introduction
+[![built-with openzeppelin](https://img.shields.io/badge/built%20with-OpenZeppelin-3677FF)](https://docs.openzeppelin.com/)
+[![Build Status](https://api.travis-ci.com/dynamic-amm/smart-contracts.svg?branch=master&status=passed)](https://travis-ci.com/github/KyberNetwork/kyber_reserves_sc)
 
-[![Actions Status](https://github.com/Uniswap/uniswap-v2-core/workflows/CI/badge.svg)](https://github.com/Uniswap/uniswap-v2-core/actions)
-[![Version](https://img.shields.io/npm/v/@uniswap/v2-core)](https://www.npmjs.com/package/@uniswap/v2-core)
+This repository contains the dynamic-amm smart contracts.
+For more details, please visit the white paper([dynamic fee](https://github.com/dynamic-amm/dmm-protocol/blob/main/xyz.pdf)  and [amplfication algorithm](https://github.com/dynamic-amm/dmm-protocol/blob/main/apr_v2.pdf))and our [change log](CHANGELOG.md) (compared to uniswap)
 
-In-depth documentation on Uniswap V2 is available at [uniswap.org](https://uniswap.org/docs).
+## Package Manager
+We use `yarn` as the package manager. You may use `npm` and `npx` instead, but commands in bash scripts may have to be changed accordingly.
 
-The built contract artifacts can be browsed via [unpkg.com](https://unpkg.com/browse/@uniswap/v2-core@latest/).
+## Requirements
+- The following assumes the use of `node@>=10`.
 
-# Local Development
+- For interactions or contract deployments on public testnets / mainnet, create a `.env` file specifying your private key and infura api key, with the following format:
 
-The following assumes the use of `node@>=10`.
+```
+PRIVATE_KEY=0x****************************************************************
+INFURA_API_KEY=********************************
+ETHERSCAN_API_KEY=********************************
+```
+
+# Setup
+For interactions or contract deployments on public testnets / mainnet, create a .env file specifying your private key and infura api key, with the following format:
+```
+INFURA_API_KEY = 'xxxxx'
+ETHERSCAN_API_KEY = 'xxxxx'
+PRIVATE_KEY = 'xxxxx'
+```
 
 ## Install Dependencies
 
@@ -22,3 +39,7 @@ The following assumes the use of `node@>=10`.
 ## Run Tests
 
 `yarn test`
+
+## Run coverage
+
+`./coverage.sh`
