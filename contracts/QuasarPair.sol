@@ -127,7 +127,8 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
     uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
     if (_totalSupply == 0) {
       liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-      _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
+      _mint(factory, MINIMUM_LIQUIDITY);
+      _burn(factory, MINIMUM_LIQUIDITY);
     } else {
       liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
     }
