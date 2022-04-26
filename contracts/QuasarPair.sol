@@ -1,10 +1,10 @@
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/utils/math/Math.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import './QuasarERC20.sol';
 import './libraries/UQ112x112.sol';
+import './libraries/Math.sol';
 import './interfaces/IQuasarPair.sol';
 import './interfaces/IQuasarFactory.sol';
 
