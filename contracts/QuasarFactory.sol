@@ -1,18 +1,19 @@
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/utils/Context.sol';
 import './interfaces/IQuasarFactory.sol';
+import './interfaces/IQuasarPair.sol';
 import './QuasarPair.sol';
 
-contract QuasarFactory is IQuasarFactory, Ownable {
+contract QuasarFactory is IQuasarFactory, Context {
   address public feeTo;
   address public feeToSetter;
 
   mapping(address => mapping(address => address)) public getPair;
   address[] public allPairs;
 
-  constructor(address _feeToSetter) public {
-    feeToSetter = _feeToSetter;
+  constructor() public {
+    feeToSetter = _msgSender();
   }
 
   function allPairsLength() external view returns (uint256) {
@@ -42,7 +43,7 @@ contract QuasarFactory is IQuasarFactory, Ownable {
   }
 
   function setFeeToSetter(address _feeToSetter) external {
-    require(_msgSender() == feeToSetter, 'UniswapV2: FORBIDDEN');
+    require(_msgSender() == feeToSetter, 'Quasar: FORBIDDEN');
     feeToSetter = _feeToSetter;
   }
 }
