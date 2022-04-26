@@ -1,8 +1,8 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "@vefi-dex/v1-core",
+  "description": "Core smart contracts for the Vefi DEX",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://vefinetwork.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/Uniswap/uniswap-v2-core"
@@ -22,20 +22,17 @@
     "node": ">=10"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.6",
-    "@types/mocha": "^5.2.7",
-    "chai": "^4.2.0",
-    "ethereum-waffle": "^2.4.1",
-    "ethereumjs-util": "^6.2.0",
-    "mocha": "^6.2.2",
-    "prettier": "^1.19.1",
-    "rimraf": "^3.0.0",
-    "solc": "0.5.16",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "@openzeppelin/contracts": "^4.6.0",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@truffle/hdwallet-provider": "^2.0.7",
+    "bignumber.js": "^9.0.2",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^3.0.0",
+    "dotenv": "^16.0.0"
   },
   "scripts": {
-    "lint": "yarn prettier ./test/*.ts --check",
+    "format": "prettier --write **/**/*.{js,json,sol}",
     "lint:fix": "yarn prettier ./test/*.ts --write",
     "clean": "rimraf ./build/",
     "precompile": "yarn clean",
