@@ -8,11 +8,10 @@
     "url": "https://github.com/Uniswap/uniswap-v2-core"
   },
   "keywords": [
-    "uniswap",
-    "ethereum",
-    "v2",
-    "core",
-    "uniswap-v2"
+    "quasar",
+    "bitger",
+    "v1",
+    "core"
   ],
   "files": [
     "contracts",
@@ -36,7 +35,7 @@
     "lint:fix": "yarn prettier ./test/*.ts --write",
     "clean": "rimraf ./build/",
     "precompile": "yarn clean",
-    "compile": "waffle .waffle.json",
+    "compile": "truffle compile",
     "pretest": "yarn compile",
     "test": "mocha",
     "prepublishOnly": "yarn test"
