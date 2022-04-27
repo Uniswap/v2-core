@@ -5,7 +5,7 @@
   "homepage": "https://vefinetwork.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/VeFi-Network/dex-smart-contracts-core"
   },
   "keywords": [
     "quasar",
