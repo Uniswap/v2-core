@@ -12,7 +12,7 @@ contract QuasarFactory is IQuasarFactory, Context {
   mapping(address => mapping(address => address)) public getPair;
   address[] public allPairs;
 
-  constructor() public {
+  constructor() {
     feeToSetter = _msgSender();
   }
 

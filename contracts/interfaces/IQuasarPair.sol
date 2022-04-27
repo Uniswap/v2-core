@@ -1,10 +1,6 @@
 pragma solidity ^0.8.0;
 
 interface IQuasarPair {
-  function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-  function PERMIT_TYPEHASH() external pure returns (bytes32);
-
   event Mint(address indexed sender, uint256 amount0, uint256 amount1);
   event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
   event Swap(
@@ -47,8 +43,7 @@ interface IQuasarPair {
   function swap(
     uint256 amount0Out,
     uint256 amount1Out,
-    address to,
-    bytes calldata data
+    address to
   ) external;
 
   function skim(address to) external;

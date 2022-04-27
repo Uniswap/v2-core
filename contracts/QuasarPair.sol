@@ -50,19 +50,7 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
     require(success && (data.length == 0 || abi.decode(data, (bool))), 'QUASAR: TRANSFER_FAILED');
   }
 
-  event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-  event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
-  event Swap(
-    address indexed sender,
-    uint256 amount0In,
-    uint256 amount1In,
-    uint256 amount0Out,
-    uint256 amount1Out,
-    address indexed to
-  );
-  event Sync(uint112 reserve0, uint112 reserve1);
-
-  constructor() public {
+  constructor() {
     factory = _msgSender();
   }
 
@@ -80,7 +68,7 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
     uint112 _reserve0,
     uint112 _reserve1
   ) private {
-    require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'Quasar: OVERFLOW');
+    require(balance0 <= uint112(uint256(int256(-1))) && balance1 <= uint112(uint256(int256(-1))), 'Quasar: OVERFLOW');
     uint32 blockTimestamp = uint32(block.timestamp % 2**32);
     uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
     if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
@@ -104,7 +92,7 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
         uint256 rootK = Math.sqrt(uint256(_reserve0).mul(_reserve1));
         uint256 rootKLast = Math.sqrt(_kLast);
         if (rootK > rootKLast) {
-          uint256 numerator = totalSupply.mul(rootK.sub(rootKLast));
+          uint256 numerator = totalSupply().mul(rootK.sub(rootKLast));
           uint256 denominator = rootK.mul(5).add(rootKLast);
           uint256 liquidity = numerator / denominator;
           if (liquidity > 0) _mint(feeTo, liquidity);
@@ -124,7 +112,7 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
     uint256 amount1 = balance1.sub(_reserve1);
 
     bool feeOn = _mintFee(_reserve0, _reserve1);
-    uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+    uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
     if (_totalSupply == 0) {
       liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
       _mint(factory, MINIMUM_LIQUIDITY);
@@ -147,10 +135,10 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
     address _token1 = token1; // gas savings
     uint256 balance0 = IERC20(_token0).balanceOf(address(this));
     uint256 balance1 = IERC20(_token1).balanceOf(address(this));
-    uint256 liquidity = balanceOf[address(this)];
+    uint256 liquidity = balanceOf(address(this));
 
     bool feeOn = _mintFee(_reserve0, _reserve1);
-    uint256 _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+    uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
     amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
     amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
     require(amount0 > 0 && amount1 > 0, 'Quasar: INSUFFICIENT_LIQUIDITY_BURNED');
@@ -169,8 +157,7 @@ contract QuasarPair is IQuasarPair, QuasarERC20, ReentrancyGuard {
   function swap(
     uint256 amount0Out,
     uint256 amount1Out,
-    address to,
-    bytes calldata data
+    address to
   ) external nonReentrant {
     require(amount0Out > 0 || amount1Out > 0, 'Quasar: INSUFFICIENT_OUTPUT_AMOUNT');
     (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings

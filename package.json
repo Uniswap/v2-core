@@ -9,7 +9,7 @@
   },
   "keywords": [
     "quasar",
-    "bitger",
+    "bitgert",
     "v1",
     "core"
   ],
@@ -33,11 +33,11 @@
   "scripts": {
     "format": "prettier --write **/**/*.{js,json,sol}",
     "lint:fix": "yarn prettier ./test/*.ts --write",
-    "clean": "rimraf ./build/",
+    "clean": "rm -rf ./build/",
     "precompile": "yarn clean",
     "compile": "truffle compile",
     "pretest": "yarn compile",
-    "test": "mocha",
+    "test": "truffle test --network development",
     "prepublishOnly": "yarn test"
   },
   "license": "GPL-3.0-or-later"
