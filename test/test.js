@@ -19,4 +19,18 @@ contract('Core', ([account1, account2, account3]) => {
   it('should create pair', async () => {
     expectEvent(await factory.createPair(token1.address, token2.address), 'PairCreated');
   });
+
+  it('should send tokens to newly created pair', async () => {
+    const pair = await factory.allPairs(0);
+    await token1.transfer(pair, web3.utils.toWei('100000000'));
+    await token2.transfer(pair, web3.utils.toWei('100000000'));
+    const balance1 = await token1.balanceOf(pair);
+    const balance2 = await token2.balanceOf(pair);
+    balance1.toString().should.be.bignumber.equal(web3.utils.toWei('100000000'));
+    balance2.toString().should.be.bignumber.equal(web3.utils.toWei('100000000'));
+  });
+
+  it('should mint tokens to user', async () => {
+    const pair = await factory.allPairs(0);
+  });
 });
