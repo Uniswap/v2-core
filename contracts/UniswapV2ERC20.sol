@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// This software is derived from Uniswap software
+
 pragma solidity =0.5.16;
 
 import './interfaces/IUniswapV2ERC20.sol';
@@ -6,8 +10,8 @@ import './libraries/SafeMath.sol';
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     using SafeMath for uint;
 
-    string public constant name = 'Uniswap V2';
-    string public constant symbol = 'UNI-V2';
+    string public constant name = 'ETC-SWAP';
+    string public constant symbol = 'ETC_SWAP';
     uint8 public constant decimals = 18;
     uint  public totalSupply;
     mapping(address => uint) public balanceOf;
