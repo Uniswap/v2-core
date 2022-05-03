@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Zinsmeister"
+  given-names: "Noah"
+- family-names: "Adams"
+  given-names: "Hayden"
+- family-names: "Robinson"
+  given-names: "Dan"
+- family-names: "Salem"
+  given-names: "Moody"
+title: "v2-core"
+version: 1.0.1
+date-released: 2019-05-03
+url: "https://github.com/Uniswap/v2-core"
