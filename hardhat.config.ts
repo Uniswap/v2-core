@@ -35,7 +35,7 @@ module.exports = {
     astar: {
       url: "https://evm.astar.network",
       chainId: 592,
-      accounts: process.env.PRIVATE_KEY,
+      accounts: [process.env.PRIVATE_KEY],
     },
   }
 };
