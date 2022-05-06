@@ -1,18 +1,19 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "penta-swap",
+  "description": "penta-swap",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://twitter.com/penta_web3",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/wall-of-death/penta-swap"
   },
   "keywords": [
     "uniswap",
     "ethereum",
     "v2",
     "core",
-    "uniswap-v2"
+    "uniswap-v2",
+    "penta"
   ],
   "files": [
     "contracts",
@@ -22,6 +23,7 @@
     "node": ">=10"
   },
   "devDependencies": {
+    "dotenv": "^16.0.0",
     "hardhat": "^2.9.3",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
