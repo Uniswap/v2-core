@@ -22,6 +22,7 @@
     "node": ">=10"
   },
   "devDependencies": {
+    "hardhat": "^2.9.3",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0",
