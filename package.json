@@ -37,7 +37,8 @@
   },
   "scripts": {
     "lint": "yarn prettier ./test/*.ts --check",
-    "lint:fix": "yarn prettier ./test/*.ts --write"
+    "lint:fix": "yarn prettier ./test/*.ts --write",
+    "deploy": "yarn hardhat run scripts/deploy.ts"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
