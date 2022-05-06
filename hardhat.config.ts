@@ -2,6 +2,9 @@
  * @type import('hardhat/config').HardhatUserConfig
  */
  import * as dotenv from "dotenv";
+ import "@typechain/hardhat";
+ import "@nomiclabs/hardhat-waffle";
+ import "@nomiclabs/hardhat-ethers"
 
  dotenv.config();
 
