@@ -1,2 +1,35 @@
-node_modules/
-build/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+
+# testing
+coverage
+
+# production
+dist
+
+# misc
+.DS_Store
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env
+.env
+
+# artifacts/cache/data
+artifacts
+cache
+
+coverage.json
+
+@openzeppelin
+@pancakeswap
+bsc-library
+
+Flatten*
+
+.idea
