@@ -29,7 +29,7 @@ describe('UniswapV2ERC20', () => {
 
   it('name, symbol, decimals, totalSupply, balanceOf, DOMAIN_SEPARATOR, PERMIT_TYPEHASH', async () => {
     const name = await token.name()
-    expect(name).to.eq('ETC-SWAP-V2')
+    expect(name).to.eq('ETC Swap V2')
     expect(await token.symbol()).to.eq('ETC-SWAP-V2')
     expect(await token.decimals()).to.eq(18)
     expect(await token.totalSupply()).to.eq(TOTAL_SUPPLY)
