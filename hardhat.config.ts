@@ -1,12 +1,12 @@
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
- import * as dotenv from "dotenv";
- import "@typechain/hardhat";
- import "@nomiclabs/hardhat-waffle";
- import "@nomiclabs/hardhat-ethers"
+import * as dotenv from "dotenv";
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
 
- dotenv.config();
+dotenv.config();
 
 module.exports = {
   solidity: {
@@ -29,6 +29,15 @@ module.exports = {
           },
         },
       },
+      {
+        version: "0.6.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 99999,
+          },
+        },
+      },
     ],
   },
   networks: {
@@ -37,5 +46,5 @@ module.exports = {
       chainId: 592,
       accounts: [process.env.PRIVATE_KEY],
     },
-  }
+  },
 };
