@@ -1,6 +1,7 @@
 import "@/assets/styles/global.css";
 import React from "react";
 import { Web3Provider } from "@inaridiy/useful-web3";
+import { DefaultLayout } from "@/components/Layout/DefaultLayout";
 
 function MyApp({
   Component,
@@ -11,7 +12,9 @@ function MyApp({
 }) {
   return (
     <Web3Provider>
-      <Component {...pageProps} />
+      <DefaultLayout>
+        <Component {...pageProps} />
+      </DefaultLayout>
     </Web3Provider>
   );
 }

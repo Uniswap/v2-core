@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@inaridiy/useful-web3": "^0.0.9",
+    "@metamask/detect-provider": "^1.2.0",
     "@walletconnect/web3-provider": "^1.7.7",
+    "daisyui": "^2.14.3",
     "ethers": "^5.5.4",
     "next": "^12.1.5",
     "react": "^18.0.0",
