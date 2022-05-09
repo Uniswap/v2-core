@@ -1,0 +1,17 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "prettier"
+  ],
+  "plugins": ["@typescript-eslint", "import"],
+  "rules": {
+    "react-hooks/exhaustive-deps": "off",
+    "@next/next/no-img-element": "off"
+  }
+}

@@ -7,6 +7,12 @@ async function main() {
   const swapFactory = await SwapFactory.deploy(process.env.FEE_SETTER || "");
   await swapFactory.deployed();
   console.log("swapFactory deployed to:", swapFactory.address);
+
+  const RouterFactory = await ethers.getContractFactory("UniswapV2Router02");
+  const swapRouter = await RouterFactory.deploy(swapFactory.address, WAstar);
+  await swapRouter.deployed();
+
+  console.log("swapRouter deployed to:", swapRouter.address);
 }
 
 main().catch((error) => {

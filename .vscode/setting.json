@@ -1,0 +1,20 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+        "source.fixAll.eslint": true
+    },
+    "eslint.workingDirectories": [
+        "./projects/interface"
+    ],
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "DotJoshJohnson.xml"
+    },
+    "[solidity]": {
+        "editor.defaultFormatter": "NomicFoundation.hardhat-solidity"
+    }
+}
