@@ -1,18 +1,19 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "@etcswap/v2-core",
+  "description": "🎛 Core contracts for the EtcswapV2 protocol",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://etcswap.org",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+    "url": "https://github.com/etcswap/v2-core"
   },
   "keywords": [
-    "uniswap",
-    "ethereum",
+    "etcswap",
+    "ethereum classic",
+    "etc",
     "v2",
     "core",
-    "uniswap-v2"
+    "etcswap-v2"
   ],
   "files": [
     "contracts",
