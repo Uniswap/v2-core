@@ -1,7 +1,8 @@
 import type { NextPage } from "next";
+import Swap from "@/components/Pages/Swap";
 
-const Home: NextPage = () => {
-  return <div className="w-full"></div>;
+const SwapPage: NextPage = () => {
+  return <Swap />;
 };
 
-export default Home;
+export default SwapPage;
