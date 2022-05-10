@@ -6,11 +6,16 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "dev": "yarn interface:dev",
     "interface:dev": "yarn workspace @penta-swap/interface dev",
     "interface:lint": "yarn workspace @penta-swap/interface lint",
+    "interface:link-sdk": "yarn workspace @penta-swap/interface link @penta-swap/sdk",
     "contract:test": "yarn workspace @penta-swap/contract hardhat test",
     "contract:compile": "yarn workspace @penta-swap/contract hardhat compile",
-    "contract:deploy": "yarn workspace @penta-swap/contract hardhat run scripts/deploy.ts"
+    "contract:deploy": "yarn workspace @penta-swap/contract hardhat run scripts/deploy.ts",
+    "sdk:build": "yarn workspace @penta-swap/sdk build",
+    "sdk:link": "yarn workspace @penta-swap/sdk link",
+    "sdk:sync": "yarn sdk:build && yarn sdk:link && yarn interface:link-sdk"
   },
   "workspaces": {
     "packages": [
