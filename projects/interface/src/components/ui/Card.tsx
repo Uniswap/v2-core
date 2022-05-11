@@ -6,7 +6,7 @@ export const Card: React.VFC<{
   className?: string;
 }> = ({ children, className }) => {
   return (
-    <div className={clsx("card bg-base-100 shadow-xl", className)}>
+    <div className={clsx("shadow-xl bg-base-100 card", className)}>
       {children}
     </div>
   );
