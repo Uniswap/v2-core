@@ -7,7 +7,7 @@ export const PageContainer: React.VFC<{
 }> = ({ children, className }) => {
   return (
     <div
-      className={clsx("flex flex-col items-center justify-center", className)}
+      className={clsx("flex flex-col justify-center items-center", className)}
     >
       {children}
     </div>
