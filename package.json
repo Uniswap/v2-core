@@ -7,6 +7,7 @@
   "private": true,
   "scripts": {
     "dev": "yarn interface:dev",
+    "sdk-sync": "yarn sdk:build && yarn sdk:link && yarn interface:link-sdk",
     "interface:dev": "yarn workspace @penta-swap/interface dev",
     "interface:lint": "yarn workspace @penta-swap/interface lint",
     "interface:link-sdk": "yarn workspace @penta-swap/interface link @penta-swap/sdk",
@@ -14,8 +15,7 @@
     "contract:compile": "yarn workspace @penta-swap/contract hardhat compile",
     "contract:deploy": "yarn workspace @penta-swap/contract hardhat run scripts/deploy.ts",
     "sdk:build": "yarn workspace @penta-swap/sdk build",
-    "sdk:link": "yarn workspace @penta-swap/sdk link",
-    "sdk:sync": "yarn sdk:build && yarn sdk:link && yarn interface:link-sdk"
+    "sdk:link": "yarn workspace @penta-swap/sdk link"
   },
   "workspaces": {
     "packages": [

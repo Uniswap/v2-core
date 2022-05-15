@@ -168,6 +168,7 @@
     "type": "event"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "DOMAIN_SEPARATOR",
     "outputs": [
@@ -177,10 +178,12 @@
         "type": "bytes32"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "MINIMUM_LIQUIDITY",
     "outputs": [
@@ -190,10 +193,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "PERMIT_TYPEHASH",
     "outputs": [
@@ -203,10 +208,12 @@
         "type": "bytes32"
       }
     ],
+    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [
       {
         "internalType": "address",
@@ -227,10 +234,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -251,10 +260,12 @@
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [
       {
         "internalType": "address",
@@ -270,10 +281,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -294,10 +307,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "decimals",
     "outputs": [
@@ -307,10 +322,12 @@
         "type": "uint8"
       }
     ],
+    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "factory",
     "outputs": [
@@ -320,10 +337,12 @@
         "type": "address"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "getReserves",
     "outputs": [
@@ -343,10 +362,12 @@
         "type": "uint32"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -361,10 +382,12 @@
     ],
     "name": "initialize",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "kLast",
     "outputs": [
@@ -374,10 +397,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -393,10 +418,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "name",
     "outputs": [
@@ -406,10 +433,12 @@
         "type": "string"
       }
     ],
+    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [
       {
         "internalType": "address",
@@ -425,10 +454,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -468,10 +499,12 @@
     ],
     "name": "permit",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "price0CumulativeLast",
     "outputs": [
@@ -481,10 +514,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "price1CumulativeLast",
     "outputs": [
@@ -494,10 +529,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -507,10 +544,12 @@
     ],
     "name": "skim",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "uint256",
@@ -535,10 +574,12 @@
     ],
     "name": "swap",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "symbol",
     "outputs": [
@@ -548,17 +589,21 @@
         "type": "string"
       }
     ],
+    "payable": false,
     "stateMutability": "pure",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [],
     "name": "sync",
     "outputs": [],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "token0",
     "outputs": [
@@ -568,10 +613,12 @@
         "type": "address"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "token1",
     "outputs": [
@@ -581,10 +628,12 @@
         "type": "address"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": true,
     "inputs": [],
     "name": "totalSupply",
     "outputs": [
@@ -594,10 +643,12 @@
         "type": "uint256"
       }
     ],
+    "payable": false,
     "stateMutability": "view",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -618,10 +669,12 @@
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
+    "constant": false,
     "inputs": [
       {
         "internalType": "address",
@@ -647,6 +700,7 @@
         "type": "bool"
       }
     ],
+    "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
   }
