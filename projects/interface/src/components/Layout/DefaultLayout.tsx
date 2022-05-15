@@ -1,3 +1,4 @@
+import { useWeb3 } from "@inaridiy/useful-web3";
 import clsx from "clsx";
 import Image from "next/image";
 import NextLink from "next/link";
@@ -6,7 +7,7 @@ import React from "react";
 
 const Header: React.VFC = () => {
   return (
-    <div className="top-0 gap-4 justify-between navbar">
+    <div className="fixed top-0 gap-4 justify-between navbar">
       <a className="btn btn-ghost btn-square btn-lg">
         <Image
           className="rounded-full"
@@ -20,8 +21,21 @@ const Header: React.VFC = () => {
       <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto">
         <Nav />
       </nav>
+
+      <Account />
     </div>
   );
+};
+
+const Account: React.VFC = () => {
+  const { accounts } = useWeb3();
+  const name = accounts[0]
+    ? `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`
+    : null;
+
+  if (name) return <button className="btn btn-ghost">{name}</button>;
+
+  return <button className="btn btn-ghost">Connect Wallet</button>;
 };
 
 const Nav: React.VFC = () => {
@@ -66,7 +80,7 @@ export const DefaultLayout: React.VFC<{ children: React.ReactNode }> = ({
       data-theme="light"
     >
       <Header />
-      <div className="grow mt-16 text-base-content">{children}</div>
+      <div className="grow mt-28 text-base-content">{children}</div>
     </div>
   );
 };
