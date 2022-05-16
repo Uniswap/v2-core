@@ -1,4 +1,4 @@
-import { useWeb3 } from "@inaridiy/useful-web3";
+import { MetamaskConnector, useWeb3 } from "@inaridiy/useful-web3";
 import clsx from "clsx";
 import Image from "next/image";
 import NextLink from "next/link";
@@ -22,7 +22,6 @@ const Header: React.VFC = () => {
         <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto">
           <Nav />
         </nav>
-
         <Account />
       </div>
     </header>
@@ -30,14 +29,21 @@ const Header: React.VFC = () => {
 };
 
 const Account: React.VFC = () => {
-  const { accounts } = useWeb3();
+  const { accounts, connectWallet } = useWeb3();
   const name = accounts[0]
     ? `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`
     : null;
 
-  if (name) return <button className="btn btn-ghost">{name}</button>;
+  if (name) return <div className="text-lg font-bold">{name}</div>;
 
-  return <button className="btn btn-ghost">Connect Wallet</button>;
+  return (
+    <button
+      className="btn btn-ghost"
+      onClick={() => void connectWallet(new MetamaskConnector())}
+    >
+      Connect Wallet
+    </button>
+  );
 };
 
 const Nav: React.VFC = () => {
