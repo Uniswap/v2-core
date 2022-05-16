@@ -1,3 +1,4 @@
+import { stopPropagation } from "@/utils";
 import clsx from "clsx";
 
 export const ModalBase: React.VFC<{
@@ -18,7 +19,9 @@ export const ModalBase: React.VFC<{
       )}
       onClick={() => onChange && onChange(false)}
     >
-      {children}
+      <div onClick={stopPropagation} className="modal-box">
+        {children}
+      </div>
     </div>
   );
 };

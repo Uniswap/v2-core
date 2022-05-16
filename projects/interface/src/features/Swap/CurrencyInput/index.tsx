@@ -1,11 +1,15 @@
+import { useModal } from "@/components/Modal";
 import { AiOutlineDown } from "react-icons/ai";
+import { CurrencySelect } from "../CureencySelect";
 
 export const CurrencyInput: React.VFC<
   { symbol: string } & JSX.IntrinsicElements["input"]
 > = ({ symbol }) => {
+  const { Modal, toggle } = useModal(<CurrencySelect />);
   return (
     <>
-      <div className="p-3 border-2 border-base-100 hover:border-neutral card bg-base-200">
+      <Modal />
+      <div className="p-3 hover:ring-2 ring-accent card bg-base-200">
         <div className="flex gap-2 justify-between items-center">
           <input
             type="number"
@@ -13,7 +17,7 @@ export const CurrencyInput: React.VFC<
             className="w-full text-3xl font-bold bg-transparent outline-none"
           />
 
-          <button className="gap-2 text-xl font-bold btn">
+          <button className="gap-2 text-xl font-bold btn" onClick={toggle}>
             {symbol}
             <AiOutlineDown size="1rem" />
           </button>
