@@ -7,23 +7,25 @@ import React from "react";
 
 const Header: React.VFC = () => {
   return (
-    <div className="fixed top-0 gap-4 justify-between navbar">
-      <a className="btn btn-ghost btn-square btn-lg">
-        <Image
-          className="rounded-full"
-          src="/penta.jpg"
-          alt="logo"
-          width={300}
-          height={300}
-        />
-      </a>
+    <header className="fixed top-0 w-full">
+      <div className="gap-4 justify-between mx-auto max-w-screen-lg navbar">
+        <a className="btn btn-ghost btn-square btn-lg">
+          <Image
+            className="rounded-full"
+            src="/penta.jpg"
+            alt="logo"
+            width={300}
+            height={300}
+          />
+        </a>
 
-      <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto">
-        <Nav />
-      </nav>
+        <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto">
+          <Nav />
+        </nav>
 
-      <Account />
-    </div>
+        <Account />
+      </div>
+    </header>
   );
 };
 
