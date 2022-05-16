@@ -1,7 +1,7 @@
 import "@/assets/styles/global.css";
-import React from "react";
-import { Web3Provider } from "@inaridiy/useful-web3";
 import { DefaultLayout } from "@/components/Layout/DefaultLayout";
+import { Web3Provider } from "@inaridiy/useful-web3";
+import React from "react";
 
 function MyApp({
   Component,
