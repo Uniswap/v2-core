@@ -49,7 +49,7 @@ const Account: React.VFC = () => {
 const Nav: React.VFC = () => {
   const { pathname } = useRouter();
   return (
-    <ul className="p-2 font-bold sm:gap-2 menu bg-base-100 menu-horizontal card">
+    <ul className="p-2 font-bold shadow-lg sm:gap-2 menu bg-base-100 menu-horizontal card">
       <li>
         <NextLink href="/swap">
           <a

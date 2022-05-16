@@ -8,7 +8,7 @@ const CurrencyInput: React.VFC<
     <div className="p-3 border-2 border-base-100 hover:border-neutral card bg-base-200">
       <div className="flex gap-2 justify-between items-center">
         <input
-          type="text"
+          type="number"
           placeholder="0.0"
           className="w-full text-3xl font-bold bg-transparent outline-none"
         />
