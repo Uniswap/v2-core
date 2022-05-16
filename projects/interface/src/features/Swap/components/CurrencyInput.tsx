@@ -1,6 +1,6 @@
 import { useModal } from "@/components/Modal";
 import { AiOutlineDown } from "react-icons/ai";
-import { CurrencySelect } from "../CureencySelect";
+import { CurrencySelect } from "./CureencySelect";
 
 export const CurrencyInput: React.VFC<
   { symbol: string } & JSX.IntrinsicElements["input"]
