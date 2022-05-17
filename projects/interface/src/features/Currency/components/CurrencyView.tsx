@@ -1,8 +1,6 @@
-import { Currency } from "@penta-swap/sdk";
+import { Token } from "@penta-swap/sdk";
 
-export const CurrencyView: React.VFC<{ currency: Currency }> = ({
-  currency,
-}) => {
+export const CurrencyView: React.VFC<{ currency: Token }> = ({ currency }) => {
   return (
     <div className="p-2 transition-all card hover:bg-base-300">
       <div>

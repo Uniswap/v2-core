@@ -1,4 +1,4 @@
-import { stopPropagation } from "@/utils";
+import { stopPropagation } from "@/lib/utils";
 import clsx from "clsx";
 
 export const ModalBase: React.VFC<{
