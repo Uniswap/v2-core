@@ -1,4 +1,4 @@
-import { useCurrencyBalance } from "@/features/hooks/useCurrencyBalance";
+import { useCurrencyBalance } from "@/features/Currency/hooks/useCurrencyBalance";
 import { Token } from "@penta-swap/sdk";
 import { BigNumber } from "ethers";
 
