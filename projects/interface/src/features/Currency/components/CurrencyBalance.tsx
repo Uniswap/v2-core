@@ -10,7 +10,7 @@ export const CurrencyBalance: React.VFC<{ currency: Token }> = ({
   if (balance) {
     return (
       <div className="font-bold text-lg">
-        {balance.div(BigNumber.from(10).pow(18)).toString()}
+        {balance.div(BigNumber.from(10).pow(currency.decimals)).toString()}
       </div>
     );
   } else if (isLoading) {
