@@ -19,9 +19,11 @@ export const ModalBase: React.VFC<{
       )}
       onClick={() => onChange && onChange(false)}
     >
-      <div onClick={stopPropagation} className="modal-box">
-        {children}
-      </div>
+      {open && (
+        <div onClick={stopPropagation} className="modal-box">
+          {children}
+        </div>
+      )}
     </div>
   );
 };

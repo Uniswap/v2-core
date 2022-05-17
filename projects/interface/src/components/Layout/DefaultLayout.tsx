@@ -20,11 +20,11 @@ const Header: React.VFC = () => {
             />
           </a>
         </div>
-        <div className="navbar-center">
-          <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto">
-            <Nav />
-          </nav>
-        </div>
+
+        <nav className="navbar-center fixed bottom-2 justify-center w-full sm:static sm:w-auto">
+          <Nav />
+        </nav>
+
         <div className="navbar-end">
           <Account />
         </div>

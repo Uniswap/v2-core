@@ -4,13 +4,7 @@ import { Web3Provider } from "@inaridiy/useful-web3";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      suspense: true,
-    },
-  },
-});
+const queryClient = new QueryClient({});
 
 function MyApp({
   Component,
