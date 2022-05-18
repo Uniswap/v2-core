@@ -16,7 +16,7 @@ export const CurrencyView: React.VFC<{
         <div className="text-lg font-bold">{currency.symbol || "Unknown"}</div>
         <div>{currency.name || currency.symbol || "Unknown"}</div>
       </div>
-      <CurrencyBalance currency={currency} />
+      <CurrencyBalance className="text-lg font-bold" currency={currency} />
     </div>
   );
 };

@@ -1,11 +1,15 @@
 import { useModal } from "@/components/Modal";
+import { Currency, Token } from "@penta-swap/sdk";
 import { AiOutlineDown } from "react-icons/ai";
 import { CurrencySelect } from "./CureencySelect";
+import { CurrencyBalance } from "./CurrencyBalance";
 
-export const CurrencyInput: React.VFC<
-  { symbol: string } & JSX.IntrinsicElements["input"]
-> = ({ symbol }) => {
-  const { Modal, toggle } = useModal(<CurrencySelect />);
+export const CurrencyInput: React.VFC<{
+  currency: Token | Currency;
+  onSelect?: (currency: Token | Currency) => void;
+}> = ({ currency, onSelect }) => {
+  const { Modal, toggle } = useModal(<CurrencySelect onSelect={onSelect} />);
+
   return (
     <>
       <Modal />
@@ -18,13 +22,17 @@ export const CurrencyInput: React.VFC<
           />
 
           <button className="gap-2 text-xl font-bold btn" onClick={toggle}>
-            {symbol}
+            {currency.symbol}
             <AiOutlineDown size="1rem" />
           </button>
         </div>
         <div className="flex gap-1 justify-end items-center">
           <button className="btn btn-sm btn-ghost">MAX</button>
-          <div className="text-sm font-bold badge badge-accent">{`Balance: 0.00`}</div>
+          <CurrencyBalance
+            className="badge badge-outline font-bold"
+            currency={currency}
+            end={currency.symbol}
+          />
         </div>
       </div>
     </>

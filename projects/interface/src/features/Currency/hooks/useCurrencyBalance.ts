@@ -17,7 +17,7 @@ export const useCurrencyBalance = (currency: Token | Currency) => {
 export const useNativeCurrencyBalance = (chainId: number) => {
   const { accounts, instance, chainId: currentChainId } = useWeb3();
   const query = useQuery(
-    `${chainId}/balance/$${accounts[0] || "0x00"}`,
+    `${chainId}/balance/${accounts[0] || "0x00"}`,
     () =>
       new ethers.providers.Web3Provider(instance as EIP1193).getBalance(
         accounts[0] as string
