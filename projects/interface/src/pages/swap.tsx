@@ -9,8 +9,11 @@ const Swap: React.VFC = () => {
       <Card>
         <div className="gap-4 card-body">
           <h2 className="text-xl card-title">Swap</h2>
-          <CurrencyInput currency={Currency.ETHER} />
-          <CurrencyInput currency={chainTokens.astar[1] || Currency.ETHER} />
+          <CurrencyInput label="From" currency={Currency.ETHER} />
+          <CurrencyInput
+            label="To"
+            currency={chainTokens.astar[0] || Currency.ETHER}
+          />
           <button className="w-full btn btn-primary">Swap</button>
         </div>
       </Card>

@@ -10,7 +10,7 @@
     "type-gene": "typechain --target ethers-v5 --out-dir src/lib/contracts 'src/lib/abi/*.json'"
   },
   "dependencies": {
-    "@inaridiy/useful-web3": "^0.0.10",
+    "@inaridiy/useful-web3": "^0.0.11",
     "@metamask/detect-provider": "^1.2.0",
     "@walletconnect/web3-provider": "^1.7.7",
     "clsx": "^1.1.1",

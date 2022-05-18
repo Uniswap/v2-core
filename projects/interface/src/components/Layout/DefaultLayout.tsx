@@ -11,7 +11,7 @@ const Header: React.VFC = () => {
     <header className="fixed top-0 w-full">
       <div className="gap-4 mx-auto max-w-screen-lg navbar">
         <div className="navbar-start">
-          <a className="btn btn-ghost btn-square btn-lg">
+          <a className="btn btn-ghost btn-square">
             <Image
               className="rounded-full"
               src="/penta.jpg"
@@ -22,7 +22,7 @@ const Header: React.VFC = () => {
           </a>
         </div>
 
-        <nav className="navbar-center fixed bottom-2 justify-center w-full sm:static sm:w-auto">
+        <nav className="fixed bottom-2 justify-center w-full sm:static sm:w-auto navbar-center">
           <Nav />
         </nav>
 
@@ -44,7 +44,7 @@ const Account: React.VFC = () => {
     return (
       <button
         className="btn btn-error text-error-content"
-        onClick={() => switchChain(chainParameters.astar)}
+        onClick={() => void switchChain(chainParameters.astar)}
       >
         Wrong network
       </button>
@@ -98,7 +98,7 @@ const Nav: React.VFC = () => {
 };
 
 export const DefaultLayout: React.VFC<{ children: React.ReactNode }> = ({
-  children,
+  children
 }) => {
   return (
     <div
