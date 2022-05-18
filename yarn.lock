@@ -1421,10 +1421,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@inaridiy/useful-web3@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@inaridiy/useful-web3/-/useful-web3-0.0.9.tgz#5523145da7cd577b75d9e960fecaee6ebe315d97"
-  integrity sha512-Ckg8di+cN5sKiZw7U05TNRmD/R/2CLMPTKfKmHqdXK6EO1N7PBSn0Tk3JQS7zy1f3SB7lKCN8ZrsfR+gDQbrZA==
+"@inaridiy/useful-web3@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@inaridiy/useful-web3/-/useful-web3-0.0.10.tgz#048e51d56a85152cd8a4f27155e6b6a8bbd63b7d"
+  integrity sha512-RY70sSIndPDK2rkZkHXIyuqUMUVqMwvybbGSQy6od9StSu/svV7oBH+F9JKNJRFHcxwvwO5hRS7//bREZTlVMA==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"

@@ -1,3 +1,4 @@
+import { chainParameters } from "@/constants/chains";
 import { MetamaskConnector, useWeb3 } from "@inaridiy/useful-web3";
 import clsx from "clsx";
 import Image from "next/image";
@@ -34,13 +35,25 @@ const Header: React.VFC = () => {
 };
 
 const Account: React.VFC = () => {
-  const { accounts, connectWallet } = useWeb3();
+  const { accounts, connectWallet, chainId, switchChain } = useWeb3();
   const name = accounts[0]
-    ? `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`
+    ? `${accounts[0].slice(0, 5)}...${accounts[0].slice(-4)}`
     : null;
 
-  if (name) return <div className="text-lg font-bold">{name}</div>;
+  if (name && chainId !== chainParameters.astar.chainId) {
+    return (
+      <button
+        className="btn btn-error text-error-content"
+        onClick={() => switchChain(chainParameters.astar)}
+      >
+        Wrong network
+      </button>
+    );
+  }
 
+  if (name) {
+    return <div className="text-lg font-bold">{name}</div>;
+  }
   return (
     <button
       className="btn btn-ghost"

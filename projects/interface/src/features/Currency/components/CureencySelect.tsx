@@ -1,7 +1,8 @@
-import { chainTokens } from "@/constants/tokens";
+import { useCurrencyList } from "../hooks/useCurrencyList";
 import { CurrencyView } from "./CurrencyView";
 
 export const CurrencySelect = () => {
+  const currencyList = useCurrencyList();
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-xl font-bold">Select Token</h3>
@@ -12,8 +13,8 @@ export const CurrencySelect = () => {
         className="text-xl font-bold input-bordered input bg-base-200"
       />
       <div className="flex flex-col">
-        {chainTokens.astar.map((currency, i) => (
-          <CurrencyView currency={currency} key={`${i}-${currency.address}`} />
+        {currencyList.map((currency, i) => (
+          <CurrencyView currency={currency} key={`${i}-${currency.name}`} />
         ))}
       </div>
     </div>

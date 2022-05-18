@@ -4,7 +4,7 @@ export interface ChainParameter {
   chainName: string;
   iconUrls: string[];
   nativeCurrency: {
-    decimals: number;
+    decimals: 18;
     name: string;
     symbol: string;
   };

@@ -1,5 +1,9 @@
 const p = (name: string) => `/logo/${name}`;
 
+export const nativeLogos = {
+  astar: p("astar-logo.png"),
+};
+
 export const logos = {
   "0xAeaaf0e2c81Af264101B9129C00F4440cCF0F720": p("astar-logo.png"),
   "0x81ECac0D6Be0550A00FF064a4f9dd2400585FE9c": p("ethereum-eth-logo.svg"),

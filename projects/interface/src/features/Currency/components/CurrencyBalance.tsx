@@ -1,8 +1,8 @@
 import { useCurrencyBalance } from "@/features/Currency/hooks/useCurrencyBalance";
-import { Token } from "@penta-swap/sdk";
+import { Currency, Token } from "@penta-swap/sdk";
 import { BigNumber } from "ethers";
 
-export const CurrencyBalance: React.VFC<{ currency: Token }> = ({
+export const CurrencyBalance: React.VFC<{ currency: Token | Currency }> = ({
   currency,
 }) => {
   const { data: balance, isLoading } = useCurrencyBalance(currency);
