@@ -29,7 +29,7 @@ export const CurrencyInput: React.VFC<{
         <div className="flex gap-1 justify-end items-center">
           <button className="btn btn-sm btn-ghost">MAX</button>
           <CurrencyBalance
-            className="badge badge-outline font-bold"
+            className="font-bold badge badge-outline"
             currency={currency}
             end={currency.symbol}
           />

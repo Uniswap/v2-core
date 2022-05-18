@@ -8,7 +8,7 @@ export const CurrencyView: React.VFC<{
 }> = ({ currency, onClick }) => {
   return (
     <div
-      className="p-2 transition-all card hover:bg-base-300 flex-row items-center gap-2 active:scale-95"
+      className="flex-row gap-2 items-center p-2 transition-all active:scale-95 card hover:bg-base-300"
       onClick={() => onClick && onClick(currency)}
     >
       <CurrencyLogo currency={currency} />

@@ -17,7 +17,7 @@ export const CurrencyLogo: React.VFC<{
           width={size}
           height={size}
           src={logo}
-          alt={`${currency.name} logo`}
+          alt={`${currency.name || ""} logo`}
         />
       </div>
     );

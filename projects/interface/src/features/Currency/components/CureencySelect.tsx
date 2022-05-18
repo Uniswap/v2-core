@@ -21,7 +21,7 @@ export const CurrencySelect: React.VFC<{
             currency={currency}
             onClick={onSelect}
             key={`${i}-${
-              currency instanceof Token ? currency.address : currency.name
+              currency instanceof Token ? currency.address : currency.name || ""
             }`}
           />
         ))}
