@@ -14,7 +14,7 @@ export const CurrencyBalance: React.VFC<{ currency: Token | Currency }> = ({
       </div>
     );
   } else if (isLoading) {
-    return <div className="font-bold text-lg">loading...</div>;
+    return <div className="btn btn-ghost loading"></div>;
   } else {
     return <></>;
   }

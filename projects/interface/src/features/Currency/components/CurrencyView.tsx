@@ -1,10 +1,10 @@
 import { Currency, Token } from "@penta-swap/sdk";
 import { CurrencyBalance } from "./CurrencyBalance";
-import { CurrencyLogo } from "./CurrencyLog";
+import { CurrencyLogo } from "./CurrencyLogo";
 
 export const CurrencyView: React.VFC<{
   currency: Token | Currency;
-  onClick?: (currency: Token | Currency) => {};
+  onClick?: (currency: Token | Currency) => void;
 }> = ({ currency, onClick }) => {
   return (
     <div

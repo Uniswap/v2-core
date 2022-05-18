@@ -1,7 +1,10 @@
+import { Currency, Token } from "@penta-swap/sdk";
 import { useCurrencyList } from "../hooks/useCurrencyList";
 import { CurrencyView } from "./CurrencyView";
 
-export const CurrencySelect = () => {
+export const CurrencySelect: React.VFC<{
+  onSelect?: (currency: Currency | Token) => void;
+}> = ({ onSelect }) => {
   const currencyList = useCurrencyList();
   return (
     <div className="flex flex-col gap-2">
@@ -14,7 +17,13 @@ export const CurrencySelect = () => {
       />
       <div className="flex flex-col">
         {currencyList.map((currency, i) => (
-          <CurrencyView currency={currency} key={`${i}-${currency.name}`} />
+          <CurrencyView
+            currency={currency}
+            onClick={onSelect}
+            key={`${i}-${
+              currency instanceof Token ? currency.address : currency.name
+            }`}
+          />
         ))}
       </div>
     </div>
