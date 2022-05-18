@@ -24,7 +24,7 @@ export const CurrencyInput: React.VFC<{
         </div>
         <div className="flex gap-1 justify-between items-center">
           <button
-            className="gap-1 text-xl font-bold btn btn-ghost"
+            className="gap-1 justify-start w-40 text-xl font-bold btn btn-ghost"
             onClick={toggle}
           >
             <CurrencyLogo currency={currency} className="w-8 h-8" />

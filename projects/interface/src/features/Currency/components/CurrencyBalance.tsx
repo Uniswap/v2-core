@@ -1,5 +1,6 @@
 import { useCurrencyBalance } from "@/features/Currency/hooks/useCurrencyBalance";
 import { Currency, Token } from "@penta-swap/sdk";
+import clsx from "clsx";
 import { utils } from "ethers";
 
 export const CurrencyBalance: React.VFC<{
@@ -17,7 +18,11 @@ export const CurrencyBalance: React.VFC<{
       </div>
     );
   } else if (isLoading) {
-    return <div className="btn btn-ghost loading"></div>;
+    return (
+      <div
+        className={clsx("btn btn-ghost loading", className && "btn-sm")}
+      ></div>
+    );
   } else {
     return <></>;
   }
