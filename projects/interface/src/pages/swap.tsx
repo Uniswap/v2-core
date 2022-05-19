@@ -1,17 +1,17 @@
 import { Card, PageContainer } from "@/components/ui";
-import { chainTokens } from "@/constants/tokens";
 import { CurrencyInput } from "@/features/Currency";
-import { Currency, Token } from "@penta-swap/sdk";
-import { useState } from "react";
+import { useCurrencyInput } from "@/features/Currency/hooks/useCurrencyInput";
 
 const Swap: React.VFC = () => {
-  const [currency1, setCurrency1] = useState<Token | Currency>(Currency.ETHER);
-  const [currency2, setCurrency2] = useState<Token | Currency>(
-    chainTokens.astar[0] || Currency.ETHER
-  );
+  const {
+    currency1,
+    currency2,
+    setCurrency1,
+    setCurrency2
+  } = useCurrencyInput();
   return (
     <PageContainer>
-      <Card>
+      <Card className="w-full max-w-screen-sm">
         <div className="gap-4 card-body">
           <h2 className="text-xl card-title">Swap</h2>
           <CurrencyInput

@@ -1,18 +1,8 @@
 import { ERC20__factory } from "@/lib/contracts";
 import { EIP1193, useContract, useWeb3 } from "@inaridiy/useful-web3";
-import { Currency, Token } from "@penta-swap/sdk";
+import { Token } from "@penta-swap/sdk";
 import { ethers } from "ethers";
 import { useQuery } from "react-query";
-
-export const useCurrencyBalance = (currency: Token | Currency) => {
-  if (currency instanceof Token) {
-    return useTokenBalance(currency);
-  } else if (currency === Currency.ETHER) {
-    return useNativeCurrencyBalance(592);
-  } else {
-    throw new Error("Currency is wrong.");
-  }
-};
 
 export const useNativeCurrencyBalance = (chainId: number) => {
   const { accounts, instance, chainId: currentChainId } = useWeb3();
@@ -30,7 +20,7 @@ export const useNativeCurrencyBalance = (chainId: number) => {
 export const useTokenBalance = (token: Token) => {
   const { accounts } = useWeb3();
   const erc20 = useContract(
-    (provider) => ERC20__factory.connect(token.address, provider),
+    provider => ERC20__factory.connect(token.address, provider),
     { chain: token.chainId }
   );
   const query = useQuery(

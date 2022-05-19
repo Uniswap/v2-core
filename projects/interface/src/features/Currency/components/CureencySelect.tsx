@@ -1,14 +1,21 @@
 import { Currency, Token } from "@penta-swap/sdk";
+import { AiOutlineClose } from "react-icons/ai";
 import { useCurrencyList } from "../hooks/useCurrencyList";
 import { CurrencyView } from "./CurrencyView";
 
 export const CurrencySelect: React.VFC<{
   onSelect?: (currency: Currency | Token) => void;
-}> = ({ onSelect }) => {
+  onClose?: () => void;
+}> = ({ onSelect, onClose }) => {
   const currencyList = useCurrencyList();
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-xl font-bold">Select Token</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-xl font-bold">Select Token</h3>
+        <button className="btn btn-square btn-ghost btn-sm" onClick={onClose}>
+          <AiOutlineClose size="1.5rem" />
+        </button>
+      </div>
       <div className="my-0 divider"></div>
       <input
         type="text"
