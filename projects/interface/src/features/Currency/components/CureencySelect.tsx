@@ -26,7 +26,10 @@ export const CurrencySelect: React.VFC<{
         {currencyList.map((currency, i) => (
           <CurrencyView
             currency={currency}
-            onClick={onSelect}
+            onClick={currency => {
+              onSelect && onSelect(currency);
+              onClose && onClose();
+            }}
             key={`${i}-${
               currency instanceof Token ? currency.address : currency.name || ""
             }`}

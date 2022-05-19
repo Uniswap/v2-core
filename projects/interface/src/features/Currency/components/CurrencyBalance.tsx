@@ -4,7 +4,6 @@ import {
   useTokenBalance
 } from "@/features/Currency/hooks/useCurrencyBalance";
 import { Currency, Token } from "@penta-swap/sdk";
-import clsx from "clsx";
 import { utils } from "ethers";
 
 export const TokenBalance: React.VFC<{
@@ -22,11 +21,7 @@ export const TokenBalance: React.VFC<{
       </div>
     );
   } else if (isLoading) {
-    return (
-      <div
-        className={clsx("btn btn-ghost loading", className && "btn-sm")}
-      ></div>
-    );
+    return <div className={className}>loading...</div>;
   } else {
     return <></>;
   }
@@ -48,11 +43,7 @@ export const NativeCurrencyBalance: React.VFC<{
       </div>
     );
   } else if (isLoading) {
-    return (
-      <div
-        className={clsx("btn btn-ghost loading", className && "btn-sm")}
-      ></div>
-    );
+    return <div className={className}>loading...</div>;
   } else {
     return <></>;
   }

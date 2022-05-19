@@ -7,9 +7,11 @@ import { CurrencyLogo } from "./CurrencyLogo";
 
 export const CurrencyInput: React.VFC<{
   currency: Token | Currency | null;
+  value?: number;
   label: string;
   onSelect?: (currency: Token | Currency) => void;
-}> = ({ currency, label, onSelect }) => {
+  onChange?: (value: number) => void;
+}> = ({ currency, label, onSelect, value, onChange }) => {
   const { Modal, toggle } = useModal(toggle => (
     <CurrencySelect onSelect={onSelect} onClose={toggle} />
   ));
@@ -29,7 +31,7 @@ export const CurrencyInput: React.VFC<{
         <div className="flex gap-1 justify-between items-center">
           {currency ? (
             <button
-              className="gap-1 justify-start text-xl font-bold btn btn-ghost"
+              className="gap-1 justify-start p-0 text-xl font-bold sm:px-2 btn btn-ghost"
               onClick={toggle}
             >
               <CurrencyLogo currency={currency} className="w-8 h-8" />
@@ -37,7 +39,10 @@ export const CurrencyInput: React.VFC<{
               <AiOutlineDown size="1rem" />
             </button>
           ) : (
-            <button className="btn" onClick={toggle}>
+            <button
+              className="p-0 font-bold sm:px-2 btn btn-ghost"
+              onClick={toggle}
+            >
               Select Token
             </button>
           )}
@@ -46,6 +51,8 @@ export const CurrencyInput: React.VFC<{
             type="number"
             placeholder="0.0"
             className="w-full text-3xl font-bold bg-transparent outline-none"
+            value={value}
+            onChange={e => onChange && onChange(Number(e.target.value))}
           />
         </div>
       </div>
