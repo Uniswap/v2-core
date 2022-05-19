@@ -1,6 +1,7 @@
 import { Card, PageContainer } from "@/components/ui";
 import { CurrencyInput } from "@/features/Currency";
 import { useCurrencyInput } from "@/features/Currency/hooks/useCurrencyInput";
+import { usePair } from "@/features/Trade/hooks/useTrade";
 
 const Swap: React.VFC = () => {
   const {
@@ -9,6 +10,7 @@ const Swap: React.VFC = () => {
     setCurrency1,
     setCurrency2
   } = useCurrencyInput();
+  usePair(currency1, currency2);
   return (
     <PageContainer>
       <Card className="w-full max-w-screen-sm">
