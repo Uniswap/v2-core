@@ -10,7 +10,8 @@ const Swap: React.VFC = () => {
     setCurrency1,
     setCurrency2
   } = useCurrencyInput();
-  usePair(currency1, currency2);
+  const { data: pair } = usePair(currency1, currency2);
+
   return (
     <PageContainer>
       <Card className="w-full max-w-screen-sm">
@@ -26,6 +27,7 @@ const Swap: React.VFC = () => {
             currency={currency2}
             onSelect={setCurrency2}
           />
+
           <button className="w-full btn btn-primary">Swap</button>
         </div>
       </Card>

@@ -23,6 +23,6 @@ export const usePair = (
       enabled: Boolean(token1 && token2 && token1.chainId === token2.chainId)
     }
   );
-  console.log(query.data);
+
   return query;
 };
