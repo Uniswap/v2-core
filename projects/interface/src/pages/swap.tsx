@@ -1,7 +1,7 @@
 import { Card, PageContainer } from "@/components/ui";
 import { CurrencyInput } from "@/features/Currency";
 import { useCurrencyInput } from "@/features/Currency/hooks/useCurrencyInput";
-import { usePair } from "@/features/Trade/hooks/useTrade";
+import { usePair } from "@/features/Trade/hooks/usePair";
 
 const Swap: React.VFC = () => {
   const {
