@@ -8,7 +8,7 @@ export const useCurrencyInput = () => {
   const [currency2, _setCurrency2] = useState<Token | Currency | null>(null);
 
   const setCurrency1 = useCallback(
-    (newCurrency: Token | Currency) => {
+    (newCurrency: Token | Currency | null) => {
       if (newCurrency === currency2) {
         _setCurrency2(currency1);
         _setCurrency1(newCurrency);
@@ -19,7 +19,7 @@ export const useCurrencyInput = () => {
     [currency1, currency2]
   );
   const setCurrency2 = useCallback(
-    (newCurrency: Token | Currency) => {
+    (newCurrency: Token | Currency | null) => {
       if (newCurrency === currency1) {
         _setCurrency1(currency2);
         _setCurrency2(newCurrency);
@@ -30,5 +30,11 @@ export const useCurrencyInput = () => {
     [currency1, currency2]
   );
 
-  return { currency1, currency2, setCurrency1, setCurrency2 };
+  const toggle = useCallback(() => {
+    const temp = currency2;
+    setCurrency2(currency1);
+    setCurrency1(temp);
+  }, [currency1, currency2]);
+
+  return { currency1, currency2, setCurrency1, setCurrency2, toggle };
 };

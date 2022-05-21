@@ -1,5 +1,5 @@
-import React from "react";
 import clsx from "clsx";
+import React from "react";
 
 export const PageContainer: React.VFC<{
   children: React.ReactNode;
@@ -7,7 +7,10 @@ export const PageContainer: React.VFC<{
 }> = ({ children, className }) => {
   return (
     <div
-      className={clsx("flex flex-col justify-center items-center", className)}
+      className={clsx(
+        "flex flex-col justify-center items-center px-4",
+        className
+      )}
     >
       {children}
     </div>

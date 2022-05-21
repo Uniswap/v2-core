@@ -5,12 +5,12 @@ import { BsQuestionLg } from "react-icons/bs";
 import { useCurrencyLogo } from "../hooks/useCurrencyLogo";
 
 export const CurrencyLogo: React.VFC<{
-  currency: Currency | Token;
+  currency: Currency | Token | null;
   size?: number;
   className?: string;
 }> = ({ currency, size = 100, className }) => {
   const logo = useCurrencyLogo(currency);
-  if (logo) {
+  if (logo && currency) {
     return (
       <div className={clsx("aspect-square w-12 h-12", className)}>
         <NextImage
@@ -26,7 +26,7 @@ export const CurrencyLogo: React.VFC<{
       <div
         className={clsx("aspect-square w-12 h-12 btn btn-square", className)}
       >
-        <BsQuestionLg size="1.8rem" />
+        <BsQuestionLg size={"1.8rem"} />
       </div>
     );
   }
