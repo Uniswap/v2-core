@@ -1,13 +1,15 @@
 import chai, { expect } from 'chai'
-import { Contract, providers, Wallet } from 'ethers'
-import { MaxUint256 } from 'ethers/constants'
-import { bigNumberify, hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } from 'ethers/utils'
+import { BigNumber, Contract, providers, Wallet, utils, constants } from 'ethers'
+
 import { solidity, deployContract } from 'ethereum-waffle'
 import { ecsign } from 'ethereumjs-util'
 
 import { expandTo18Decimals, getApprovalDigest } from './shared/utilities'
 
 import ERC20 from '../build/ERC20.json'
+
+const { hexlify, keccak256, defaultAbiCoder, toUtf8Bytes } = utils;
+const { MaxUint256 } = constants;
 
 chai.use(solidity)
 
@@ -118,6 +120,6 @@ describe('UniswapV2ERC20', () => {
       .to.emit(token, 'Approval')
       .withArgs(wallet.address, other.address, TEST_AMOUNT)
     expect(await token.allowance(wallet.address, other.address)).to.eq(TEST_AMOUNT)
-    expect(await token.nonces(wallet.address)).to.eq(bigNumberify(1))
+    expect(await token.nonces(wallet.address)).to.eq(BigNumber.from(1))
   })
 })

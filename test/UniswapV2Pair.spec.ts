@@ -1,13 +1,12 @@
 import chai, { expect } from 'chai'
-import { Contract, providers, Wallet } from 'ethers'
+import { Contract, providers, Wallet, BigNumber, constants } from 'ethers'
 import { solidity } from 'ethereum-waffle'
-import { BigNumber, bigNumberify } from 'ethers/utils'
 
 import { expandTo18Decimals, encodePrice } from './shared/utilities'
 import { pairFixture } from './shared/fixtures'
-import { AddressZero } from 'ethers/constants'
+const { AddressZero } = constants
 
-const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
+const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3)
 
 chai.use(solidity)
 
@@ -84,7 +83,7 @@ describe('UniswapV2Pair', () => {
     [1, 10, 10, '906610893880149131'],
     [1, 100, 100, '987158034397061298'],
     [1, 1000, 1000, '996006981039903216']
-  ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
+  ].map(a => a.map(n => (typeof n === 'string' ? BigNumber.from(n) : expandTo18Decimals(n))))
   swapTestCases.forEach((swapTestCase, i) => {
     it(`getInputPrice:${i}`, async () => {
       const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] = swapTestCase
@@ -102,7 +101,7 @@ describe('UniswapV2Pair', () => {
     ['997000000000000000', 10, 5, 1],
     ['997000000000000000', 5, 5, 1],
     [1, 5, 5, '1003009027081243732'] // given amountOut, amountIn = ceiling(amountOut / .997)
-  ].map(a => a.map(n => (typeof n === 'string' ? bigNumberify(n) : expandTo18Decimals(n))))
+  ].map(a => a.map(n => (typeof n === 'string' ? BigNumber.from(n) : expandTo18Decimals(n))))
   optimisticTestCases.forEach((optimisticTestCase, i) => {
     it(`optimistic:${i}`, async () => {
       const [outputAmount, token0Amount, token1Amount, inputAmount] = optimisticTestCase
@@ -121,7 +120,7 @@ describe('UniswapV2Pair', () => {
     await addLiquidity(token0Amount, token1Amount)
 
     const swapAmount = expandTo18Decimals(1)
-    const expectedOutputAmount = bigNumberify('1662497915624478906')
+    const expectedOutputAmount = BigNumber.from('1662497915624478906')
     await token0.transfer(pair.address, swapAmount)
     await expect(pair.swap(0, expectedOutputAmount, wallet.address, '0x', overrides))
       .to.emit(token1, 'Transfer')
@@ -148,7 +147,7 @@ describe('UniswapV2Pair', () => {
     await addLiquidity(token0Amount, token1Amount)
 
     const swapAmount = expandTo18Decimals(1)
-    const expectedOutputAmount = bigNumberify('453305446940074565')
+    const expectedOutputAmount = BigNumber.from('453305446940074565')
     await token1.transfer(pair.address, swapAmount)
     await expect(pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides))
       .to.emit(token0, 'Transfer')
@@ -179,7 +178,7 @@ describe('UniswapV2Pair', () => {
     await pair.sync(overrides)
 
     const swapAmount = expandTo18Decimals(1)
-    const expectedOutputAmount = bigNumberify('453305446940074565')
+    const expectedOutputAmount = BigNumber.from('453305446940074565')
     await token1.transfer(pair.address, swapAmount)
     // await mineBlock(provider, (await provider.getBlock('latest')).timestamp + 1)
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
@@ -273,7 +272,7 @@ describe('UniswapV2Pair', () => {
     await addLiquidity(token0Amount, token1Amount)
 
     const swapAmount = expandTo18Decimals(1)
-    const expectedOutputAmount = bigNumberify('996006981039903216')
+    const expectedOutputAmount = BigNumber.from('996006981039903216')
     await token1.transfer(pair.address, swapAmount)
     await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
 
@@ -291,7 +290,7 @@ describe('UniswapV2Pair', () => {
     await addLiquidity(token0Amount, token1Amount)
 
     const swapAmount = expandTo18Decimals(1)
-    const expectedOutputAmount = bigNumberify('996006981039903216')
+    const expectedOutputAmount = BigNumber.from('996006981039903216')
     await token1.transfer(pair.address, swapAmount)
     await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
 
@@ -303,7 +302,7 @@ describe('UniswapV2Pair', () => {
 
     // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...
     // ...because the initial liquidity amounts were equal
-    expect(await token0.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('249501683697445'))
-    expect(await token1.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('250000187312969'))
+    expect(await token0.balanceOf(pair.address)).to.eq(BigNumber.from(1000).add('249501683697445'))
+    expect(await token1.balanceOf(pair.address)).to.eq(BigNumber.from(1000).add('250000187312969'))
   })
 })

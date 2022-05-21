@@ -1,20 +1,18 @@
-import { Contract } from 'ethers'
-import {
-  BigNumber,
-  bigNumberify,
+import { BigNumber, Contract, utils } from 'ethers'
+const {
   getAddress,
   keccak256,
   defaultAbiCoder,
   toUtf8Bytes,
   solidityPack
-} from 'ethers/utils'
+} = utils;
 
 const PERMIT_TYPEHASH = keccak256(
   toUtf8Bytes('Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)')
 )
 
 export function expandTo18Decimals(n: number): BigNumber {
-  return bigNumberify(n).mul(bigNumberify(10).pow(18))
+  return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
 }
 
 function getDomainSeparator(name: string, tokenAddress: string, chainId: number) {
@@ -96,5 +94,5 @@ export async function getApprovalDigest(
 // }
 
 export function encodePrice(reserve0: BigNumber, reserve1: BigNumber) {
-  return [reserve1.mul(bigNumberify(2).pow(112)).div(reserve0), reserve0.mul(bigNumberify(2).pow(112)).div(reserve1)]
+  return [reserve1.mul(BigNumber.from(2).pow(112)).div(reserve0), reserve0.mul(BigNumber.from(2).pow(112)).div(reserve1)]
 }

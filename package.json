@@ -22,17 +22,17 @@
     "node": ">=10"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.6",
+    "@types/chai": "^4.3.1",
     "@types/mocha": "^5.2.7",
-    "chai": "^4.2.0",
-    "ethereum-waffle": "^2.4.1",
-    "ethereumjs-util": "^6.2.0",
-    "mocha": "^6.2.2",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.0.0",
+    "ethereumjs-util": "^6.2.1",
+    "mocha": "^6.2.3",
     "prettier": "^1.19.1",
-    "rimraf": "^3.0.0",
+    "rimraf": "^3.0.2",
     "solc": "0.5.16",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.10"
   },
   "scripts": {
     "lint": "yarn prettier ./test/*.ts --check",
@@ -44,5 +44,9 @@
     "test": "mocha",
     "prepublishOnly": "yarn test"
   },
-  "license": "GPL-3.0-or-later"
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@ethersproject/constants": "^5.6.0",
+    "ethers": "^5.6.6"
+  }
 }
