@@ -1,5 +1,5 @@
-import { Contract, Wallet } from 'ethers'
-import { JsonRpcProvider } from 'ethers/providers'
+import { Contract, Wallet, providers } from 'ethers'
+const { JsonRpcProvider } = providers
 import { deployContract } from 'ethereum-waffle'
 
 import { expandTo18Decimals } from './utilities'
@@ -15,7 +15,8 @@ interface FactoryFixture {
 const overrides = {
   gasLimit: 1000000000
 }
-export async function factoryFixture(_: JsonRpcProvider, [wallet]: Wallet[]): Promise<FactoryFixture> {
+
+export async function factoryFixture(_: InstanceType<typeof JsonRpcProvider>, [wallet]: Wallet[]): Promise<FactoryFixture> {
   const factory = await deployContract(wallet, UniswapV2Factory, [wallet.address], overrides)
   return { factory }
 }
@@ -26,7 +27,7 @@ interface PairFixture extends FactoryFixture {
   pair: Contract
 }
 
-export async function pairFixture(provider: JsonRpcProvider, [wallet]: Wallet[]): Promise<PairFixture> {
+export async function pairFixture(provider: InstanceType<typeof JsonRpcProvider>, [wallet]: Wallet[]): Promise<PairFixture> {
   const { factory } = await factoryFixture(provider, [wallet])
 
   const tokenA = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)], overrides)

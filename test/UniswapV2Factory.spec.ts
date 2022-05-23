@@ -1,7 +1,6 @@
 import chai, { expect } from 'chai'
-import { Contract, providers, Wallet } from 'ethers'
-import { AddressZero } from 'ethers/constants'
-import { bigNumberify } from 'ethers/utils'
+import { BigNumber, Contract, providers, Wallet, constants } from 'ethers'
+const { AddressZero } = constants
 import { solidity } from 'ethereum-waffle'
 
 import { getCreate2Address } from './shared/utilities'
@@ -48,7 +47,7 @@ describe('UniswapV2Factory', () => {
     const create2Address = getCreate2Address(factory.address, tokens, bytecode)
     await expect(factory.createPair(...tokens))
       .to.emit(factory, 'PairCreated')
-      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, bigNumberify(1))
+      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, BigNumber.from(1))
 
     await expect(factory.createPair(...tokens)).to.be.reverted // NeonswapV2: PAIR_EXISTS
     await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // NeonswapV2: PAIR_EXISTS
