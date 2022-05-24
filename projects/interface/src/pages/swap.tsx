@@ -1,7 +1,6 @@
 import { Card, PageContainer } from "@/components/ui";
 import { CurrencyInput } from "@/features/Currency";
 import { useCurrencyInput } from "@/features/Currency/hooks/useCurrencyInput";
-import { TradeInfo } from "@/features/Trade/components/TradeInfo";
 import { AiOutlineArrowDown, AiOutlineSetting } from "react-icons/ai";
 
 const Swap: React.VFC = () => {
@@ -41,10 +40,7 @@ const Swap: React.VFC = () => {
             currency={currency2}
             onSelect={setCurrency2}
           />
-          <TradeInfo
-            amount={"100" + "0".repeat(6)}
-            {...{ currency1, currency2 }}
-          />
+
           <button className="w-full btn btn-primary">Swap</button>
         </div>
       </Card>

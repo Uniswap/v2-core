@@ -24,12 +24,20 @@ export const chainParameters: ChainParameters = {
     nativeCurrency: {
       decimals: 18,
       name: "ASTR",
-      symbol: "ASTR",
+      symbol: "ASTR"
     },
-    rpcUrls: ["https://evm.astar.network/"],
-  },
+    rpcUrls: ["https://astar.api.onfinality.io/public"]
+  }
+};
+
+export const chainIdTo = (chainId: number | null) => {
+  return (
+    Object.entries(chainParameters).find(
+      ([name, p]) => chainId === p.chainId
+    )?.[0] || null
+  );
 };
 
 export const factoryAddresses: Record<chains, string> = {
-  astar: "0xA9473608514457b4bF083f9045fA63ae5810A03E",
+  astar: "0xA9473608514457b4bF083f9045fA63ae5810A03E"
 };

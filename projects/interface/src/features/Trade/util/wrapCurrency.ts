@@ -1,17 +1,18 @@
 import { chainParameters } from "@/constants/chains";
 import { Currency, Token, WETH } from "@penta-swap/sdk";
 
-type wrapType<T> = T extends Currency ? Token : null;
-
-export const wrapCurrency = <T extends Token | Currency | null>(
-  currency: T
-): wrapType<T> => {
+export const wrapCurrency = (
+  currency: Token | Currency | null,
+  chainId: number
+): Token | null => {
   if (currency === null) {
-    return null as wrapType<T>;
-  } else if (currency instanceof Token) {
-    return currency as wrapType<T>;
+    return null;
+  } else if (currency instanceof Token && currency.chainId === chainId) {
+    return currency;
+  } else if (currency instanceof Token && currency.chainId !== chainId) {
+    return null;
   } else if (currency === Currency.ETHER) {
-    return WETH[chainParameters.astar.chainId as 592] as wrapType<T>;
+    return WETH[chainParameters.astar.chainId as 592];
   } else {
     throw new Error("Unauthorized Currency");
   }

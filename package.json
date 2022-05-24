@@ -16,7 +16,8 @@
     "contract:compile": "yarn workspace @penta-swap/contract hardhat compile",
     "contract:deploy": "yarn workspace @penta-swap/contract hardhat run scripts/deploy.ts",
     "sdk:build": "yarn workspace @penta-swap/sdk build",
-    "sdk:link": "yarn workspace @penta-swap/sdk link"
+    "sdk:link": "yarn workspace @penta-swap/sdk link",
+    "sdk:dev": "yarn workspace @penta-swap/sdk start"
   },
   "workspaces": {
     "packages": [
