@@ -1,6 +1,5 @@
-import { chainIdTo } from "@/constants/chains";
 import { chainTokens } from "@/constants/tokens";
-import { useWeb3 } from "@inaridiy/useful-web3";
+import { useCurrentChain } from "@/hooks";
 import { Fetcher, Token } from "@penta-swap/sdk";
 import { ethers } from "ethers";
 import { useMemo } from "react";
@@ -15,6 +14,7 @@ export const usePair = ([token1, token2]: [Token, Token] | [null, null]) => {
 };
 
 export const usePairs = (tokenPairs: [Token, Token][]) => {
+  const { perm } = useCurrentChain();
   return useQueries(
     tokenPairs.map(([token1, token2]) => ({
       queryKey: ["pair", token1.chainId, token1.address, token2.address],
@@ -22,11 +22,10 @@ export const usePairs = (tokenPairs: [Token, Token][]) => {
         Fetcher.fetchPairData(
           token1,
           token2,
-          new ethers.providers.JsonRpcProvider(
-            "https://astar.blastapi.io/6a492343-ce82-409d-89fe-38838ab38fdd"
-          )
+          new ethers.providers.JsonRpcProvider(perm.rpcUrls[0])
         ),
-      retry: 0
+      cacheTime: 0,
+      retry: false
     }))
   );
 };
@@ -35,14 +34,13 @@ export const useRelationPairs = (
   token1?: Token | null,
   token2?: Token | null
 ) => {
-  const { chainId } = useWeb3();
+  const { name } = useCurrentChain();
 
   const commonTokens: Token[] = useMemo(() => {
-    const chainName = chainIdTo(chainId);
-    return chainName && chainName in chainTokens
-      ? chainTokens[chainName as keyof typeof chainTokens]
+    return name && name in chainTokens
+      ? chainTokens[name as keyof typeof chainTokens]
       : [];
-  }, [chainId, token1, token2]);
+  }, [name, token1, token2]);
 
   const basePairs = useMemo(
     () =>
@@ -69,7 +67,7 @@ export const useRelationPairs = (
             )
             .filter(tokens => tokens[0].address !== tokens[1].address)
         : [],
-    [token1, token2, commonTokens, basePairs, chainId]
+    [token1, token2, commonTokens, basePairs]
   );
 
   const allPairs = usePairs(allRelationTokenPairs);

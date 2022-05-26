@@ -1,4 +1,3 @@
-import { useWeb3 } from "@inaridiy/useful-web3";
 import {
   Currency,
   JSBI,
@@ -17,10 +16,9 @@ export const useTradeExactIn = (
   amount: string | number | JSBI | null,
   maxHops = 1
 ) => {
-  const { chainId } = useWeb3();
   const [token1, token2] =
-    chainId && currencyA && currencyB
-      ? [wrapCurrency(currencyA, chainId), wrapCurrency(currencyB, chainId)]
+    currencyA && currencyB
+      ? [wrapCurrency(currencyA), wrapCurrency(currencyB)]
       : [null, null];
   const relationPairQueries = useRelationPairs(token1, token2);
 
@@ -31,6 +29,7 @@ export const useTradeExactIn = (
         .filter((pair): pair is Pair => Boolean(pair)),
     [relationPairQueries]
   );
+  console.log(relationPairs.length);
   const { isLoading, isError } = useMemo(
     () =>
       relationPairQueries.reduce(

@@ -8,7 +8,7 @@ export const useSwapHandle = () => {
     Currency.ETHER
   );
   const [currency2, _setCurrency2] = useState<Token | Currency | null>(null);
-  const [inputAmount, setInputAmount] = useState<string | undefined>(undefined);
+  const [inputAmount, setInputAmount] = useState<string | undefined>("");
   const parsedInputAmount = useMemo(
     () =>
       inputAmount &&

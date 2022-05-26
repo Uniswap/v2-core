@@ -26,7 +26,7 @@ export const chainParameters: ChainParameters = {
       name: "ASTR",
       symbol: "ASTR"
     },
-    rpcUrls: ["https://astar.api.onfinality.io/public"]
+    rpcUrls: ["https://astar.blastapi.io/6a492343-ce82-409d-89fe-38838ab38fdd"]
   }
 };
 

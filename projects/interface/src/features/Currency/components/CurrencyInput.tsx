@@ -14,6 +14,7 @@ export const CurrencyInput: React.VFC<{
   const { Modal, toggle } = useModal(toggle => (
     <CurrencySelect onSelect={onSelect} onClose={toggle} />
   ));
+
   const handleChange = (nextV: string) => {
     if (
       nextV === "" ||
