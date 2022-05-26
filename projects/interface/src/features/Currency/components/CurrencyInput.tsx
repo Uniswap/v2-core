@@ -18,7 +18,7 @@ export const CurrencyInput: React.VFC<{
   return (
     <>
       <Modal />
-      <div className="p-3 hover:ring-2 ring-accent card bg-base-200">
+      <div className="p-3 hover:ring-2 ring-neutral card bg-base-200">
         <div className="flex justify-between items-center">
           <div className="text-lg font-bold">{label}</div>
           {currency && (

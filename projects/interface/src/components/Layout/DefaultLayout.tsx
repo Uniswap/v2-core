@@ -106,7 +106,7 @@ export const DefaultLayout: React.VFC<{ children: React.ReactNode }> = ({
       data-theme="light"
     >
       <Header />
-      <div className="grow mt-28 text-base-content">{children}</div>
+      <div className="grow mt-16 sm:mt-32 text-base-content">{children}</div>
     </div>
   );
 };

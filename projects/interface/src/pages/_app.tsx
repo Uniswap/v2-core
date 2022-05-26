@@ -4,11 +4,13 @@ import { Web3Provider } from "@inaridiy/useful-web3";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 
-const queryClient = new QueryClient({});
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 0 } }
+});
 
 function MyApp({
   Component,
-  pageProps,
+  pageProps
 }: {
   Component: React.FC;
   pageProps: any;
