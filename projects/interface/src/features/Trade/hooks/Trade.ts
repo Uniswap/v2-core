@@ -7,7 +7,8 @@ import { useRelationPairs } from "./Pair";
 export const useTradeExactIn = (
   currencyA: Currency | Token | null,
   currencyB: Currency | Token | null,
-  amount: string | number | null
+  amount: string | number | null,
+  maxHops = 1
 ) => {
   const { chainId } = useWeb3();
   const [token1, token2] =
@@ -42,7 +43,7 @@ export const useTradeExactIn = (
           relationPairs,
           new TokenAmount(token1, amount),
           token2,
-          { maxHops: 1, maxNumResults: 1 }
+          { maxHops, maxNumResults: 1 }
         )[0] || null
       );
     } else {
