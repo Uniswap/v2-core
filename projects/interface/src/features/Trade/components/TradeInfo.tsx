@@ -1,18 +1,19 @@
-import { Currency, Token } from "@penta-swap/sdk";
+import { Trade } from "@penta-swap/sdk";
 import { useState } from "react";
-import { useTradeExactIn } from "../hooks";
 
 export const TradeInfo: React.VFC<{
-  currency1: Currency | Token | null;
-  currency2: Currency | Token | null;
-  amount: number | string | null;
-}> = ({ currency1, currency2, amount }) => {
-  const { trade, isLoading } = useTradeExactIn(currency1, currency2, amount);
+  trade: Trade | null;
+  isLoading: boolean;
+}> = ({ trade, isLoading }) => {
   const price = trade && trade.executionPrice;
   const [isInvert, setIsInvert] = useState(false);
+  const [symbol1, symbol2] = [
+    trade?.inputAmount.currency.symbol || "Unknown",
+    trade?.outputAmount.currency.symbol || "Unknown"
+  ];
   if (isLoading && !trade) {
     return <div className="justify-start btn btn-ghost loading"></div>;
-  } else if (!(price && currency1 && currency2)) {
+  } else if (!(trade && price)) {
     return <></>;
   } else if (price.greaterThan(1) !== isInvert) {
     return (
@@ -20,8 +21,7 @@ export const TradeInfo: React.VFC<{
         <button
           className="text-lg font-bold"
           onClick={() => setIsInvert(!isInvert)}
-        >{`${price.toSignificant(6)} ${currency2.symbol ||
-          "Unknown"} = 1 ${currency1.symbol || "Unknown"}`}</button>
+        >{`${price.toSignificant(6)} ${symbol2} = 1 ${symbol1}`}</button>
       </div>
     );
   } else {
@@ -30,8 +30,9 @@ export const TradeInfo: React.VFC<{
         <button
           className="text-lg font-bold"
           onClick={() => setIsInvert(!isInvert)}
-        >{`${price.invert().toSignificant(6)} ${currency1.symbol ||
-          "Unknown"} = 1 ${currency2.symbol || "Unknown"}`}</button>
+        >{`${price
+          .invert()
+          .toSignificant(6)} ${symbol1} = 1 ${symbol2}`}</button>
       </div>
     );
   }

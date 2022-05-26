@@ -1,5 +1,12 @@
 import { useWeb3 } from "@inaridiy/useful-web3";
-import { Currency, Pair, Token, TokenAmount, Trade } from "@penta-swap/sdk";
+import {
+  Currency,
+  JSBI,
+  Pair,
+  Token,
+  TokenAmount,
+  Trade
+} from "@penta-swap/sdk";
 import { useMemo } from "react";
 import { wrapCurrency } from "../util/wrapCurrency";
 import { useRelationPairs } from "./Pair";
@@ -7,7 +14,7 @@ import { useRelationPairs } from "./Pair";
 export const useTradeExactIn = (
   currencyA: Currency | Token | null,
   currencyB: Currency | Token | null,
-  amount: string | number | null,
+  amount: string | number | JSBI | null,
   maxHops = 1
 ) => {
   const { chainId } = useWeb3();

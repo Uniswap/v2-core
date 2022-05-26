@@ -6,14 +6,24 @@ import { CurrencySymbol } from "./CurrencySymbol";
 
 export const CurrencyInput: React.VFC<{
   currency: Token | Currency | null;
-  value?: number;
+  value?: string;
   label: string;
   onSelect?: (currency: Token | Currency) => void;
-  onChange?: (value: number) => void;
+  onChange?: (value: string) => void;
 }> = ({ currency, label, onSelect, value, onChange }) => {
   const { Modal, toggle } = useModal(toggle => (
     <CurrencySelect onSelect={onSelect} onClose={toggle} />
   ));
+  const handleChange = (nextV: string) => {
+    if (
+      nextV === "" ||
+      RegExp(`^\\d*(?:\\\\[.])?\\d*$`).test(
+        nextV.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      )
+    ) {
+      onChange && onChange(nextV);
+    }
+  };
 
   return (
     <>
@@ -31,11 +41,18 @@ export const CurrencyInput: React.VFC<{
           <CurrencySymbol currency={currency} onClick={toggle} />
           <div className="-m-1 divider sm:divider-horizontal"></div>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
+            pattern="^[0-9]*[.,]?[0-9]*$"
+            autoComplete="off"
+            autoCorrect="off"
+            minLength={1}
+            maxLength={79}
+            spellCheck="false"
             placeholder="0.0"
             className="pl-2 w-full text-3xl font-bold bg-transparent outline-none sm:pl-0"
-            value={value}
-            onChange={e => onChange && onChange(Number(e.target.value))}
+            value={String(value)}
+            onChange={e => handleChange(e.target.value)}
           />
         </div>
       </div>
