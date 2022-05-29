@@ -16,7 +16,7 @@ export const TradeInfo: React.VFC<{
     return <div className="btn btn-ghost loading"></div>;
   } else if (!(trade && price)) {
     return <></>;
-  } else if (price.greaterThan(1) !== isInvert) {
+  } else if (isInvert) {
     return (
       <div className="justify-start btn btn-ghost">
         <button

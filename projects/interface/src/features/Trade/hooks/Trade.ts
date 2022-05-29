@@ -14,7 +14,7 @@ export const useTradeExactIn = (
   currencyA: Currency | Token | null,
   currencyB: Currency | Token | null,
   amount: string | number | JSBI | null,
-  maxHops = 1
+  maxHops = 2
 ) => {
   const [token1, token2] =
     currencyA && currencyB
