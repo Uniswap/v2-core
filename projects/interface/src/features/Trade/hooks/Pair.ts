@@ -1,6 +1,6 @@
 import { chainTokens } from "@/constants/tokens";
 import { useCurrentChain } from "@/hooks";
-import { Fetcher, Token } from "@penta-swap/sdk";
+import { Fetcher, Pair, Token } from "@penta-swap/sdk";
 import { ethers } from "ethers";
 import { useMemo } from "react";
 import { useQueries, useQuery } from "react-query";
@@ -15,7 +15,7 @@ export const usePair = ([token1, token2]: [Token, Token] | [null, null]) => {
 
 export const usePairs = (tokenPairs: [Token, Token][]) => {
   const { perm } = useCurrentChain();
-  return useQueries(
+  const pairQueries = useQueries(
     tokenPairs.map(([token1, token2]) => ({
       queryKey: ["pair", token1.chainId, token1.address, token2.address],
       queryFn: () =>
@@ -28,6 +28,26 @@ export const usePairs = (tokenPairs: [Token, Token][]) => {
       retry: false
     }))
   );
+  const pairs = useMemo(
+    () =>
+      pairQueries
+        .map(({ data }) => data)
+        .filter((pair): pair is Pair => Boolean(pair)),
+    [pairQueries]
+  );
+  const { isLoading, isError } = useMemo(
+    () =>
+      pairQueries.reduce(
+        (a, b) => ({
+          isLoading: a.isLoading || b.isLoading,
+          isError: a.isError || b.isError
+        }),
+        { isLoading: false, isError: false }
+      ),
+    [pairQueries]
+  );
+
+  return { isLoading, isError, pairs };
 };
 
 export const useRelationPairs = (

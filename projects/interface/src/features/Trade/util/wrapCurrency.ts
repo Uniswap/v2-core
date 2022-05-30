@@ -14,3 +14,11 @@ export const wrapCurrency = (
     throw new Error("Unauthorized Currency");
   }
 };
+
+export const wrapTokens = (
+  currencyA: Token | Currency | null,
+  currencyB: Token | Currency | null
+) =>
+  currencyA && currencyB
+    ? [wrapCurrency(currencyA), wrapCurrency(currencyB)]
+    : [null, null];

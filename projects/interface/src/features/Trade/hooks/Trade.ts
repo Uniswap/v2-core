@@ -1,14 +1,36 @@
-import {
-  Currency,
-  JSBI,
-  Pair,
-  Token,
-  TokenAmount,
-  Trade
-} from "@penta-swap/sdk";
+import { Currency, JSBI, Token, TokenAmount, Trade } from "@penta-swap/sdk";
 import { useMemo } from "react";
-import { wrapCurrency } from "../util/wrapCurrency";
+import { wrapTokens } from "./../util/wrapCurrency";
 import { useRelationPairs } from "./Pair";
+
+export const useTradeExactOut = (
+  currencyA: Currency | Token | null,
+  currencyB: Currency | Token | null,
+  amount: string | number | JSBI | null,
+  maxHops = 2
+) => {
+  const [token1, token2] = wrapTokens(currencyA, currencyB);
+  const { isError, isLoading, pairs: relationPairs } = useRelationPairs(
+    token1,
+    token2
+  );
+
+  const trade = useMemo(() => {
+    if (relationPairs.length > 0 && amount && token1 && token2) {
+      return (
+        Trade.bestTradeExactOut(
+          relationPairs,
+          token1,
+          new TokenAmount(token2, amount),
+          { maxHops, maxNumResults: 1 }
+        )[0] || null
+      );
+    } else {
+      return null;
+    }
+  }, [relationPairs, token1, token2, amount]);
+  return { isLoading, isError, trade };
+};
 
 export const useTradeExactIn = (
   currencyA: Currency | Token | null,
@@ -16,30 +38,10 @@ export const useTradeExactIn = (
   amount: string | number | JSBI | null,
   maxHops = 2
 ) => {
-  const [token1, token2] =
-    currencyA && currencyB
-      ? [wrapCurrency(currencyA), wrapCurrency(currencyB)]
-      : [null, null];
-  const relationPairQueries = useRelationPairs(token1, token2);
-
-  const relationPairs = useMemo(
-    () =>
-      relationPairQueries
-        .map(({ data }) => data)
-        .filter((pair): pair is Pair => Boolean(pair)),
-    [relationPairQueries]
-  );
-  console.log(relationPairs.length);
-  const { isLoading, isError } = useMemo(
-    () =>
-      relationPairQueries.reduce(
-        (a, b) => ({
-          isLoading: a.isLoading || b.isLoading,
-          isError: a.isError || b.isError
-        }),
-        { isLoading: false, isError: false }
-      ),
-    [relationPairQueries]
+  const [token1, token2] = wrapTokens(currencyA, currencyB);
+  const { isError, isLoading, pairs: relationPairs } = useRelationPairs(
+    token1,
+    token2
   );
 
   const trade = useMemo(() => {
