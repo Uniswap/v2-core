@@ -1,62 +1,72 @@
-import { useTradeExactIn } from "@/features/Trade";
+import { parseCurrency, useTradeExactIn } from "@/features/Trade";
 import { Currency, Token } from "@penta-swap/sdk";
-import { utils } from "ethers";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
+import { useTradeExactOut } from "./../../../features/Trade/hooks/Trade";
 
 export const useSwapHandle = () => {
   const [currency1, _setCurrency1] = useState<Token | Currency | null>(
     Currency.ETHER
   );
   const [currency2, _setCurrency2] = useState<Token | Currency | null>(null);
-  const [inputAmount, setInputAmount] = useState<string | undefined>("");
-  const parsedInputAmount = useMemo(
-    () =>
-      inputAmount &&
-      utils
-        .parseUnits(String(inputAmount), currency1?.decimals || 18)
-        .toString(),
-    [inputAmount, currency1]
-  );
+  const [_inputAmount, _setInputAmount] = useState("");
+  const [_outputAmount, _setOutputAmount] = useState("");
+  const [editing, setEditing] = useState<"input" | "output">("input");
 
-  const { trade, isLoading } = useTradeExactIn(
+  const setInputAmount = (amount: string) => {
+    _setInputAmount(amount);
+    setEditing("input");
+  };
+  const setOutputAmount = (amount: string) => {
+    _setOutputAmount(amount);
+    setEditing("output");
+  };
+  const { trade: inTrade, isLoading: isInTradeLoading } = useTradeExactIn(
     currency1,
     currency2,
-    parsedInputAmount || 0
+    parseCurrency(currency1, _inputAmount)
   );
-  const outputAmount = useMemo(
-    () => (trade ? trade.outputAmount.toSignificant(6) : ""),
-    [trade]
+  const { trade: outTrade, isLoading: isOutTradeLoading } = useTradeExactOut(
+    currency1,
+    currency2,
+    parseCurrency(currency2, _outputAmount)
   );
 
-  const setCurrency1 = useCallback(
-    (newCurrency: Token | Currency | null) => {
-      if (newCurrency === currency2) {
-        _setCurrency2(currency1);
-        _setCurrency1(newCurrency);
-      } else {
-        _setCurrency1(newCurrency);
-      }
-    },
-    [currency1, currency2]
-  );
-  const setCurrency2 = useCallback(
-    (newCurrency: Token | Currency | null) => {
-      if (newCurrency === currency1) {
-        _setCurrency1(currency2);
-        _setCurrency2(newCurrency);
-      } else {
-        _setCurrency2(newCurrency);
-      }
-    },
-    [currency1, currency2]
-  );
+  const [amount1 = "", amount2 = ""] =
+    editing === "input"
+      ? [
+          inTrade?.inputAmount.toSignificant(),
+          inTrade?.outputAmount.toSignificant()
+        ]
+      : [
+          outTrade?.inputAmount.toSignificant(),
+          outTrade?.outputAmount.toSignificant()
+        ];
+  //s console.log(_outputAmount);
+
+  const switchCurrency = () => {};
+
+  const setCurrency1 = (newCurrency: Token | Currency | null) => {
+    if (newCurrency === currency2) {
+      switchCurrency();
+    } else {
+      _setCurrency1(newCurrency);
+    }
+  };
+
+  const setCurrency2 = (newCurrency: Token | Currency | null) => {
+    if (newCurrency === currency1) {
+      switchCurrency();
+    } else {
+      _setCurrency2(newCurrency);
+    }
+  };
 
   return {
     currencies: { from: currency1, to: currency2 },
+    setAmount: { from: setInputAmount, to: setOutputAmount },
     setCurrencies: { from: setCurrency1, to: setCurrency2 },
-    amounts: { from: inputAmount, to: outputAmount },
-    setInputAmount,
-    trade,
-    isLoading
+    amounts: { from: amount1, to: amount2 },
+    trade: editing === "input" ? inTrade : outTrade,
+    isLoading: editing === "input" ? isInTradeLoading : isOutTradeLoading
   };
 };

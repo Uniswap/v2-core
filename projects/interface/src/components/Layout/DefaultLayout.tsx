@@ -103,7 +103,7 @@ export const DefaultLayout: React.VFC<{ children: React.ReactNode }> = ({
   return (
     <div
       className="flex relative flex-col min-h-full transition-all bg-base-200 text-base-content"
-      data-theme="light"
+      data-theme="dark"
     >
       <Header />
       <div className="grow mt-16 sm:mt-32 text-base-content">{children}</div>

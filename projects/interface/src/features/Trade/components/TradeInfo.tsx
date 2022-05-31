@@ -11,7 +11,7 @@ export const TradeInfo: React.VFC<{
     trade?.inputAmount.currency.symbol || "Unknown",
     trade?.outputAmount.currency.symbol || "Unknown"
   ];
-  //console.log(isLoading);
+
   if (isLoading && !trade) {
     return <div className="btn btn-ghost loading"></div>;
   } else if (!(trade && price)) {

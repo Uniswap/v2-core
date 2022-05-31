@@ -11,7 +11,7 @@ const Swap: React.VFC = () => {
     trade,
     isLoading,
     amounts,
-    setInputAmount
+    setAmount
   } = useSwapHandle();
 
   return (
@@ -28,7 +28,7 @@ const Swap: React.VFC = () => {
             label="From"
             currency={currencies["from"]}
             onSelect={setCurrencies["from"]}
-            onChange={setInputAmount}
+            onChange={setAmount["from"]}
             value={amounts["from"]}
           />
 
@@ -43,6 +43,7 @@ const Swap: React.VFC = () => {
             label="To"
             currency={currencies["to"]}
             onSelect={setCurrencies["to"]}
+            onChange={setAmount["to"]}
             value={amounts["to"]}
           />
           <TradeInfo {...{ trade, isLoading }} />
