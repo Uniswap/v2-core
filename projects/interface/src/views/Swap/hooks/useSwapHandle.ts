@@ -17,8 +17,13 @@ export const useSwapHandle = () => {
     setEditing("input");
   };
   const setOutputAmount = (amount: string) => {
-    _setOutputAmount(amount);
-    setEditing("output");
+    if (Number(amount) !== 0) {
+      _setOutputAmount(amount);
+      setEditing("output");
+    } else {
+      _setInputAmount("0");
+      setEditing("input");
+    }
   };
   const { trade: inTrade, isLoading: isInTradeLoading } = useTradeExactIn(
     currency1,
@@ -41,7 +46,6 @@ export const useSwapHandle = () => {
           outTrade?.inputAmount.toSignificant(),
           outTrade?.outputAmount.toSignificant()
         ];
-  //s console.log(_outputAmount);
 
   const switchCurrency = () => {};
 

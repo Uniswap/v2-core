@@ -6,6 +6,7 @@ export const TradeInfo: React.VFC<{
   isLoading: boolean;
 }> = ({ trade, isLoading }) => {
   const price = trade && trade.executionPrice;
+  console.log(price);
   const [isInvert, setIsInvert] = useState(false);
   const [symbol1, symbol2] = [
     trade?.inputAmount.currency.symbol || "Unknown",

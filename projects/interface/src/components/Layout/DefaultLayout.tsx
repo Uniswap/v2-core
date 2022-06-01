@@ -5,20 +5,15 @@ import Image from "next/image";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
+import logoImage from "../../../public/penta.png";
 
 const Header: React.VFC = () => {
   return (
     <header className="fixed top-0 w-full">
       <div className="gap-4 mx-auto max-w-screen-lg navbar">
         <div className="navbar-start">
-          <a className="btn btn-ghost btn-square">
-            <Image
-              className="rounded-full"
-              src="/penta.jpg"
-              alt="logo"
-              width={300}
-              height={300}
-            />
+          <a className="relative py-0 w-36 sm:w-48 btn btn-ghost">
+            <Image src={logoImage} alt="logo" className="w-full" />
           </a>
         </div>
 
