@@ -1,6 +1,6 @@
 import { parseCurrency, useTradeExactIn } from "@/features/Trade";
 import { Currency, Token } from "@penta-swap/sdk";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTradeExactOut } from "./../../../features/Trade/hooks/Trade";
 
 export const useSwapHandle = () => {
@@ -12,12 +12,12 @@ export const useSwapHandle = () => {
   const [_outputAmount, _setOutputAmount] = useState("");
   const [editing, setEditing] = useState<"input" | "output">("input");
 
-  const setInputAmount = (amount: string) => {
+  const setInputAmount = useCallback((amount: string) => {
     _setInputAmount(amount);
     setEditing("input");
-  };
+  }, []);
   const setOutputAmount = (amount: string) => {
-    if (Number(amount) !== 0) {
+    if (Number(amount) !== 0 && !isNaN(Number(amount))) {
       _setOutputAmount(amount);
       setEditing("output");
     } else {
@@ -38,14 +38,8 @@ export const useSwapHandle = () => {
 
   const [amount1 = "", amount2 = ""] =
     editing === "input"
-      ? [
-          inTrade?.inputAmount.toSignificant(),
-          inTrade?.outputAmount.toSignificant()
-        ]
-      : [
-          outTrade?.inputAmount.toSignificant(),
-          outTrade?.outputAmount.toSignificant()
-        ];
+      ? [_inputAmount, inTrade?.outputAmount.toSignificant()]
+      : [outTrade?.inputAmount.toSignificant(), _outputAmount];
 
   const switchCurrency = () => {};
 
