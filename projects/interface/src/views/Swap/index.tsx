@@ -10,6 +10,7 @@ const Swap: React.VFC = () => {
     setCurrencies,
     trade,
     isLoading,
+    switchCurrency,
     amounts,
     setAmount
   } = useSwapHandle();
@@ -34,7 +35,7 @@ const Swap: React.VFC = () => {
 
           <button
             className="z-10 -my-4 mx-auto w-12 btn btn-sm  btn-circle btn-primary"
-            //   onClick={toggle}
+            onClick={switchCurrency}
           >
             <AiOutlineArrowDown size="1.5rem" />
           </button>

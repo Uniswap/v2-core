@@ -26,12 +26,12 @@ export const useSwapHandle = () => {
     }
   };
   const { trade: inTrade, isLoading: isInTradeLoading } = useTradeExactIn(
-    currency1,
+    editing === "input" ? currency1 : null,
     currency2,
     parseCurrency(currency1, _inputAmount)
   );
   const { trade: outTrade, isLoading: isOutTradeLoading } = useTradeExactOut(
-    currency1,
+    editing === "output" ? currency1 : null,
     currency2,
     parseCurrency(currency2, _outputAmount)
   );
@@ -41,7 +41,11 @@ export const useSwapHandle = () => {
       ? [_inputAmount, inTrade?.outputAmount.toSignificant()]
       : [outTrade?.inputAmount.toSignificant(), _outputAmount];
 
-  const switchCurrency = () => {};
+  const switchCurrency = () => {
+    _setCurrency1(currency2);
+    _setCurrency2(currency1);
+    setOutputAmount(amount1);
+  };
 
   const setCurrency1 = (newCurrency: Token | Currency | null) => {
     if (newCurrency === currency2) {
@@ -65,6 +69,7 @@ export const useSwapHandle = () => {
     setCurrencies: { from: setCurrency1, to: setCurrency2 },
     amounts: { from: amount1, to: amount2 },
     trade: editing === "input" ? inTrade : outTrade,
+    switchCurrency,
     isLoading: editing === "input" ? isInTradeLoading : isOutTradeLoading
   };
 };
