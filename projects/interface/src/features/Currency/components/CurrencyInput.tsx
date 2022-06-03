@@ -1,6 +1,8 @@
 import { ModalBase } from "@/components/Modal";
 import { Currency, Token } from "@penta-swap/sdk";
+import { utils } from "ethers";
 import { useState } from "react";
+import { useCurrencyBalance } from "../hooks/useCurrencyBalance";
 import { CurrencySelect } from "./CureencySelect";
 import { CurrencyBalance } from "./CurrencyBalance";
 import { CurrencySymbol } from "./CurrencySymbol";
@@ -9,10 +11,12 @@ export const CurrencyInput: React.VFC<{
   currency: Token | Currency | null;
   value?: string;
   label: string;
+  isLoading?: boolean;
   onSelect?: (currency: Token | Currency) => void;
   onChange?: (value: string) => void;
-}> = ({ currency, label, onSelect, value, onChange }) => {
+}> = ({ currency, isLoading, label, onSelect, value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const balanceQuery = useCurrencyBalance(currency);
 
   const handleChange = (nextV: string) => {
     if (
@@ -25,6 +29,15 @@ export const CurrencyInput: React.VFC<{
     }
   };
 
+  const setMax = () => {
+    if (balanceQuery && balanceQuery.data) {
+      const balance = Number(
+        utils.formatUnits(balanceQuery.data, currency?.decimals || 18)
+      );
+      onChange && onChange(balance > 0 ? balance.toFixed(3) : "");
+    }
+  };
+
   return (
     <>
       <ModalBase open={isOpen} onChange={setIsOpen}>
@@ -34,7 +47,7 @@ export const CurrencyInput: React.VFC<{
         <div className="flex justify-between items-center">
           <div className="text-lg font-bold">{label}</div>
           {currency && (
-            <button className="px-2 font-bold card">
+            <button className="px-2 font-bold card" onClick={setMax}>
               <CurrencyBalance currency={currency} end={currency.symbol} />
             </button>
           )}
@@ -47,6 +60,7 @@ export const CurrencyInput: React.VFC<{
           <div className="-m-1 divider sm:divider-horizontal"></div>
           <input
             type="text"
+            disabled={isLoading}
             inputMode="decimal"
             pattern="^[0-9]*[.,]?[0-9]*$"
             autoComplete="off"
@@ -55,7 +69,7 @@ export const CurrencyInput: React.VFC<{
             maxLength={79}
             spellCheck="false"
             placeholder="0.0"
-            className="pl-2 w-full text-3xl font-bold bg-transparent outline-none sm:pl-0"
+            className="pl-2 w-full text-3xl font-bold bg-transparent outline-none sm:pl-0 input"
             value={String(value)}
             onChange={e => handleChange(e.target.value)}
           />
