@@ -1,4 +1,5 @@
 import { Currency, Token } from "@penta-swap/sdk";
+import { memo, useMemo, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useCurrencyList } from "../hooks/useCurrencyList";
 import { CurrencyView } from "./CurrencyView";
@@ -6,8 +7,16 @@ import { CurrencyView } from "./CurrencyView";
 export const CurrencySelect: React.VFC<{
   onSelect?: (currency: Currency | Token) => void;
   onClose?: () => void;
-}> = ({ onSelect, onClose }) => {
+}> = memo(function CurrencySelect({ onSelect, onClose }) {
   const currencyList = useCurrencyList();
+  const [input, setInput] = useState("");
+  const sortedCurrencyList = useMemo(() => {
+    return currencyList.filter(
+      currency =>
+        currency.name?.toLocaleLowerCase().includes(input.toLowerCase()) ||
+        currency.symbol?.toLocaleLowerCase().includes(input.toLowerCase())
+    );
+  }, [input, currencyList]);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
@@ -19,11 +28,13 @@ export const CurrencySelect: React.VFC<{
       <div className="my-0 divider"></div>
       <input
         type="text"
-        placeholder="Search Name or Paste Address"
+        placeholder="Search Name"
         className="text-xl font-bold input-bordered input bg-base-200"
+        value={input}
+        onChange={e => setInput(e.target.value)}
       />
       <div className="flex flex-col">
-        {currencyList.map((currency, i) => (
+        {sortedCurrencyList.map((currency, i) => (
           <CurrencyView
             currency={currency}
             onClick={currency => {
@@ -38,4 +49,4 @@ export const CurrencySelect: React.VFC<{
       </div>
     </div>
   );
-};
+});

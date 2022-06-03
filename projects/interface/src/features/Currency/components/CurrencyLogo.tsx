@@ -23,9 +23,7 @@ export const CurrencyLogo: React.VFC<{
     );
   } else {
     return (
-      <div
-        className={clsx("aspect-square w-12 h-12 btn btn-square", className)}
-      >
+      <div className={clsx("h-full btn btn-square", className)}>
         <BsQuestionLg size={"1.8rem"} />
       </div>
     );

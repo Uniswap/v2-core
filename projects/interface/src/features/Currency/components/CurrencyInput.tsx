@@ -1,5 +1,6 @@
-import { useModal } from "@/components/Modal";
+import { ModalBase } from "@/components/Modal";
 import { Currency, Token } from "@penta-swap/sdk";
+import { useState } from "react";
 import { CurrencySelect } from "./CureencySelect";
 import { CurrencyBalance } from "./CurrencyBalance";
 import { CurrencySymbol } from "./CurrencySymbol";
@@ -11,9 +12,7 @@ export const CurrencyInput: React.VFC<{
   onSelect?: (currency: Token | Currency) => void;
   onChange?: (value: string) => void;
 }> = ({ currency, label, onSelect, value, onChange }) => {
-  const { Modal, toggle } = useModal(toggle => (
-    <CurrencySelect onSelect={onSelect} onClose={toggle} />
-  ));
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleChange = (nextV: string) => {
     if (
@@ -28,7 +27,9 @@ export const CurrencyInput: React.VFC<{
 
   return (
     <>
-      <Modal />
+      <ModalBase open={isOpen} onChange={setIsOpen}>
+        <CurrencySelect onSelect={onSelect} onClose={() => setIsOpen(false)} />
+      </ModalBase>
       <div className="p-3 hover:ring-2 ring-neutral card bg-base-200">
         <div className="flex justify-between items-center">
           <div className="text-lg font-bold">{label}</div>
@@ -39,7 +40,10 @@ export const CurrencyInput: React.VFC<{
           )}
         </div>
         <div className="flex flex-col gap-1 justify-between sm:flex-row sm:items-center">
-          <CurrencySymbol currency={currency} onClick={toggle} />
+          <CurrencySymbol
+            currency={currency}
+            onClick={() => setIsOpen(!isOpen)}
+          />
           <div className="-m-1 divider sm:divider-horizontal"></div>
           <input
             type="text"

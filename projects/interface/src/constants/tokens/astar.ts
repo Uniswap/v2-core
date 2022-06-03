@@ -50,4 +50,18 @@ export const astarTokens = [
     "BNB",
     "Binance Coin"
   ),
+  new Token(
+    592,
+    "0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB",
+    18,
+    "JPYC",
+    "JPY Coin"
+  ),
+  new Token(
+    592,
+    "0x69c3b45D5b90A3E83B2d054eEE62A85E4D0FeC20",
+    18,
+    "INAT",
+    "Inari Token"
+  )
 ];
