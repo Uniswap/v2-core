@@ -18,7 +18,7 @@ export const CurrencySelect: React.VFC<{
     );
   }, [input, currencyList]);
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex relative flex-col gap-2">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-bold">Select Token</h3>
         <button className="btn btn-square btn-ghost btn-sm" onClick={onClose}>
@@ -29,11 +29,12 @@ export const CurrencySelect: React.VFC<{
       <input
         type="text"
         placeholder="Search Name"
-        className="text-xl font-bold input-bordered input bg-base-200"
+        className="w-full text-xl font-bold input-bordered input bg-base-200"
         value={input}
         onChange={e => setInput(e.target.value)}
       />
-      <div className="flex flex-col">
+
+      <div className="flex static flex-col">
         {sortedCurrencyList.map((currency, i) => (
           <CurrencyView
             currency={currency}

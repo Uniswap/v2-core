@@ -12,5 +12,6 @@ export const logos = {
   "0x6a2d262D56735DbA19Dd70682B39F6bE9a931D98": p("usd-coin-usdc-logo.svg"),
   "0x3795C36e7D12A8c252A20C5a7B455f7c57b60283": p("tether-usdt-logo.svg"),
   "0x7f27352D5F83Db87a5A3E00f4B07Cc2138D8ee52": p("bnb-bnb-logo.svg"),
-  "0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB": p("jpyc-logo.png")
+  "0x431D5dfF03120AFA4bDf332c61A6e1766eF37BDB": p("jpyc-logo.png"),
+  "0x69c3b45D5b90A3E83B2d054eEE62A85E4D0FeC20": p("inat-logo.png")
 };

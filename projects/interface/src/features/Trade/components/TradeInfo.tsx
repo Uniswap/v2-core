@@ -23,7 +23,7 @@ export const TradeRate: React.VFC<{
     trade?.outputAmount.currency.symbol || "Unknown"
   ];
 
-  if (isLoading && !trade) {
+  if (isLoading) {
     return <div className="loading btn btn-sm btn-ghost"></div>;
   } else if (!(trade && price)) {
     return <></>;

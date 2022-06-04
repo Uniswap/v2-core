@@ -49,7 +49,11 @@ export const useSwapHandle = () => {
   const switchCurrency = () => {
     _setCurrency1(currency2);
     _setCurrency2(currency1);
-    setOutputAmount(amount1);
+    if (Number(amount1) > 1) {
+      setOutputAmount(amount1);
+    } else {
+      setInputAmount(amount2);
+    }
   };
 
   const setCurrency1 = (newCurrency: Token | Currency | null) => {
@@ -74,8 +78,8 @@ export const useSwapHandle = () => {
     setCurrencies: { from: setCurrency1, to: setCurrency2 },
     amounts: { from: amount1, to: amount2 },
     disabled: { from: disabled1, to: disabled2 },
-    trade: editing === "input" ? inTrade : outTrade,
     switchCurrency,
+    trade: editing === "input" ? inTrade : outTrade,
     isLoading: editing === "input" ? isInTradeLoading : isOutTradeLoading
   };
 };

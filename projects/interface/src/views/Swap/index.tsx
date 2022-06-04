@@ -51,7 +51,7 @@ const Swap: React.VFC = () => {
             value={amounts["to"]}
           />
           <TradeInfo {...{ trade, isLoading }} />
-          <button className="mt-2 w-full btn btn-primary">Swap</button>
+          <button className="mt-2 w-full btn bg-">Swap</button>
         </div>
       </Card>
     </PageContainer>

@@ -24,7 +24,7 @@ export const usePairs = (tokenPairs: [Token, Token][]) => {
           token2,
           new ethers.providers.JsonRpcProvider(perm.rpcUrls[0])
         ),
-      cacheTime: 0,
+
       retry: false
     }))
   );
