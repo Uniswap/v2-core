@@ -78,13 +78,15 @@ describe('UniswapV2Factory', () => {
 
   it('setFeeTo', async () => {
     await expect(factory.connect(other).setFeeTo(other.address)).to.be.revertedWith('NeonswapV2: FORBIDDEN')
-    await factory.setFeeTo(wallet.address)
+    const tx = await factory.setFeeTo(wallet.address)
+    await tx.wait()
     expect(await factory.feeTo()).to.eq(wallet.address)
   })
 
   it('setFeeToSetter', async () => {
     await expect(factory.connect(other).setFeeToSetter(other.address)).to.be.revertedWith('NeonswapV2: FORBIDDEN')
-    await factory.setFeeToSetter(other.address)
+    const tx = await factory.setFeeToSetter(other.address)
+    await tx.wait()
     expect(await factory.feeToSetter()).to.eq(other.address)
     await expect(factory.setFeeToSetter(wallet.address)).to.be.revertedWith('NeonswapV2: FORBIDDEN')
   })
