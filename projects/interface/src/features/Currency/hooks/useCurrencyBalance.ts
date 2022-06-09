@@ -11,10 +11,8 @@ export const useCurrencyBalance = (currency: Currency | Token | null) => {
 
   if (currency instanceof Token) {
     return tokenBalance;
-  } else if (currency === Currency.ETHER) {
-    return nativeBalance;
   } else {
-    return null;
+    return nativeBalance;
   }
 };
 

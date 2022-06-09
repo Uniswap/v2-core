@@ -1,6 +1,5 @@
 import { ModalBase } from "@/components/Modal";
 import { Currency, Token } from "@penta-swap/sdk";
-import { utils } from "ethers";
 import { useState } from "react";
 import { useCurrencyBalance } from "../hooks/useCurrencyBalance";
 import { CurrencySelect } from "./CureencySelect";
@@ -16,7 +15,7 @@ export const CurrencyInput: React.VFC<{
   onChange?: (value: string) => void;
 }> = ({ currency, isLoading, label, onSelect, value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const balanceQuery = useCurrencyBalance(currency);
+  const { data: balance } = useCurrencyBalance(currency);
 
   const handleChange = (nextV: string) => {
     if (
@@ -30,11 +29,8 @@ export const CurrencyInput: React.VFC<{
   };
 
   const setMax = () => {
-    if (balanceQuery && balanceQuery.data) {
-      const balance = Number(
-        utils.formatUnits(balanceQuery.data, currency?.decimals || 18)
-      );
-      onChange && onChange(balance > 0 ? balance.toFixed(3) : "");
+    if (balance && onChange) {
+      onChange && onChange(!balance.isZero() ? balance.toString() : "");
     }
   };
 

@@ -1,7 +1,8 @@
-import { Card, PageContainer } from "@/components/ui";
+import { Card, PageContainer } from "@/components/atom";
 import { CurrencyInput } from "@/features/Currency";
 import { TradeInfo } from "@/features/Trade/components/TradeInfo";
 import { AiOutlineArrowDown, AiOutlineSetting } from "react-icons/ai";
+import { ActionButton } from "./components/ActionButton";
 import { useSwapHandle } from "./hooks";
 
 const Swap: React.VFC = () => {
@@ -51,7 +52,7 @@ const Swap: React.VFC = () => {
             value={amounts["to"]}
           />
           <TradeInfo {...{ trade, isLoading }} />
-          <button className="mt-2 w-full btn bg-">Swap</button>
+          <ActionButton currencies={currencies} trade={trade} />
         </div>
       </Card>
     </PageContainer>
