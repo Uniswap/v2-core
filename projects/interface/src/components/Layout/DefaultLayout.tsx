@@ -1,11 +1,12 @@
-import { chainParameters } from "@/constants/chains";
-import { MetamaskConnector, useWeb3 } from "@inaridiy/useful-web3";
+import { useCurrentChain } from "@/hooks";
+import { useWeb3 } from "@inaridiy/useful-web3";
 import clsx from "clsx";
 import Image from "next/image";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 import logoImage from "../../../public/penta.png";
+import { ConnectWallet, SwitchNetwork } from "../Buttons";
 
 const Header: React.VFC = () => {
   return (
@@ -31,32 +32,19 @@ const Header: React.VFC = () => {
 
 const Account: React.VFC = () => {
   const { accounts, connectWallet, chainId, switchChain } = useWeb3();
+  const { perm } = useCurrentChain();
   const name = accounts[0]
     ? `${accounts[0].slice(0, 5)}...${accounts[0].slice(-4)}`
     : null;
 
-  if (name && chainId !== chainParameters.astar.chainId) {
-    return (
-      <button
-        className="btn btn-error text-error-content"
-        onClick={() => void switchChain(chainParameters.astar)}
-      >
-        Wrong network
-      </button>
-    );
+  if (name && chainId !== perm.chainId) {
+    return <SwitchNetwork className="btn btn-error" />;
   }
 
   if (name) {
     return <div className="text-lg font-bold">{name}</div>;
   }
-  return (
-    <button
-      className="btn btn-ghost"
-      onClick={() => void connectWallet(new MetamaskConnector())}
-    >
-      Connect Wallet
-    </button>
-  );
+  return <ConnectWallet className="btn btn-ghost" />;
 };
 
 const Nav: React.VFC = () => {
