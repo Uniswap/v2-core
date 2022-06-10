@@ -17,7 +17,7 @@ export const usePairs = (tokenPairs: [Token, Token][]) => {
 
   const pairs = useMemo(
     () =>
-      data?.returnData
+      data?.[1]
         ?.map(
           (result, i) => [tokenPairs[i], result] as [[Token, Token], string]
         )

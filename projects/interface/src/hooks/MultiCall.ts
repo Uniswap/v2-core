@@ -30,7 +30,7 @@ export const useMultiCall = (calldataList: callData[]) => {
     ["multicall", ...calldataList],
     () => {
       const promise = contract?.callStatic.aggregate(calldataList);
-      void promise?.then(console.log);
+      //  void promise?.then(e => console.log(calldataList.length, e.returnData));
       return promise;
     },
     {
