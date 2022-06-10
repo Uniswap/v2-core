@@ -3,6 +3,8 @@
 /* eslint-disable */
 export type { ERC20 } from "./ERC20";
 export type { MultiCall } from "./MultiCall";
+export type { TokenPair } from "./TokenPair";
 export * as factories from "./factories";
 export { ERC20__factory } from "./factories/ERC20__factory";
 export { MultiCall__factory } from "./factories/MultiCall__factory";
+export { TokenPair__factory } from "./factories/TokenPair__factory";

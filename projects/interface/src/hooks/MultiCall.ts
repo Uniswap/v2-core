@@ -13,11 +13,11 @@ export type callData = {
 export const useMultiCallContract = () => {
   const {
     name,
-    perm: { chainId }
+    perm: { rpcUrls }
   } = useCurrentChain();
   const contract = useContract(
     provider => MultiCall__factory.connect(multiCallAddresses[name], provider),
-    { chain: chainId }
+    { fetchOnly: true, fallbackRpc: rpcUrls[0] as string }
   );
 
   return contract;
@@ -25,14 +25,18 @@ export const useMultiCallContract = () => {
 
 export const useMultiCall = (calldataList: callData[]) => {
   const contract = useMultiCallContract();
+
   const query = useQuery(
     ["multicall", ...calldataList],
-    () => contract?.callStatic.aggregate(calldataList),
+    () => {
+      const promise = contract?.callStatic.aggregate(calldataList);
+      void promise?.then(console.log);
+      return promise;
+    },
     {
-      enabled: Boolean(contract),
-      retry: false,
-      refetchInterval: false
+      enabled: Boolean(contract)
     }
   );
+
   return query;
 };

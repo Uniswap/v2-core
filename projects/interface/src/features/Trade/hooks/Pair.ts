@@ -1,53 +1,44 @@
 import { chainTokens } from "@/constants/tokens";
-import { useCurrentChain } from "@/hooks";
-import { Fetcher, Pair, Token } from "@penta-swap/sdk";
-import { ethers } from "ethers";
+import { useCurrentChain, useMultiCall } from "@/hooks";
+import { TokenPair__factory } from "@/lib/contracts";
+import { Pair, Token, TokenAmount } from "@penta-swap/sdk";
+import { BigNumber } from "ethers";
 import { useMemo } from "react";
-import { useQueries, useQuery } from "react-query";
-
-export const usePair = ([token1, token2]: [Token, Token] | [null, null]) => {
-  return useQuery(
-    ["pair", token1?.chainId, token2?.address, token2?.address],
-    () => Fetcher.fetchPairData(token1 as Token, token2 as Token),
-    { enabled: Boolean(token1 && token2) }
-  );
-};
 
 export const usePairs = (tokenPairs: [Token, Token][]) => {
-  const { perm } = useCurrentChain();
-  const pairQueries = useQueries(
-    tokenPairs.map(([token1, token2]) => ({
-      queryKey: ["pair", token1.chainId, token1.address, token2.address],
-      queryFn: () =>
-        Fetcher.fetchPairData(
-          token1,
-          token2,
-          new ethers.providers.JsonRpcProvider(perm.rpcUrls[0])
-        ),
+  const _interface = useMemo(() => TokenPair__factory.createInterface(), []);
+  const callDataList = tokenPairs.map(([token1, token2]) => ({
+    target: Pair.getAddress(token1, token2),
+    callData: _interface.encodeFunctionData("getReserves", [])
+  }));
+  const resultQuery = useMultiCall(callDataList);
 
-      retry: false
-    }))
-  );
+  const { data } = resultQuery;
+
   const pairs = useMemo(
     () =>
-      pairQueries
-        .map(({ data }) => data)
-        .filter((pair): pair is Pair => Boolean(pair)),
-    [pairQueries]
-  );
-  const { isLoading, isError } = useMemo(
-    () =>
-      pairQueries.reduce(
-        (a, b) => ({
-          isLoading: a.isLoading || b.isLoading,
-          isError: a.isError || b.isError
-        }),
-        { isLoading: false, isError: false }
-      ),
-    [pairQueries]
+      data?.returnData
+        ?.map(
+          (result, i) => [tokenPairs[i], result] as [[Token, Token], string]
+        )
+        .filter(([, e]) => e !== "0x")
+        .map(([[tokenA, tokenB], result]) => {
+          const [reserves0, reserves1] = _interface.decodeFunctionResult(
+            "getReserves",
+            result
+          ) as [BigNumber, BigNumber];
+          const balances = (tokenA.sortsBefore(tokenB)
+            ? [reserves0, reserves1]
+            : [reserves1, reserves0]) as [BigNumber, BigNumber];
+          return new Pair(
+            new TokenAmount(tokenA, balances[0].toString()),
+            new TokenAmount(tokenB, balances[1].toString())
+          );
+        }) || [],
+    [resultQuery]
   );
 
-  return { isLoading, isError, pairs };
+  return { ...resultQuery, pairs };
 };
 
 export const useRelationPairs = (
