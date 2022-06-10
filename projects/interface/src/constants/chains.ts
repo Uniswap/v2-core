@@ -41,3 +41,7 @@ export const chainIdTo = (chainId: number | null) => {
 export const factoryAddresses: Record<chains, string> = {
   astar: "0xA9473608514457b4bF083f9045fA63ae5810A03E"
 };
+
+export const multiCallAddresses: Record<chains, string> = {
+  astar: "0x7D6046156df81EF335E7e765d3bc714960B73207"
+};
