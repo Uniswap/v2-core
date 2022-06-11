@@ -1940,6 +1940,14 @@
     lodash "^4.17.15"
     ts-essentials "^7.0.1"
 
+"@typechain/ethers-v5@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-10.1.0.tgz#068d7dc7014502354696dab59590a7841091e951"
+  integrity sha512-3LIb+eUpV3mNCrjUKT5oqp8PBsZYSnVrkfk6pY/ZM0boRs2mKxjFZ7bktx42vfDye8PPz3NxtW4DL5NsNsFqlg==
+  dependencies:
+    lodash "^4.17.15"
+    ts-essentials "^7.0.1"
+
 "@typechain/hardhat@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@typechain/hardhat/-/hardhat-6.0.0.tgz#5e305641de67276efbfaa8c37c78e38f22b22ef4"
@@ -9840,6 +9848,22 @@ typechain@^8.0.0:
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/typechain/-/typechain-8.0.0.tgz#a5dbe754717a7e16247df52b5285903de600e8ff"
   integrity sha512-rqDfDYc9voVAhmfVfAwzg3VYFvhvs5ck1X9T/iWkX745Cul4t+V/smjnyqrbDzWDbzD93xfld1epg7Y/uFAesQ==
+  dependencies:
+    "@types/prettier" "^2.1.1"
+    debug "^4.3.1"
+    fs-extra "^7.0.0"
+    glob "7.1.7"
+    js-sha3 "^0.8.0"
+    lodash "^4.17.15"
+    mkdirp "^1.0.4"
+    prettier "^2.3.1"
+    ts-command-line-args "^2.2.0"
+    ts-essentials "^7.0.1"
+
+typechain@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/typechain/-/typechain-8.1.0.tgz#fc4902ce596519cb2ccfd012e4ddf92a9945b569"
+  integrity sha512-5jToLgKTjHdI1VKqs/K8BLYy42Sr3o8bV5ojh4MnR9ExHO83cyyUdw+7+vMJCpKXUiVUvARM4qmHTFuyaCMAZQ==
   dependencies:
     "@types/prettier" "^2.1.1"
     debug "^4.3.1"

@@ -20,6 +20,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "./common";
 
 export interface MultiCallInterface extends utils.Interface {
@@ -52,7 +53,9 @@ export interface MultiCallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "aggregate",
-    values: [{ target: string; callData: BytesLike }[]]
+    values: [
+      { target: PromiseOrValue<string>; callData: PromiseOrValue<BytesLike> }[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getLastBlockHash",
@@ -60,7 +63,7 @@ export interface MultiCallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getEthBalance",
-    values: [string]
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentBlockDifficulty",
@@ -76,7 +79,7 @@ export interface MultiCallInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getBlockHash",
-    values: [BigNumberish]
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
@@ -144,8 +147,11 @@ export interface MultiCall extends BaseContract {
     ): Promise<[BigNumber] & { timestamp: BigNumber }>;
 
     aggregate(
-      calls: { target: string; callData: BytesLike }[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      calls: {
+        target: PromiseOrValue<string>;
+        callData: PromiseOrValue<BytesLike>;
+      }[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getLastBlockHash(
@@ -153,7 +159,7 @@ export interface MultiCall extends BaseContract {
     ): Promise<[string] & { blockHash: string }>;
 
     getEthBalance(
-      addr: string,
+      addr: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
@@ -170,7 +176,7 @@ export interface MultiCall extends BaseContract {
     ): Promise<[string] & { coinbase: string }>;
 
     getBlockHash(
-      blockNumber: BigNumberish,
+      blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string] & { blockHash: string }>;
   };
@@ -178,13 +184,19 @@ export interface MultiCall extends BaseContract {
   getCurrentBlockTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
   aggregate(
-    calls: { target: string; callData: BytesLike }[],
-    overrides?: Overrides & { from?: string | Promise<string> }
+    calls: {
+      target: PromiseOrValue<string>;
+      callData: PromiseOrValue<BytesLike>;
+    }[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getLastBlockHash(overrides?: CallOverrides): Promise<string>;
 
-  getEthBalance(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+  getEthBalance(
+    addr: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getCurrentBlockDifficulty(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -193,7 +205,7 @@ export interface MultiCall extends BaseContract {
   getCurrentBlockCoinbase(overrides?: CallOverrides): Promise<string>;
 
   getBlockHash(
-    blockNumber: BigNumberish,
+    blockNumber: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -201,7 +213,10 @@ export interface MultiCall extends BaseContract {
     getCurrentBlockTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     aggregate(
-      calls: { target: string; callData: BytesLike }[],
+      calls: {
+        target: PromiseOrValue<string>;
+        callData: PromiseOrValue<BytesLike>;
+      }[],
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, string[]] & { blockNumber: BigNumber; returnData: string[] }
@@ -209,7 +224,10 @@ export interface MultiCall extends BaseContract {
 
     getLastBlockHash(overrides?: CallOverrides): Promise<string>;
 
-    getEthBalance(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getEthBalance(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getCurrentBlockDifficulty(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -218,7 +236,7 @@ export interface MultiCall extends BaseContract {
     getCurrentBlockCoinbase(overrides?: CallOverrides): Promise<string>;
 
     getBlockHash(
-      blockNumber: BigNumberish,
+      blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -229,13 +247,19 @@ export interface MultiCall extends BaseContract {
     getCurrentBlockTimestamp(overrides?: CallOverrides): Promise<BigNumber>;
 
     aggregate(
-      calls: { target: string; callData: BytesLike }[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      calls: {
+        target: PromiseOrValue<string>;
+        callData: PromiseOrValue<BytesLike>;
+      }[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getLastBlockHash(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getEthBalance(addr: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getEthBalance(
+      addr: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getCurrentBlockDifficulty(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -244,7 +268,7 @@ export interface MultiCall extends BaseContract {
     getCurrentBlockCoinbase(overrides?: CallOverrides): Promise<BigNumber>;
 
     getBlockHash(
-      blockNumber: BigNumberish,
+      blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -255,14 +279,17 @@ export interface MultiCall extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     aggregate(
-      calls: { target: string; callData: BytesLike }[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+      calls: {
+        target: PromiseOrValue<string>;
+        callData: PromiseOrValue<BytesLike>;
+      }[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getLastBlockHash(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getEthBalance(
-      addr: string,
+      addr: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -279,7 +306,7 @@ export interface MultiCall extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getBlockHash(
-      blockNumber: BigNumberish,
+      blockNumber: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

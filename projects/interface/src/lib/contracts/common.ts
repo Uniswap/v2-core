@@ -42,3 +42,5 @@ export type GetContractTypeFromFactory<F> = F extends MinEthersFactory<
 export type GetARGsTypeFromFactory<F> = F extends MinEthersFactory<any, any>
   ? Parameters<F["deploy"]>
   : never;
+
+export type PromiseOrValue<T> = T | Promise<T>;
