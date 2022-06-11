@@ -1,4 +1,4 @@
-import { useCurrencyBalance } from "@/features/Currency/hooks/useCurrencyBalance";
+import { useCurrencyBalance } from "@/features/Currency";
 import { Currency, Token } from "@penta-swap/sdk";
 import { utils } from "ethers";
 
