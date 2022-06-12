@@ -1,22 +1,14 @@
 import { Currency, Token } from "@penta-swap/sdk";
-import { memo, useMemo, useState } from "react";
+import { memo } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useCurrencyList } from "../hooks/useCurrencyList";
+import { useSortedCurrencies } from "../hooks/useSortedCurrencies";
 import { CurrencyView } from "./CurrencyView";
 
 export const CurrencySelect: React.VFC<{
   onSelect?: (currency: Currency | Token) => void;
   onClose?: () => void;
 }> = memo(function CurrencySelect({ onSelect, onClose }) {
-  const currencyList = useCurrencyList();
-  const [input, setInput] = useState("");
-  const sortedCurrencyList = useMemo(() => {
-    return currencyList.filter(
-      currency =>
-        currency.name?.toLocaleLowerCase().includes(input.toLowerCase()) ||
-        currency.symbol?.toLocaleLowerCase().includes(input.toLowerCase())
-    );
-  }, [input, currencyList]);
+  const { query, setQuery, sortedCurrencies } = useSortedCurrencies();
   return (
     <div className="flex relative flex-col gap-2">
       <div className="flex justify-between items-center">
@@ -30,15 +22,15 @@ export const CurrencySelect: React.VFC<{
         type="text"
         placeholder="Search Name"
         className="w-full text-xl font-bold input-bordered input bg-base-200"
-        value={input}
-        onChange={e => setInput(e.target.value)}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
       />
 
       <div className="flex static flex-col">
-        {sortedCurrencyList.map((currency, i) => (
+        {sortedCurrencies.map((currency, i) => (
           <CurrencyView
             currency={currency}
-            onClick={currency => {
+            onClick={(currency) => {
               onSelect && onSelect(currency);
               onClose && onClose();
             }}
