@@ -1,5 +1,6 @@
+import { queryClient } from "@/lib/react-query";
 import { Web3Provider } from "@inaridiy/useful-web3";
-import { QueryProvider } from "./QueryProvider";
+import { QueryClientProvider } from "react-query";
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -7,8 +8,8 @@ type AppProviderProps = {
 
 export const AppProvider: React.VFC<AppProviderProps> = ({ children }) => {
   return (
-    <QueryProvider>
+    <QueryClientProvider client={queryClient}>
       <Web3Provider>{children}</Web3Provider>
-    </QueryProvider>
+    </QueryClientProvider>
   );
 };
