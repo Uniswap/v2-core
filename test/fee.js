@@ -64,7 +64,7 @@ contract('FeeTo', accounts => {
         value: Helper.expandTo18Decimals(1)
       }
     );
-    console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
+    // console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
     /// test gascost with non-zero storage cost
     await dao.advanceEpoch();
     await feeTo.finalize(pool.address, new BN(1));
@@ -78,8 +78,8 @@ contract('FeeTo', accounts => {
         value: Helper.expandTo18Decimals(1)
       }
     );
-    console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
+    // console.log(`gas used when swap with _mintFee: ${txResult.receipt.gasUsed}`);
 
-    console.log(await feeTo.rewardsPerEpoch(new BN(1), pool.address));
+    // console.log(await feeTo.rewardsPerEpoch(new BN(1), pool.address));
   });
 });

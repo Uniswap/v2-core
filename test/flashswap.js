@@ -86,7 +86,7 @@ contract('ExampleFlashSwap', accounts => {
 
     const balanceAfter = await Helper.getBalancePromise(trader);
     Helper.assertGreater(balanceAfter, balanceBefore);
-    console.log(`profit = ${balanceAfter.sub(balanceBefore).toString()}`);
+    // console.log(`profit = ${balanceAfter.sub(balanceBefore).toString()}`);
   });
 
   it('uniswapV2Call:1', async () => {
@@ -133,6 +133,6 @@ contract('ExampleFlashSwap', accounts => {
 
     const balanceAfter = await Helper.getBalancePromise(trader);
     Helper.assertGreater(balanceAfter, balanceBefore);
-    console.log(`profit = ${balanceAfter.sub(balanceBefore).toString()}`);
+    // console.log(`profit = ${balanceAfter.sub(balanceBefore).toString()}`);
   });
 });

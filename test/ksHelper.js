@@ -32,7 +32,7 @@ module.exports.getFee = (totalSuppy, collectedFee0, poolValueInToken0, governmen
   return totalSuppy
     .mul(collectedFee0)
     .mul(governmentFeeBps)
-    .div(poolValueInToken0.sub(collectedFee0).mul(new BN(5000)));
+    .div(poolValueInToken0.sub(collectedFee0).mul(new BN(50000)));
 };
 
 // get price range of token1 / token0

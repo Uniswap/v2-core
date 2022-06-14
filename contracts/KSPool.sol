@@ -7,21 +7,20 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./libraries/MathExt.sol";
-import "./libraries/FeeFomula.sol";
 import "./libraries/ERC20Permit.sol";
 
-import "./interfaces/IDMMFactory.sol";
-import "./interfaces/IDMMCallee.sol";
-import "./interfaces/IDMMPool.sol";
+import "./interfaces/IKSFactory.sol";
+import "./interfaces/IKSCallee.sol";
+import "./interfaces/IKSPool.sol";
 import "./interfaces/IERC20Metadata.sol";
-import "./VolumeTrendRecorder.sol";
 
-contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder {
+contract KSPool is IKSPool, ERC20Permit, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     uint256 internal constant MAX_UINT112 = 2**112 - 1;
     uint256 internal constant BPS = 10000;
+    uint256 internal constant FEE_UNITS = 100000;
 
     struct ReserveData {
         uint256 reserve0;
@@ -31,8 +30,10 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     }
 
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 internal constant PRECISION = 10**18;
+
     /// @dev To make etherscan auto-verify new pool, these variables are not immutable
-    IDMMFactory public override factory;
+    IKSFactory public override factory;
     IERC20 public override token0;
     IERC20 public override token1;
 
@@ -47,6 +48,9 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     /// @dev vReserve0 * vReserve1, as of immediately after the most recent liquidity event
     uint256 public override kLast;
 
+    /// @dev fixed fee for swap
+    uint256 internal feeInPrecision;
+
     event Mint(address indexed sender, uint256 amount0, uint256 amount1);
     event Burn(address indexed sender, uint256 amount0, uint256 amount1, address indexed to);
     event Swap(
@@ -60,20 +64,22 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     );
     event Sync(uint256 vReserve0, uint256 vReserve1, uint256 reserve0, uint256 reserve1);
 
-    constructor() public ERC20Permit("KyberDMM LP", "DMM-LP", "1") VolumeTrendRecorder(0) {
-        factory = IDMMFactory(msg.sender);
+    constructor() public ERC20Permit("KyberSwap LP", "KS-LP", "1") {
+        factory = IKSFactory(msg.sender);
     }
 
     // called once by the factory at time of deployment
     function initialize(
         IERC20 _token0,
         IERC20 _token1,
-        uint32 _ampBps
+        uint32 _ampBps,
+        uint24 _feeUnits
     ) external {
-        require(msg.sender == address(factory), "DMM: FORBIDDEN");
+        require(msg.sender == address(factory), "KS: FORBIDDEN");
         token0 = _token0;
         token1 = _token1;
         ampBps = _ampBps;
+        feeInPrecision = (_feeUnits * PRECISION) / FEE_UNITS;
     }
 
     /// @dev this low-level function should be called from a contract
@@ -107,7 +113,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
                 _data.vReserve1 = Math.max(data.vReserve1.mul(b) / _totalSupply, _data.reserve1);
             }
         }
-        require(liquidity > 0, "DMM: INSUFFICIENT_LIQUIDITY_MINTED");
+        require(liquidity > 0, "KS: INSUFFICIENT_LIQUIDITY_MINTED");
         _mint(to, liquidity);
 
         _update(isAmpPool, _data);
@@ -130,14 +136,14 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
 
         uint256 balance0 = _token0.balanceOf(address(this));
         uint256 balance1 = _token1.balanceOf(address(this));
-        require(balance0 >= data.reserve0 && balance1 >= data.reserve1, "DMM: UNSYNC_RESERVES");
+        require(balance0 >= data.reserve0 && balance1 >= data.reserve1, "KS: UNSYNC_RESERVES");
         uint256 liquidity = balanceOf(address(this));
 
         bool feeOn = _mintFee(isAmpPool, data);
         uint256 _totalSupply = totalSupply(); // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
-        require(amount0 > 0 && amount1 > 0, "DMM: INSUFFICIENT_LIQUIDITY_BURNED");
+        require(amount0 > 0 && amount1 > 0, "KS: INSUFFICIENT_LIQUIDITY_BURNED");
         _burn(address(this), liquidity);
         _token0.safeTransfer(to, amount0);
         _token1.safeTransfer(to, amount1);
@@ -165,11 +171,11 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         address to,
         bytes calldata callbackData
     ) external override nonReentrant {
-        require(amount0Out > 0 || amount1Out > 0, "DMM: INSUFFICIENT_OUTPUT_AMOUNT");
+        require(amount0Out > 0 || amount1Out > 0, "KS: INSUFFICIENT_OUTPUT_AMOUNT");
         (bool isAmpPool, ReserveData memory data) = getReservesData(); // gas savings
         require(
             amount0Out < data.reserve0 && amount1Out < data.reserve1,
-            "DMM: INSUFFICIENT_LIQUIDITY"
+            "KS: INSUFFICIENT_LIQUIDITY"
         );
 
         ReserveData memory newData;
@@ -177,11 +183,11 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
             // scope for _token{0,1}, avoids stack too deep errors
             IERC20 _token0 = token0;
             IERC20 _token1 = token1;
-            require(to != address(_token0) && to != address(_token1), "DMM: INVALID_TO");
+            require(to != address(_token0) && to != address(_token1), "KS: INVALID_TO");
             if (amount0Out > 0) _token0.safeTransfer(to, amount0Out); // optimistically transfer tokens
             if (amount1Out > 0) _token1.safeTransfer(to, amount1Out); // optimistically transfer tokens
             if (callbackData.length > 0)
-                IDMMCallee(to).dmmSwapCall(msg.sender, amount0Out, amount1Out, callbackData);
+                IKSCallee(to).ksSwapCall(msg.sender, amount0Out, amount1Out, callbackData);
             newData.reserve0 = _token0.balanceOf(address(this));
             newData.reserve1 = _token1.balanceOf(address(this));
             if (isAmpPool) {
@@ -195,8 +201,8 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         uint256 amount1In = newData.reserve1 > data.reserve1 - amount1Out
             ? newData.reserve1 - (data.reserve1 - amount1Out)
             : 0;
-        require(amount0In > 0 || amount1In > 0, "DMM: INSUFFICIENT_INPUT_AMOUNT");
-        uint256 feeInPrecision = verifyBalanceAndUpdateEma(
+        require(amount0In > 0 || amount1In > 0, "KS: INSUFFICIENT_INPUT_AMOUNT");
+        verifyBalance(
             amount0In,
             amount1In,
             isAmpPool ? data.vReserve0 : data.reserve0,
@@ -247,7 +253,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
             uint112 _reserve1,
             uint112 _vReserve0,
             uint112 _vReserve1,
-            uint256 feeInPrecision
+            uint256 _feeInPrecision
         )
     {
         // gas saving to read reserve data
@@ -260,8 +266,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
             _vReserve0 = _reserve0;
             _vReserve1 = _reserve1;
         }
-        uint256 rFactorInPrecision = getRFactor(block.number);
-        feeInPrecision = getFinalFee(FeeFomula.getFee(rFactorInPrecision), _ampBps);
+        _feeInPrecision = feeInPrecision;
     }
 
     /// @dev returns reserve data to calculate amount to add liquidity
@@ -273,27 +278,23 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
     function name() public override view returns (string memory) {
         IERC20Metadata _token0 = IERC20Metadata(address(token0));
         IERC20Metadata _token1 = IERC20Metadata(address(token1));
-        return string(abi.encodePacked("KyberDMM LP ", _token0.symbol(), "-", _token1.symbol()));
+        return string(abi.encodePacked("KyberSwap LP ", _token0.symbol(), "-", _token1.symbol()));
     }
 
     function symbol() public override view returns (string memory) {
         IERC20Metadata _token0 = IERC20Metadata(address(token0));
         IERC20Metadata _token1 = IERC20Metadata(address(token1));
-        return string(abi.encodePacked("DMM-LP ", _token0.symbol(), "-", _token1.symbol()));
+        return string(abi.encodePacked("KS-LP ", _token0.symbol(), "-", _token1.symbol()));
     }
 
-    function verifyBalanceAndUpdateEma(
+    function verifyBalance(
         uint256 amount0In,
         uint256 amount1In,
         uint256 beforeReserve0,
         uint256 beforeReserve1,
         uint256 afterReserve0,
         uint256 afterReserve1
-    ) internal virtual returns (uint256 feeInPrecision) {
-        // volume = beforeReserve0 * amount1In / beforeReserve1 + amount0In (normalized into amount in token 0)
-        uint256 volume = beforeReserve0.mul(amount1In).div(beforeReserve1).add(amount0In);
-        uint256 rFactorInPrecision = recordNewUpdatedVolume(block.number, volume);
-        feeInPrecision = getFinalFee(FeeFomula.getFee(rFactorInPrecision), ampBps);
+    ) internal virtual view {
         // verify balance update matches with fomula
         uint256 balance0Adjusted = afterReserve0.mul(PRECISION);
         balance0Adjusted = balance0Adjusted.sub(amount0In.mul(feeInPrecision));
@@ -303,7 +304,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         balance1Adjusted = balance1Adjusted / PRECISION;
         require(
             balance0Adjusted.mul(balance1Adjusted) >= beforeReserve0.mul(beforeReserve1),
-            "DMM: K"
+            "KS: K"
         );
     }
 
@@ -321,7 +322,7 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
 
     /// @dev if fee is on, mint liquidity equivalent to configured fee of the growth in sqrt(k)
     function _mintFee(bool isAmpPool, ReserveData memory data) internal returns (bool feeOn) {
-        (address feeTo, uint16 governmentFeeBps) = factory.getFeeConfiguration();
+        (address feeTo, uint24 governmentFeeUnits) = factory.getFeeConfiguration();
         feeOn = feeTo != address(0);
         uint256 _kLast = kLast; // gas savings
         uint256 _vReserve0 = isAmpPool ? data.vReserve0 : data.reserve0; // gas savings
@@ -340,8 +341,8 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
                 uint256 poolValueInToken0 = data.reserve0.add(
                     data.reserve1.mul(_vReserve0).div(_vReserve1)
                 );
-                uint256 numerator = totalSupply().mul(collectedFee0).mul(governmentFeeBps);
-                uint256 denominator = (poolValueInToken0.sub(collectedFee0)).mul(5000);
+                uint256 numerator = totalSupply().mul(collectedFee0).mul(governmentFeeUnits);
+                uint256 denominator = (poolValueInToken0.sub(collectedFee0)).mul(50000);
                 uint256 liquidity = numerator / denominator;
                 if (liquidity > 0) _mint(feeTo, liquidity);
             }
@@ -361,24 +362,12 @@ contract DMMPool is IDMMPool, ERC20Permit, ReentrancyGuard, VolumeTrendRecorder 
         }
     }
 
-    function getFinalFee(uint256 feeInPrecision, uint32 _ampBps) internal pure returns (uint256) {
-        if (_ampBps <= 20000) {
-            return feeInPrecision;
-        } else if (_ampBps <= 50000) {
-            return (feeInPrecision * 20) / 30;
-        } else if (_ampBps <= 200000) {
-            return (feeInPrecision * 10) / 30;
-        } else {
-            return (feeInPrecision * 4) / 30;
-        }
-    }
-
     function getK(bool isAmpPool, ReserveData memory data) internal pure returns (uint256) {
         return isAmpPool ? data.vReserve0 * data.vReserve1 : data.reserve0 * data.reserve1;
     }
 
     function safeUint112(uint256 x) internal pure returns (uint112) {
-        require(x <= MAX_UINT112, "DMM: OVERFLOW");
+        require(x <= MAX_UINT112, "KS: OVERFLOW");
         return uint112(x);
     }
 }

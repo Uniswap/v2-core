@@ -10,22 +10,14 @@ For more details, please visit the white paper([dynamic fee](https://github.com/
 We use `yarn` as the package manager. You may use `npm` and `npx` instead, but commands in bash scripts may have to be changed accordingly.
 
 ## Requirements
-- The following assumes the use of `node@>=10`.
-
-- For interactions or contract deployments on public testnets / mainnet, create a `.env` file specifying your private key and infura api key, with the following format:
-
-```
-PRIVATE_KEY=0x****************************************************************
-INFURA_API_KEY=********************************
-ETHERSCAN_API_KEY=********************************
-```
-
+- The following assumes the use of `node@>=10`
 # Setup
 For interactions or contract deployments on public testnets / mainnet, create a .env file specifying your private key and infura api key, with the following format:
 ```
 INFURA_API_KEY = 'xxxxx'
 ETHERSCAN_API_KEY = 'xxxxx'
 PRIVATE_KEY = 'xxxxx'
+MATIC_VIGIL_KEY = 'xxxxx'
 ```
 
 ## Install Dependencies
