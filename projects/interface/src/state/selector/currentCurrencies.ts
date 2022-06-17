@@ -1,6 +1,6 @@
 import { selector } from "recoil";
 import { currentChainNameSelector } from "../chain";
-import { currenciesState } from "../currency";
+import { currenciesState } from "../wallet";
 
 export const currentCurrenciesSelector = selector({
   key: "currentCurrencies",
