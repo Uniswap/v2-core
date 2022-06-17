@@ -7,18 +7,18 @@ export const CurrencyBalance: React.VFC<{
   className?: string;
   end?: React.ReactNode;
 }> = ({ currency, className, end }) => {
-  const query = useCurrencyBalance(currency);
+  const { balance, isLoading } = useCurrencyBalance(currency);
 
-  if (query && query.data) {
+  if (balance) {
     return (
       <div className={className}>
         {Number(
-          utils.formatUnits(query.data, currency.decimals || 18)
+          utils.formatUnits(balance, currency.decimals || 18)
         ).toLocaleString()}
         {end}
       </div>
     );
-  } else if (query && query.isLoading) {
+  } else if (isLoading) {
     return <div className={className}>loading...</div>;
   } else {
     return <></>;
