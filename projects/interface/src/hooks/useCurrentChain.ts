@@ -1,5 +1,5 @@
 import { ChainParameter, chains } from "@/constants/chains";
-import { currentChainNameSelector, currentChainState } from "@/store/chain";
+import { currentChainNameSelector, currentChainState } from "@/state/chain";
 import { useRecoilValue } from "recoil";
 
 export const useCurrentChain = (): { name: chains; perm: ChainParameter } => {

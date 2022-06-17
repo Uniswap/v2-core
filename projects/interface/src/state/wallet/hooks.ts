@@ -1,12 +1,24 @@
-import { useMultipleContractData } from "@/hooks";
+import { useMultiCallContract, useMultipleContractData } from "@/hooks";
 import { ERC20_INTERFACE } from "@/lib/interfaces";
-import { currentCurrenciesSelector } from "@/state/selector";
 import { useWeb3 } from "@inaridiy/useful-web3";
 import { Token } from "@penta-swap/sdk";
-import { useRecoilValue } from "recoil";
+import { useQuery } from "react-query";
+import { Currencies } from "./";
 
-export const useCurrencyBalances = () => {
-  const currencies = useRecoilValue(currentCurrenciesSelector);
+export const useNativeBalance = () => {
+  const { accounts, chainId } = useWeb3();
+  const multiCall = useMultiCallContract();
+  const query = useQuery(
+    ["nativeBalance", chainId, accounts],
+    () => multiCall.getEthBalance(accounts[0] as string),
+    { enabled: Boolean(accounts[0] && chainId) }
+  );
+};
+
+export const useCurrencyBalances = (
+  account: string,
+  currencies: Currencies
+) => {
   const { accounts } = useWeb3();
   const addresses = currencies
     .filter((currency): currency is Token => currency instanceof Token)

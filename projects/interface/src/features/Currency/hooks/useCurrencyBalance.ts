@@ -27,7 +27,7 @@ export const useNativeCurrencyBalance = (chainId: number | null) => {
     {
       enabled: Boolean(
         instance && accounts[0] && chainId && chainId === currentChainId
-      )
+      ),
     }
   );
   return query;
@@ -36,15 +36,16 @@ export const useNativeCurrencyBalance = (chainId: number | null) => {
 export const useTokenBalance = (token: Currency | Token | null) => {
   const { accounts } = useWeb3();
   const erc20 = useContract(
-    provider =>
+    (provider) =>
       token instanceof Token
         ? ERC20__factory.connect(token.address, provider)
         : null,
     { chain: token instanceof Token ? token.chainId : 0 }
   );
   const query = useQuery(
-    `${(token as Token)?.chainId}/${(token as Token)?.address}/${accounts[0] ||
-      "0x00"}`,
+    `${(token as Token)?.chainId}/${(token as Token)?.address}/${
+      accounts[0] || "0x00"
+    }`,
     () => erc20?.balanceOf(accounts[0] as string),
     { enabled: Boolean(erc20 && accounts[0] && token instanceof Token) }
   );
