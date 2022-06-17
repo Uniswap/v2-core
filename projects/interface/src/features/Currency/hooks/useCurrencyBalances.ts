@@ -1,6 +1,6 @@
 import { useMultipleContractData } from "@/hooks";
 import { ERC20_INTERFACE } from "@/lib/interfaces";
-import { currentCurrenciesSelector } from "@/store/selector";
+import { currentCurrenciesSelector } from "@/state/selector";
 import { useWeb3 } from "@inaridiy/useful-web3";
 import { Token } from "@penta-swap/sdk";
 import { useRecoilValue } from "recoil";

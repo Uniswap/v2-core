@@ -1,4 +1,4 @@
-import { currentCurrenciesSelector } from "@/store/selector";
+import { currentCurrenciesSelector } from "@/state/selector";
 import { useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 export const useSortedCurrencies = () => {
