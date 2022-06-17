@@ -1,6 +1,6 @@
 import { ChainParameter, chainParameters, chains } from "@/constants/chains";
 import { selector } from "recoil";
-import { currentChainState } from "../atom";
+import { currentChainState } from "./atom";
 export const currentChainNameSelector = selector<chains>({
   key: "currentChainName",
   get({ get }) {
