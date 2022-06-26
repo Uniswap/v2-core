@@ -12,6 +12,7 @@
     "format": "prettier --write \"**/*.+(js|json|yml|ts|tsx)\""
   },
   "dependencies": {
+    "clsx": "^1.1.1",
     "daisyui": "^2.17.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
