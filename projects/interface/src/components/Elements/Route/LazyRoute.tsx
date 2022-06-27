@@ -6,11 +6,13 @@ export const LazyRoute: React.FC<
   RouteProps & { fallBack?: React.ReactNode }
 > = ({ element, fallBack, ...props }) => {
   return (
-    <Route
-      {...props}
-      element={
-        <Suspense fallback={fallBack || <Spinner />}>{element}</Suspense>
-      }
-    ></Route>
+    <>
+      <Route
+        {...props}
+        element={
+          <Suspense fallback={fallBack || <Spinner />}>{element}</Suspense>
+        }
+      />
+    </>
   );
 };
