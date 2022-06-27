@@ -1,4 +1,4 @@
-export interface ChainParameter {
+export type ChainParameter = Readonly<{
   chainId: number;
   blockExplorerUrls: string[];
   chainName: string;
@@ -9,7 +9,7 @@ export interface ChainParameter {
     symbol: string;
   };
   rpcUrls: string[];
-}
+}>;
 
 export type chains = "astar";
 
