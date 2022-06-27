@@ -1,13 +1,18 @@
 import { Spinner } from "@/components/Elements";
+import { ThemeBox } from "@/components/Elements/Layout";
 
 export const ErrorFallBack = () => {
-  return <div></div>;
+  return (
+    <ThemeBox className="min-h-screen flex justify-center items-center">
+      <h2>Some Error Happen!!!</h2>
+    </ThemeBox>
+  );
 };
 
 export const LoadingFallBack = () => {
   return (
-    <div className="min-h-screen flex justify-center items-center">
+    <ThemeBox className="min-h-screen flex justify-center items-center">
       <Spinner size="lg" />
-    </div>
+    </ThemeBox>
   );
 };
