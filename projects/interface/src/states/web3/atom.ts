@@ -6,6 +6,7 @@ import { atom, atomFamily } from "recoil";
 export const eip1193State = atom<EIP1193 | null>({
   key: "eip1193",
   default: null,
+  dangerouslyAllowMutability: true,
 });
 
 export const accountsState = atom<string[]>({
