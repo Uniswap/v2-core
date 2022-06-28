@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import { ThemeBox } from "../Elements/Layout";
+import { ThemeBox } from "../Elements";
 
 export const DefaultLayout = () => {
   return (
