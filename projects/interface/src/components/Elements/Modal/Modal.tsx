@@ -1,6 +1,6 @@
+import { ThemeBox } from "@/components/Layout";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { ThemeBox } from "../Layout";
 
 export type ModalProps = {
   children?: React.ReactNode;
@@ -23,7 +23,10 @@ export const Modal: React.FC<ModalProps> = ({ children, open, onClose }) => {
         >
           <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
-        <ThemeBox className="fixed inset-0 flex items-center justify-center p-4 bg-transparent">
+        <ThemeBox
+          transparent
+          className="fixed inset-0 flex items-center justify-center p-4"
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"

@@ -1,4 +1,5 @@
-import { Spinner, ThemeBox } from "@/components/Elements";
+import { Spinner } from "@/components/Elements";
+import { ThemeBox } from "@/components/Layout";
 
 export const ErrorFallBack = () => {
   return (
