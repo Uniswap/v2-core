@@ -1,6 +1,2 @@
-export const parseChainId = (chainId: any): number =>
-  typeof chainId === "number"
-    ? chainId
-    : chainId.chainId
-    ? parseChainId(chainId.chainId)
-    : parseInt(chainId, 16);
+export const parseChainId = (chainId: number | string): number =>
+  typeof chainId === "number" ? chainId : parseInt(chainId, 16);

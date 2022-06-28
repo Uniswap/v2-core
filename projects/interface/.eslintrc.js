@@ -11,6 +11,7 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "prettier",
+    "plugin:tailwindcss/recommended",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -21,7 +22,18 @@ module.exports = {
     sourceType: "module",
     project: "./tsconfig.json",
   },
-  plugins: ["react", "react-hooks", "import", "@typescript-eslint"],
+  settings: {
+    react: {
+      version: "detect",
+    },
+  },
+  plugins: [
+    "react",
+    "react-hooks",
+    "import",
+    "@typescript-eslint",
+    "tailwindcss",
+  ],
   rules: {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
@@ -33,6 +45,6 @@ module.exports = {
         patterns: ["@/features/*/*"],
       },
     ],
+    "tailwindcss/no-custom-classname": "off",
   },
-  include: ["src"],
 };

@@ -21,11 +21,11 @@ export const Modal: React.FC<ModalProps> = ({ children, open, onClose }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          <div className="fixed inset-0 bg-black/25" />
         </Transition.Child>
         <ThemeBox
           transparent
-          className="fixed inset-0 flex items-center justify-center p-4"
+          className="flex fixed inset-0 justify-center items-center p-4"
         >
           <Transition.Child
             as={Fragment}
@@ -36,7 +36,7 @@ export const Modal: React.FC<ModalProps> = ({ children, open, onClose }) => {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="w-full max-w-md overflow-hidden rounded-2xl bg-base-100 shadow-xl">
+            <Dialog.Panel className="overflow-hidden w-full max-w-md rounded-2xl shadow-xl bg-base-100">
               {children}
             </Dialog.Panel>
           </Transition.Child>
