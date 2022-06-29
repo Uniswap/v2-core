@@ -19,7 +19,7 @@ export const chainsState = atomFamily<ChainParameter, chains>({
   default: (name) => chainParameters[name],
 });
 
-export const currentChainState = atom({
+export const currentChainState = atom<ChainParameter>({
   key: "currentChain",
   default: chainParameters["astar"],
 });
