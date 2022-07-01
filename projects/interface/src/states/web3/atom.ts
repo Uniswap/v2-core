@@ -1,5 +1,6 @@
 import type { ChainParameter, chains } from "@/constant/chains";
 import { chainParameters } from "@/constant/chains";
+import { connectMethodNames, connectMethods } from "@/constant/connectMethods";
 import { EIP1193 } from "@/libs/connectors";
 import { atom, atomFamily } from "recoil";
 
@@ -27,4 +28,9 @@ export const currentChainState = atom<ChainParameter>({
 export const connectingChainIdState = atom<number | null>({
   key: "connectingChain",
   default: null,
+});
+
+export const connectorIsValidStates = atomFamily<boolean, connectMethodNames>({
+  key: "connectorIsValid",
+  default: (name) => connectMethods[name][2].isValid(),
 });

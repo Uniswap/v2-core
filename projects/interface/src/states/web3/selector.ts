@@ -1,7 +1,8 @@
 import { ChainParameter, chainParameters, chains } from "@/constant/chains";
 import { ethers } from "ethers";
 import { selector } from "recoil";
-import { currentChainState, eip1193State } from "./atom";
+import { accountsState, currentChainState, eip1193State } from "./atom";
+import { Account } from "./types";
 
 export const providerSelector = selector<null | ethers.providers.Provider>({
   key: "provider",
@@ -26,5 +27,16 @@ export const currentChainNameSelector = selector<chains>({
   set({ set }, newName) {
     typeof newName === "string" &&
       set(currentChainState, chainParameters[newName]);
+  },
+});
+
+export const accountsSelector = selector<Account[]>({
+  key: "accountsD",
+  get({ get }) {
+    const accounts = get(accountsState);
+    return accounts.map((address) => ({
+      address,
+      ellipsisAddress: `${accounts[0].slice(0, 5)}...${accounts[0].slice(-4)}`,
+    }));
   },
 });

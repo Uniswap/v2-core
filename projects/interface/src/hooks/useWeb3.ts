@@ -1,16 +1,18 @@
 import {
-  accountsState,
   connectingChainIdState,
   useConnectWallet,
   useSwitchChain,
 } from "@/states/web3";
-import { currentChainNameSelector } from "@/states/web3/selector";
+import {
+  accountsSelector,
+  currentChainNameSelector,
+} from "@/states/web3/selector";
 import { useRecoilValue } from "recoil";
 
 export const useWeb3 = () => {
   const connectWallet = useConnectWallet();
   const switchChain = useSwitchChain();
-  const accounts = useRecoilValue(accountsState);
+  const accounts = useRecoilValue(accountsSelector);
   const connectingChain = useRecoilValue(connectingChainIdState);
   const currentChainName = useRecoilValue(currentChainNameSelector);
   const isConnected = Boolean(accounts.length);

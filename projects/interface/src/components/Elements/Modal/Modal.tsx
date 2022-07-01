@@ -32,7 +32,7 @@ export const Modal: React.FC<ModalProps> = ({
         </Transition.Child>
         <ThemeBox
           transparent
-          className="flex fixed inset-0 justify-center items-center p-4"
+          className="flex fixed inset-0 justify-center items-end p-4 sm:items-center"
         >
           <Transition.Child
             as={Fragment}

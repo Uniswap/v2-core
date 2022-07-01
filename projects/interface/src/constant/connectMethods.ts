@@ -6,6 +6,12 @@ export type connectMethod = [
   connector: Connector
 ];
 
-export const connectMethods: connectMethod[] = [
-  ["Metamask", "/connecter/metamask-fox.svg", new MetamaskConnector()],
-];
+export type connectMethodNames = "Metamask";
+
+export const connectMethods: { [key in connectMethodNames]: connectMethod } = {
+  Metamask: [
+    "Metamask",
+    "/connecter/metamask-fox.svg",
+    new MetamaskConnector(),
+  ],
+};
