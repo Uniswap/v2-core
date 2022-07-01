@@ -1,14 +1,21 @@
 import { ThemeBox } from "@/components/Layout";
 import { Dialog, Transition } from "@headlessui/react";
+import clsx from "clsx";
 import { Fragment } from "react";
 
 export type ModalProps = {
   children?: React.ReactNode;
   open: boolean;
+  className?: string;
   onClose: (state: boolean) => void;
 };
 
-export const Modal: React.FC<ModalProps> = ({ children, open, onClose }) => {
+export const Modal: React.FC<ModalProps> = ({
+  children,
+  className,
+  open,
+  onClose,
+}) => {
   return (
     <Transition appear show={open} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => onClose(false)}>
@@ -36,7 +43,12 @@ export const Modal: React.FC<ModalProps> = ({ children, open, onClose }) => {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="overflow-hidden w-full max-w-md rounded-2xl shadow-xl bg-base-100">
+            <Dialog.Panel
+              className={clsx(
+                "overflow-hidden w-full max-w-md rounded-2xl shadow-xl bg-base-100",
+                className
+              )}
+            >
               {children}
             </Dialog.Panel>
           </Transition.Child>

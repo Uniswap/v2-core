@@ -13,6 +13,7 @@ export const useWeb3 = () => {
   const accounts = useRecoilValue(accountsState);
   const connectingChain = useRecoilValue(connectingChainIdState);
   const currentChainName = useRecoilValue(currentChainNameSelector);
+  const isConnected = Boolean(accounts.length);
 
   return {
     connectWallet,
@@ -20,5 +21,6 @@ export const useWeb3 = () => {
     accounts,
     connectingChain,
     currentChainName,
+    isConnected,
   };
 };

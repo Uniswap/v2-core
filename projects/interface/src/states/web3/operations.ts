@@ -11,7 +11,7 @@ export const useConnectWallet = () => {
   const connectWallet = useRecoilCallback(
     ({ set }) =>
       async (connector: Connector) => {
-        const [eip1193, chainId, accounts] = await connector();
+        const [eip1193, chainId, accounts] = await connector.connect();
         const connectingChainName = chainIdToName(chainId);
         connectingChainName &&
           set(currentChainNameSelector, connectingChainName);

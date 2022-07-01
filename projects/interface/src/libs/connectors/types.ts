@@ -14,6 +14,7 @@ export interface EIP1193 extends ethers.providers.ExternalProvider {
   ) => void;
 }
 
-export type Connector = () => Promise<
-  [eip1193: EIP1193, chainId: number, accounts: string[]]
->;
+export interface Connector {
+  connect(): Promise<[eip1193: EIP1193, chainId: number, accounts: string[]]>;
+  isValid(): Promise<boolean> | boolean;
+}
