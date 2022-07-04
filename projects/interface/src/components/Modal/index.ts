@@ -1,2 +1,1 @@
-export * from "./AccountInfoModal";
-export * from "./ConnectWalletModal";
+export * from "./AccountModal";

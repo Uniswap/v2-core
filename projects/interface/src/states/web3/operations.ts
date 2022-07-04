@@ -60,3 +60,12 @@ export const useSwitchChain = () => {
   );
   return switchChain;
 };
+
+export const useDisconnect = () => {
+  const disconnect = useRecoilCallback(({ set }) => () => {
+    set(eip1193State, null);
+    set(connectingChainIdState, null);
+    set(addressesState, []);
+  });
+  return disconnect;
+};

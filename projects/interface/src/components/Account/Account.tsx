@@ -1,12 +1,21 @@
 import { useWeb3 } from "@/hooks";
-import { AccountConnect } from "./AccountConnect";
-import { AccountInfo } from "./AccountInfo";
+import { useModal } from "@/hooks/useModal";
+import { InfoButton } from "../Elements";
+import { AccountModal } from "../Modal";
 
 export const Account: React.FC = () => {
-  const { isConnected } = useWeb3();
-  if (isConnected) {
-    return <AccountInfo />;
-  } else {
-    return <AccountConnect />;
-  }
+  const { isConnected, accounts } = useWeb3();
+  const { isOpen, close, open } = useModal();
+  return (
+    <>
+      <AccountModal open={isOpen} onClose={close} />
+      {isConnected ? (
+        <InfoButton className="btn btn-sm" onClick={open}>
+          {accounts[0].ellipsisAddress}
+        </InfoButton>
+      ) : (
+        <InfoButton onClick={open}>Connect Wallet</InfoButton>
+      )}
+    </>
+  );
 };

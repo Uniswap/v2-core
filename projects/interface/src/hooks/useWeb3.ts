@@ -1,6 +1,7 @@
 import {
   connectingChainIdState,
   useConnectWallet,
+  useDisconnect,
   useSwitchChain,
 } from "@/states/web3";
 import {
@@ -12,6 +13,7 @@ import { useRecoilValue } from "recoil";
 export const useWeb3 = () => {
   const connectWallet = useConnectWallet();
   const switchChain = useSwitchChain();
+  const disconnect = useDisconnect();
   const accounts = useRecoilValue(accountsSelector);
   const connectingChain = useRecoilValue(connectingChainIdState);
   const currentChainName = useRecoilValue(currentChainNameSelector);
@@ -20,6 +22,7 @@ export const useWeb3 = () => {
   return {
     connectWallet,
     switchChain,
+    disconnect,
     accounts,
     connectingChain,
     currentChainName,

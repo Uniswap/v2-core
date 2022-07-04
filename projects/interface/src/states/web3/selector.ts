@@ -36,7 +36,7 @@ export const accountsSelector = selector<Account[]>({
     const accounts = get(addressesState);
     return accounts.map((address) => ({
       address,
-      ellipsisAddress: `${accounts[0].slice(0, 5)}...${accounts[0].slice(-4)}`,
+      ellipsisAddress: `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`,
     }));
   },
 });
