@@ -8,7 +8,7 @@ export const IconLink: React.FC<LinkProps> = ({
   ...props
 }) => {
   return (
-    <RouterLink className={clsx("btn btn-ghost", className)} {...props}>
+    <RouterLink className={clsx("px-0 btn btn-ghost", className)} {...props}>
       {children}
     </RouterLink>
   );
