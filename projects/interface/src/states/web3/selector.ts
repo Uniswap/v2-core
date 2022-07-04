@@ -1,7 +1,7 @@
 import { ChainParameter, chainParameters, chains } from "@/constant/chains";
 import { ethers } from "ethers";
 import { selector } from "recoil";
-import { accountsState, currentChainState, eip1193State } from "./atom";
+import { addressesState, currentChainState, eip1193State } from "./atom";
 import { Account } from "./types";
 
 export const providerSelector = selector<null | ethers.providers.Provider>({
@@ -33,7 +33,7 @@ export const currentChainNameSelector = selector<chains>({
 export const accountsSelector = selector<Account[]>({
   key: "accountsD",
   get({ get }) {
-    const accounts = get(accountsState);
+    const accounts = get(addressesState);
     return accounts.map((address) => ({
       address,
       ellipsisAddress: `${accounts[0].slice(0, 5)}...${accounts[0].slice(-4)}`,

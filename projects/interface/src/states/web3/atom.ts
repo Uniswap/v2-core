@@ -10,8 +10,8 @@ export const eip1193State = atom<EIP1193 | null>({
   dangerouslyAllowMutability: true,
 });
 
-export const accountsState = atom<string[]>({
-  key: "accounts",
+export const addressesState = atom<string[]>({
+  key: "addresses",
   default: [],
 });
 

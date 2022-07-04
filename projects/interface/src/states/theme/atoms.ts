@@ -4,7 +4,7 @@ import { Theme, ThemeList } from "./types";
 
 export const globalThemeState = atom<Theme>({
   key: "themeState",
-  default: "dark",
+  default: "light",
 });
 
 export const themeListState = atom<ThemeList>({

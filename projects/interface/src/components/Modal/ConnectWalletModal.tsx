@@ -2,10 +2,9 @@ import { connectMethodNames, connectMethods } from "@/constant/connectMethods";
 import { useWeb3 } from "@/hooks";
 import { Connector } from "@/libs/connectors";
 import { connectorIsValidStates } from "@/states/web3";
-import { Dialog } from "@headlessui/react";
 import { Suspense } from "react";
 import { useRecoilValue } from "recoil";
-import { Modal, ModalProps } from "../Elements";
+import { Modal, ModalProps, ModalTitle } from "../Elements";
 
 const ConnectButton: React.FC<{
   name: string;
@@ -18,15 +17,13 @@ const ConnectButton: React.FC<{
   );
 
   return isValid ? (
-    <li>
-      <button
-        className="items-center text-2xl font-bold sm:text-3xl rounded-box"
-        onClick={() => void connectWallet(connector)}
-      >
-        <img className="aspect-square w-12 sm:w-16" src={symbol} />
-        {name}
-      </button>
-    </li>
+    <button
+      className="justify-start px-0 text-2xl normal-case btn btn-block btn-lg btn-ghost"
+      onClick={() => void connectWallet(connector)}
+    >
+      <img className="aspect-square h-full" src={symbol} />
+      {name}
+    </button>
   ) : (
     <></>
   );
@@ -34,11 +31,9 @@ const ConnectButton: React.FC<{
 
 export const ConnectWalletModal: React.FC<ModalProps> = (props) => {
   return (
-    <Modal className="p-4 sm:p-8" {...props}>
-      <Dialog.Title className="mb-4 text-xl font-bold sm:text-3xl">
-        Connect Wallet
-      </Dialog.Title>
-      <div className="menu">
+    <Modal className="flex flex-col gap-2 p-4 sm:p-6" {...props}>
+      <ModalTitle className="text-lg font-bold">Connect Wallet</ModalTitle>
+      <div className="flex flex-col">
         {Object.values(connectMethods).map(([name, symbol, connector]) => (
           <Suspense key={name}>
             <ConnectButton {...{ name, symbol, connector }} />

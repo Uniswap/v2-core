@@ -1,4 +1,5 @@
 import { useModal } from "@/hooks/useModal";
+import { InfoButton } from "../Elements";
 import { ConnectWalletModal } from "../Modal";
 
 export const AccountConnect = () => {
@@ -6,9 +7,7 @@ export const AccountConnect = () => {
   return (
     <>
       <ConnectWalletModal open={isOpen} onClose={close} />
-      <button className="btn btn-outline" onClick={open}>
-        Connect Wallet
-      </button>
+      <InfoButton onClick={open}>Connect Wallet</InfoButton>
     </>
   );
 };

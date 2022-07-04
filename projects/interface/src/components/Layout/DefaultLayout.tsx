@@ -6,9 +6,9 @@ import { ThemeBox } from "./ThemeBox";
 export const Header = () => {
   return (
     <header className="fixed top-0 w-full">
-      <div className="gap-4 justify-between mx-auto max-w-screen-lg navbar">
-        <IconLink to="/" className="py-0 w-36 sm:w-48">
-          <Logo large />
+      <div className="gap-4 justify-between mx-auto max-w-screen-lg sm:px-4 navbar">
+        <IconLink to="/" className="py-0">
+          <Logo />
         </IconLink>
         <div className="">
           <Account />

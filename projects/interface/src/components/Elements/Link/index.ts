@@ -1,2 +1,2 @@
-export * from "./ButtonLink";
+export * from "./IconLink";
 export * from "./Link";

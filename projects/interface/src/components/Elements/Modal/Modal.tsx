@@ -10,6 +10,8 @@ export type ModalProps = {
   onClose: (state: boolean) => void;
 };
 
+export const ModalTitle = Dialog.Title;
+
 export const Modal: React.FC<ModalProps> = ({
   children,
   className,

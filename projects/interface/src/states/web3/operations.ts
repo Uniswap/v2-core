@@ -4,7 +4,7 @@ import { chainIdToName } from "@/utils/chainIdToName";
 import invariant from "@/utils/invariant";
 import { parseChainId } from "@/utils/parseChainId";
 import { useRecoilCallback } from "recoil";
-import { accountsState, connectingChainIdState, eip1193State } from "./atom";
+import { addressesState, connectingChainIdState, eip1193State } from "./atom";
 import { currentChainNameSelector } from "./selector";
 
 export const useConnectWallet = () => {
@@ -17,7 +17,7 @@ export const useConnectWallet = () => {
           set(currentChainNameSelector, connectingChainName);
         set(eip1193State, eip1193);
         set(connectingChainIdState, chainId);
-        set(accountsState, accounts);
+        set(addressesState, accounts);
 
         eip1193.on("chainChanged", (chainId) => {
           const connectingChainName = chainIdToName(parseChainId(chainId));
@@ -26,11 +26,11 @@ export const useConnectWallet = () => {
           set(connectingChainIdState, parseChainId(chainId));
         });
         eip1193.on("accountsChanged", (accounts) => {
-          set(accountsState, accounts);
+          set(addressesState, accounts);
         });
         eip1193.on("disconnect", () => {
           set(connectingChainIdState, null);
-          set(accountsState, []);
+          set(addressesState, []);
         });
       }
   );
