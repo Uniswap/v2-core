@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.6.5",
+    "@heroicons/react": "^1.0.6",
     "@metamask/detect-provider": "^1.2.0",
     "clsx": "^1.1.1",
     "daisyui": "^2.17.0",
