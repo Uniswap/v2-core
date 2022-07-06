@@ -10,9 +10,7 @@ export const Account: React.FC = () => {
     <>
       <AccountModal open={isOpen} onClose={close} />
       {isConnected ? (
-        <InfoButton className="btn btn-sm" onClick={open}>
-          {accounts[0].ellipsisAddress}
-        </InfoButton>
+        <InfoButton onClick={open}>{accounts[0].ellipsisAddress}</InfoButton>
       ) : (
         <InfoButton onClick={open}>Connect Wallet</InfoButton>
       )}

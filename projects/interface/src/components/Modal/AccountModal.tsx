@@ -8,38 +8,51 @@ import { memo, Suspense } from "react";
 import { useRecoilValue } from "recoil";
 import { Modal, ModalProps, ModalTitle } from "../Elements";
 
-const AccountCard: React.FC<{ account: Account }> = ({ account }) => {
+const AccountCard: React.FC<{ account: Account; close: () => void }> = ({
+  account,
+  close,
+}) => {
+  const { disconnect } = useWeb3();
   return (
-    <div className="p-2 pt-4 border-2 card">
+    <div className="gap-2 p-2 pt-4 border-2 sm:pt-6 card">
       <p className="px-4 text-2xl font-bold">{account.ellipsisAddress}</p>
       <div className="flex gap-1">
-        <button className="gap-1 normal-case btn btn-sm btn-ghost">
+        <button className="gap-1 px-0 normal-case btn btn-sm btn-ghost">
           <ClipboardCopyIcon className="w-5 h-5" />
           Copy Address
         </button>
-        <button className="gap-1 normal-case btn btn-sm btn-ghost">
+        <button className="gap-1 px-0 normal-case btn btn-sm btn-ghost">
           <ExternalLinkIcon className="w-5 h-5" />
           View on Explorer
+        </button>
+      </div>
+      <div className="flex gap-1">
+        <button
+          className="flex-1 btn btn-sm btn-primary btn-outline"
+          onClick={disconnect}
+        >
+          Change
+        </button>
+        <button
+          className="flex-1 btn btn-sm btn-secondary"
+          onClick={() => {
+            close();
+            disconnect();
+          }}
+        >
+          Disconnect
         </button>
       </div>
     </div>
   );
 };
 
-const InfoModalBody = () => {
-  const { accounts, disconnect } = useWeb3();
+const InfoModalBody: React.FC<{ close: () => void }> = ({ close }) => {
+  const { accounts } = useWeb3();
   return (
     <>
       <ModalTitle className="text-lg font-bold">Account</ModalTitle>
-      {accounts[0] && <AccountCard account={accounts[0]} />}
-      <div className="flex gap-1">
-        <button className="flex-1 btn btn-sm" onClick={disconnect}>
-          Change
-        </button>
-        <button className="flex-1 btn btn-sm" onClick={disconnect}>
-          Disconnect
-        </button>
-      </div>
+      {accounts[0] && <AccountCard account={accounts[0]} close={close} />}
     </>
   );
 };
@@ -87,7 +100,11 @@ export const AccountModal: React.FC<ModalProps> = memo((props) => {
   const { isConnected } = useWeb3();
   return (
     <Modal className="flex flex-col gap-2 p-4 sm:p-6" {...props}>
-      {isConnected ? <InfoModalBody /> : <ConnectModalBody />}
+      {isConnected ? (
+        <InfoModalBody close={props.onClose} />
+      ) : (
+        <ConnectModalBody />
+      )}
     </Modal>
   );
 });
