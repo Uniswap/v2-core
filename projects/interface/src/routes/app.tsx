@@ -1,3 +1,4 @@
+import { Swap } from "@/features/Swap";
 import { lazyImport } from "@/utils/lazyImport";
 import { Navigate, Route, Routes } from "react-router-dom";
 
@@ -11,7 +12,7 @@ export const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<DefaultLayout />}>
         <Route index element={<Navigate to="/swap" replace={true} />} />
-        <Route path="/swap" element={<DefaultLayout />} />
+        <Route path="/swap" element={<Swap />} />
       </Route>
     </Routes>
   );

@@ -7,7 +7,9 @@ export const DefaultLayout = () => {
   return (
     <ThemeBox className="min-h-screen">
       <Header />
-      <Outlet />
+      <div className="flex flex-col items-center py-24 h-full">
+        <Outlet />
+      </div>
       <BottomNav />
     </ThemeBox>
   );
