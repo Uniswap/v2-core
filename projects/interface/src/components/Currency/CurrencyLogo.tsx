@@ -12,7 +12,7 @@ export const CurrencyLogo: React.FC<{ currency: Currency }> = memo(
         <img
           src={logoUrl}
           alt={currency.name}
-          className="aspect-square w-12 rounded-lg"
+          className="aspect-square w-10 rounded-lg"
         />
       );
     } else {

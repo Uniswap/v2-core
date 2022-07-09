@@ -7,7 +7,7 @@ export const Header = () => {
     <header className="fixed top-0 w-full">
       <div className="gap-4 justify-between mx-auto max-w-screen-lg sm:px-4 navbar">
         <div className="flex-1">
-          <IconLink to="/" className="py-0">
+          <IconLink to="/swap" className="py-0">
             <Logo />
           </IconLink>
         </div>

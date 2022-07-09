@@ -18,7 +18,7 @@ const NavLink: React.FC<{ to: string; children: React.ReactNode }> = ({
 
 export const NavBar = () => {
   return (
-    <div className="flex-row gap-2 rounded-lg border-2 card">
+    <div className="flex-row gap-2 rounded-lg border-2 card bg-base-100">
       <NavLink to="/">Swap</NavLink>
       <a className="btn btn-sm btn-ghost">Pool</a>
       <a className="btn btn-sm btn-ghost">Penta</a>

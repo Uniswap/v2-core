@@ -5,7 +5,7 @@ import { Header } from "./Header";
 
 export const DefaultLayout = () => {
   return (
-    <ThemeBox className="min-h-screen">
+    <ThemeBox className="min-h-screen bg-base-200">
       <Header />
       <div className="flex flex-col items-center py-24 h-full">
         <Outlet />
