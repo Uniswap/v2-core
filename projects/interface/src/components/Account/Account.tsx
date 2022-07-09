@@ -1,5 +1,4 @@
-import { useWeb3 } from "@/hooks";
-import { useModal } from "@/hooks/useModal";
+import { useModal, useWeb3 } from "@/hooks";
 import { InfoButton } from "../Elements";
 import { AccountModal } from "../Modal";
 
