@@ -1,41 +1,37 @@
-const BigNumber = web3.BigNumber;
-const ERC20 = artifacts.require('TestERC20');
-const QuasarFactory = artifacts.require('QuasarFactory');
-const MathTest = artifacts.require('MathTest');
-const { expectEvent } = require('@openzeppelin/test-helpers');
-const { BigNumber: BN } = require('bignumber.js');
+const { expect, use } = require('chai');
+const { ethers, waffle } = require('hardhat');
 
-require('chai').use(require('chai-as-promised')).use(require('chai-bignumber')(BigNumber)).should();
+use(waffle.solidity);
 
-contract('Core', ([account1, account2, account3]) => {
-  let token1;
-  let token2;
-  let factory;
-  let math;
+describe('All Tests', () => {
+  describe('Factory', () => {
+    /**
+     * @type {import('ethers').Contract}
+     */
+    let factory;
 
-  before(async () => {
-    token1 = await ERC20.new(web3.utils.toWei('300000000'));
-    token2 = await ERC20.new(web3.utils.toWei('300000000'));
-    factory = await QuasarFactory.new();
-    math = await MathTest.new();
-  });
+    /**
+     * @type {import('ethers').Contract}
+     */
+    let token1;
 
-  it('should calculate square root', async () => {
-    const root = await math.squareRoot(9);
-    assert.isTrue(new BN(root).isEqualTo(new BN(3)));
-  });
+    /**
+     * @type {import('ethers').Contract}
+     */
+    let token2;
 
-  it('should create pair', async () => {
-    expectEvent(await factory.createPair(token1.address, token2.address), 'PairCreated');
-  });
+    before(async () => {
+      const Factory = await ethers.getContractFactory('QuasarFactory');
+      factory = await Factory.deploy();
+      factory = await factory.deployed();
 
-  it('should send tokens to newly created pair', async () => {
-    const pair = await factory.allPairs(0);
-    await token1.transfer(pair, web3.utils.toWei('100000000'));
-    await token2.transfer(pair, web3.utils.toWei('100000000'));
-    const balance1 = await token1.balanceOf(pair);
-    const balance2 = await token2.balanceOf(pair);
-    balance1.toString().should.be.bignumber.equal(web3.utils.toWei('100000000'));
-    balance2.toString().should.be.bignumber.equal(web3.utils.toWei('100000000'));
+      const TokenFactory = await ethers.getContractFactory('TestERC20');
+      [token1, token2] = [await TokenFactory.deploy(ethers.utils.parseEther('3000')), await TokenFactory.deploy(ethers.utils.parseEther('3000'))];
+      [token1, token2] = [await token1.deployed(), await token2.deployed()];
+    });
+
+    it('should allow the creation of pairs', async () => {
+      await expect(factory.createPair(token1.address, token2.address)).to.emit(factory, 'PairCreated');
+    });
   });
 });

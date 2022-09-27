@@ -1,5 +1,5 @@
 {
-  "name": "@vefi-dex/v1-core",
+  "name": "quasar-v1-core",
   "description": "Core smart contracts for the Vefi DEX",
   "version": "1.0.1",
   "homepage": "https://vefinetwork.org",
@@ -9,13 +9,12 @@
   },
   "keywords": [
     "quasar",
-    "bitgert",
     "v1",
     "core"
   ],
   "files": [
     "contracts",
-    "build"
+    "artifacts"
   ],
   "engines": {
     "node": ">=10"
@@ -28,20 +27,21 @@
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@openzeppelin/contracts": "^4.6.0",
     "@openzeppelin/test-helpers": "^0.5.15",
-    "@truffle/hdwallet-provider": "^2.0.7",
-    "bignumber.js": "^9.0.2",
     "chai": "^4.3.6",
-    "chai-as-promised": "^7.1.1",
-    "chai-bignumber": "^3.0.0",
     "dotenv": "^16.0.0",
-    "hardhat": "^2.11.2"
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.7.1",
+    "hardhat": "^2.11.2",
+    "mocha": "^10.0.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.24",
+    "web3": "^1.8.0"
   },
   "scripts": {
     "format": "prettier --write **/**/*.{js,json,sol}",
-    "clean": "rm -rf ./build/",
+    "clean": "rm -rf artifacts && rm -rf cache",
     "precompile": "yarn clean",
-    "compile": "truffle compile",
-    "test": "truffle test --network development",
+    "compile": "npx hardhat compile",
+    "test": "yarn clean && npx hardhat test --network ganache",
     "prepublishOnly": "yarn run test"
   },
   "license": "GPL-3.0-or-later"
