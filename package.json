@@ -42,7 +42,8 @@
     "precompile": "yarn clean",
     "compile": "npx hardhat compile",
     "test": "yarn clean && npx hardhat test --network ganache",
-    "prepublishOnly": "yarn run test"
+    "prepublishOnly": "yarn run test",
+    "deploy:local": "npx hardhat run scripts/deploy.js --network local"
   },
   "license": "GPL-3.0-or-later"
 }
