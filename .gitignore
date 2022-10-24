@@ -4,3 +4,4 @@ migrations
 .env
 artifacts
 cache
+standard-input.json
