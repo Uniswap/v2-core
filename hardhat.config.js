@@ -24,6 +24,31 @@ module.exports = {
       url: 'https://rpc.icecreamswap.com',
       accounts: [process.env.PRIVATE_KEY],
       chainId: 32520
+    },
+    telos_mainnet: {
+      url: 'https://rpc2.eu.telos.net/evm',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 40
+    },
+    gatechain_mainnet: {
+      url: 'https://evm.gatenode.cc',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 86
+    },
+    ethereum_mainnet: {
+      url: 'https://1rpc.io/eth',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 1
+    },
+    matic_mainnet: {
+      url: 'https://matic.slingshot.finance',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 137
+    },
+    avalanche_mainnet: {
+      url: 'https://1rpc.io/avax/c',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 43114
     }
   },
   etherscan: {
