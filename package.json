@@ -44,7 +44,8 @@
     "test": "yarn clean && npx hardhat test --network ganache",
     "prepublishOnly": "yarn run test",
     "deploy:local": "npx hardhat run scripts/deploy.js --network local",
-    "deploy:bsc:testnet": "npx hardhat run scripts/deploy.js --network bsc_testnet"
+    "deploy:bsc:testnet": "npx hardhat run scripts/deploy.js --network bsc_testnet",
+    "deploy:bitgert:mainnet": "npx hardhat run scripts/deploy.js --network bitgert_mainnet"
   },
   "license": "GPL-3.0-or-later"
 }

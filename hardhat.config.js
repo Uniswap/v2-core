@@ -19,11 +19,25 @@ module.exports = {
       url: 'https://bsctestapi.terminet.io/rpc',
       accounts: [process.env.PRIVATE_KEY],
       chainId: 97
+    },
+    bitgert_mainnet: {
+      url: 'https://rpc.icecreamswap.com',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 32520
     }
   },
   etherscan: {
     apiKey: {
-      bscTestnet: process.env.BSC_API_KEY
-    }
+      bscTestnet: process.env.BSC_API_KEY,
+      bitgert: process.env.BSC_API_KEY
+    },
+    customChains: [{
+      network: 'bitgert',
+      chainId: 32520,
+      urls: {
+        apiURL: 'https://brisescan.com/api',
+        browserURL: 'https://brisescan.com'
+      }
+    }]
   }
 };
