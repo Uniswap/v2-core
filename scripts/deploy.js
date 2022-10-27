@@ -9,7 +9,7 @@ const { ethers, network } = require('hardhat');
     let factory = await QFactory.deploy();
     factory = await factory.deployed();
 
-    console.log("----- %s -----", factory.address);
+    console.log('----- %s -----', factory.address);
 
     const location = path.join(__dirname, '../factory_addresses.json');
     const fileExists = fs.existsSync(location);
