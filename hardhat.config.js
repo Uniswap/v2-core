@@ -61,7 +61,7 @@ module.exports = {
       chainId: 56,
     },
     astar_mainnet: {
-      url: 'https://rpc.astar.network:8545',
+      url: 'https://astar.public.blastapi.io',
       accounts: [process.env.PRIVATE_KEY],
       chainId: 592,
     },
