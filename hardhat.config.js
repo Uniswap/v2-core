@@ -60,6 +60,16 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY],
       chainId: 56,
     },
+    astar_mainnet: {
+      url: 'https://rpc.astar.network:8545',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 592,
+    },
+    wanchain_mainnet: {
+      url: 'https://gwan-ssl.wandevs.org:56891',
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 888,
+    }
   },
   etherscan: {
     apiKey: {

@@ -52,7 +52,9 @@
     "deploy:polygon:mainnet": "npx hardhat run scripts/deploy.js --network matic_mainnet",
     "deploy:avalanche:mainnet": "npx hardhat run scripts/deploy.js --network avalanche_mainnet",
     "deploy:omax:mainnet": "npx hardhat run scripts/deploy.js --network omax_mainnet",
-    "deploy:bsc:mainnet": "npx hardhat run scripts/deploy.js --network bsc_mainnet"
+    "deploy:bsc:mainnet": "npx hardhat run scripts/deploy.js --network bsc_mainnet",
+    "deploy:astar:mainnet": "npx hardhat run scripts/deploy.js --network astar_mainnet",
+    "deploy:wanchain:mainnet": "npx hardhat run scripts/deploy.js --network wanchain_mainnet"
   },
   "license": "GPL-3.0-or-later"
 }
