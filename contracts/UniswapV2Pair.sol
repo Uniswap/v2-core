@@ -82,7 +82,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
-        emit Sync(reserve0, reserve1);
+        emit Sync(uint112(balance0), uint112(balance1));
     }
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
