@@ -7,6 +7,7 @@ import { expandTo18Decimals } from './utilities'
 import ERC20 from '../../build/ERC20.json'
 import UniswapV2Factory from '../../build/UniswapV2Factory.json'
 import UniswapV2Pair from '../../build/UniswapV2Pair.json'
+import ApprovedTokenManager from '../../build/ApprovedTokenManager.json'
 
 interface FactoryFixture {
   factory: Contract
@@ -24,7 +25,10 @@ export async function factoryFixture(_: Web3Provider, [wallet]: Wallet[]): Promi
 interface PairFixture extends FactoryFixture {
   token0: Contract
   token1: Contract
+  token2: Contract
   pair: Contract
+  approvedTokenManager: Contract
+  anotherApprovedTokenManager: Contract
 }
 
 export async function pairFixture(provider: Web3Provider, [wallet]: Wallet[]): Promise<PairFixture> {
@@ -40,6 +44,9 @@ export async function pairFixture(provider: Web3Provider, [wallet]: Wallet[]): P
   const token0Address = (await pair.token0()).address
   const token0 = tokenA.address === token0Address ? tokenA : tokenB
   const token1 = tokenA.address === token0Address ? tokenB : tokenA
+  const token2 = await deployContract(wallet, ERC20, [expandTo18Decimals(10000)], overrides)
 
-  return { factory, token0, token1, pair }
+  const approvedTokenManager = await deployContract(wallet, ApprovedTokenManager, [], overrides)
+  const anotherApprovedTokenManager = await deployContract(wallet, ApprovedTokenManager, [], overrides)
+  return { factory, token0, token1, token2, pair, approvedTokenManager, anotherApprovedTokenManager }
 }

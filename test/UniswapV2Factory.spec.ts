@@ -5,7 +5,7 @@ import { bigNumberify } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
 import { getCreate2Address } from './shared/utilities'
-import { factoryFixture } from './shared/fixtures'
+import { factoryFixture, pairFixture } from './shared/fixtures'
 
 import UniswapV2Pair from '../build/UniswapV2Pair.json'
 
@@ -65,6 +65,23 @@ describe('UniswapV2Factory', () => {
     await createPair(TEST_ADDRESSES.slice().reverse() as [string, string])
   })
 
+  it('createPair:checkTokenApproved', async () => {
+    const fixture = await loadFixture(pairFixture)
+    await factory.setApprovedTokenManager(fixture.approvedTokenManager.address)
+
+    var tokens: [string, string]
+    if (fixture.token1.address > fixture.token2.address) {
+      tokens = [fixture.token1.address, fixture.token2.address]
+    } else {
+      tokens = [fixture.token2.address, fixture.token1.address]
+    }
+    await expect(factory.createPair(tokens[0], tokens[1])).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await fixture.approvedTokenManager.approveToken(fixture.token1.address, true)
+    await fixture.approvedTokenManager.approveToken(fixture.token2.address, true)
+
+    await expect(factory.createPair(tokens[0], tokens[1])).to.emit(factory, 'PairCreated')
+  })
+
   it('createPair:gas', async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES)
     const receipt = await tx.wait()
@@ -82,5 +99,14 @@ describe('UniswapV2Factory', () => {
     await factory.setFeeToSetter(other.address)
     expect(await factory.feeToSetter()).to.eq(other.address)
     await expect(factory.setFeeToSetter(wallet.address)).to.be.revertedWith('UniswapV2: FORBIDDEN')
+  })
+
+  it('setApprovedTokenManager', async () => {
+    const fixture = await loadFixture(pairFixture)
+    await expect(
+      factory.connect(other).setApprovedTokenManager(fixture.anotherApprovedTokenManager.address)
+    ).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await factory.setApprovedTokenManager(fixture.anotherApprovedTokenManager.address)
+    expect(await factory.approvedTokenManager()).to.eq(fixture.anotherApprovedTokenManager.address)
   })
 })
