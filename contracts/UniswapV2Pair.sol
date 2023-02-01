@@ -7,6 +7,7 @@ import './libraries/UQ112x112.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Callee.sol';
+import './interfaces/IGomboc.sol';
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using SafeMath  for uint;
@@ -57,6 +58,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         address indexed to
     );
     event Sync(uint112 reserve0, uint112 reserve1);
+    event ClaimLightReward(uint256 amount);
 
     constructor() public {
         factory = msg.sender;
@@ -198,4 +200,21 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     function sync() external lock {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
+
+    function claimLightReward(address lightGomboc, address minter, address lightToken, address gomboc) external {
+        require(lightGomboc != address(0), "Light: INVALID_LIGHT_GOMBOC");
+        require(minter != address(0), "Light: INVALID_MINTER");
+        require(lightToken != address(0), "Light: INVALID_LIGHT");
+        require(gomboc != address(0), "Light: INVALID_GOMBOC");
+
+        uint256 amount = ILightGomboc(lightGomboc).claimableTokens(address(this));
+        require(amount>0, "Light: NO_BALANCE");
+        IMinter(minter).mint(lightGomboc);
+
+        IERC20(lightToken).approve(lightGomboc, amount);
+        ILightGomboc(gomboc).depositRewardToken(lightToken, amount);
+
+        emit ClaimLightReward(amount);
+    }
+
 }
