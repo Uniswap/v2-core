@@ -281,4 +281,31 @@ describe('UniswapV2Pair', () => {
     expect(await token0.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('748505051092335'))
     expect(await token1.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('750000561938905'))
   })
+
+  it('feeTo:mintFee', async () => {
+    await factory.setFeeTo(other.address)
+
+    const token0Amount = expandTo18Decimals(1000)
+    const token1Amount = expandTo18Decimals(1000)
+    await addLiquidity(token0Amount, token1Amount)
+
+    const swapAmount = expandTo18Decimals(1)
+    const expectedOutputAmount = bigNumberify('996006981039903216')
+    await token1.transfer(pair.address, swapAmount)
+    await pair.swap(expectedOutputAmount, 0, wallet.address, '0x', overrides)
+
+    await pair.mintFee()
+    expect(await pair.balanceOf(other.address)).to.eq('749251872006222')
+
+    const expectedLiquidity = expandTo18Decimals(1000)
+    await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    await pair.burn(wallet.address, overrides)
+    expect(await pair.totalSupply()).to.eq(MINIMUM_LIQUIDITY.add('749251872006222'))
+    expect(await pair.balanceOf(other.address)).to.eq('749251872006222')
+
+    // using 1000 here instead of the symbolic MINIMUM_LIQUIDITY because the amounts only happen to be equal...
+    // ...because the initial liquidity amounts were equal
+    expect(await token0.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('748505051092335'))
+    expect(await token1.balanceOf(pair.address)).to.eq(bigNumberify(1000).add('750000561938905'))
+  })
 })

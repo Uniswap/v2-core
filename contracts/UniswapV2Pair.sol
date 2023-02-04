@@ -108,6 +108,13 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         }
     }
 
+    function mintFee() external lock {
+        (uint112 _reserve0, uint112 _reserve1,) = getReserves();
+        bool feeOn = _mintFee(_reserve0, _reserve1);
+        if (feeOn)
+            kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
+    }
+
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
