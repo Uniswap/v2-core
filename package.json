@@ -40,6 +40,8 @@
     "clean": "rimraf ./build/",
     "precompile": "yarn clean",
     "compile": "waffle .waffle.json",
+    "preflatten": "yarn compile",
+    "flatten": "waffle flatten",
     "pretest": "yarn compile",
     "test": "mocha",
     "prepublishOnly": "yarn test"
