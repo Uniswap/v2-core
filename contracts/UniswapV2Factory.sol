@@ -1,5 +1,6 @@
 pragma solidity =0.5.16;
 
+import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IApprovedTokenManager.sol';
 import './UniswapV2Pair.sol';
@@ -57,5 +58,10 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setApprovedTokenManager(IApprovedTokenManager _approvedTokenManager) external {
         require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
         approvedTokenManager = _approvedTokenManager;
+    }
+
+    function setFeeRateNumerator(address tokenA, address tokenB, uint32 feeRateNumerator) external {
+        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        IUniswapV2Pair(getPair[tokenA][tokenB]).setFeeRateNumerator(feeRateNumerator);
     }
 }

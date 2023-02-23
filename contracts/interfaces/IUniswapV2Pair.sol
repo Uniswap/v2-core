@@ -37,6 +37,8 @@ interface IUniswapV2Pair {
     function factory() external view returns (address);
     function token0() external view returns (address);
     function token1() external view returns (address);
+    function getFeeRateNumerator() external view returns (uint32);
+    function setFeeRateNumerator(uint32) external;
     function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
     function price0CumulativeLast() external view returns (uint);
     function price1CumulativeLast() external view returns (uint);

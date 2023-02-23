@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
 import { AddressZero } from 'ethers/constants'
-import { bigNumberify } from 'ethers/utils'
+import { bigNumberify, keccak256 } from 'ethers/utils'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
 import { getCreate2Address } from './shared/utilities'
@@ -57,6 +57,12 @@ describe('UniswapV2Factory', () => {
     expect(await pair.token1()).to.eq(TEST_ADDRESSES[1])
   }
 
+  it('printInitCodeHash', async () => {
+    const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
+    const initCodeHash = keccak256(bytecode)
+    expect(initCodeHash).to.eq('0x31cca1786497eae44e8acfd5141b175c1fde04d24c62b870e8b8e3f1b08d77c3')
+  })
+
   it('createPair', async () => {
     await createPair(TEST_ADDRESSES)
   })
@@ -85,7 +91,7 @@ describe('UniswapV2Factory', () => {
   it('createPair:gas', async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(2839218)
+    expect(receipt.gasUsed).to.eq(2938387)
   })
 
   it('setFeeTo', async () => {
