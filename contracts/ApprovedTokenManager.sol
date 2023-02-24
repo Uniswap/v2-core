@@ -7,11 +7,12 @@ contract ApprovedTokenManager is IApprovedTokenManager,  Ownable{
     event ApproveToken(address token, bool approved);
 
     function isApprovedToken(address token) public view returns (bool){
-      return approvedToken[token];
+        return approvedToken[token];
     }
 
     function approveToken(address token, bool approved)  public onlyOwner{
-      emit ApproveToken(token, approved);
-      approvedToken[token]= approved;
+        require(token != address(0), 'HopeSwap: INVALID_TOKEN');
+        approvedToken[token]= approved;
+        emit ApproveToken(token, approved);
     }
 }
