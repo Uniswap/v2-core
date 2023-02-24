@@ -217,18 +217,21 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
 
-    function claimLightReward(address lightGomboc, address minter, address lightToken, address gomboc) external {
-        require(lightGomboc != address(0), "HopeSwap: INVALID_LIGHT_GOMBOC");
-        require(minter != address(0), "HopeSwap: INVALID_MINTER");
-        require(lightToken != address(0), "HopeSwap: INVALID_LIGHT");
-        require(gomboc != address(0), "HopeSwap: INVALID_GOMBOC");
+    // claim ltToken for pool whose currency pair contains stHope, and transfer to poolGomboc
+    // 1. mint with stHope: receive ltToken from minter to pool(self) contains stHope according stHope amount
+    // 2. deposit ltToken: transfer ltToken from pool(self) to poolGomboc
+    function claimLightReward(address stHope, address minter, address ltToken, address poolGomboc) external {
+        require(ltToken != address(0), "Light: INVALID_LIGHT_GOMBOC");
+        require(minter != address(0), "Light: INVALID_MINTER");
+        require(ltToken != address(0), "Light: INVALID_LIGHT");
+        require(poolGomboc != address(0), "Light: INVALID_GOMBOC");
 
-        uint256 amount = ILightGomboc(lightGomboc).claimableTokens(address(this));
+        uint256 amount = ILightGomboc(stHope).claimableTokens(address(this));
         require(amount>0, "Light: NO_BALANCE");
-        IMinter(minter).mint(lightGomboc);
+        IMinter(minter).mint(stHope);
 
-        IERC20(lightToken).approve(lightGomboc, amount);
-        ILightGomboc(gomboc).depositRewardToken(lightToken, amount);
+        IERC20(ltToken).approve(poolGomboc, amount);
+        ILightGomboc(poolGomboc).depositRewardToken(ltToken, amount);
 
         emit ClaimLightReward(amount);
     }
