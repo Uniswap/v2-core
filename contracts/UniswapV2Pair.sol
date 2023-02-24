@@ -17,8 +17,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factory;
-    uint32  public feeRateNumerator = 997;
-    uint32  public constant feeRateDenominator = 1000;
+    uint32  public feeRateNumerator = 9970;
+    uint32  public constant feeRateDenominator = 10000;
     address public token0;
     address public token1;
 
