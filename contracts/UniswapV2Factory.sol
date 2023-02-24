@@ -48,20 +48,24 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setFeeTo(address _feeTo) external {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
         feeTo = _feeTo;
+        emit SetFeeTo(_feeTo);
     }
 
     function setFeeToSetter(address _feeToSetter) external {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
         feeToSetter = _feeToSetter;
+        emit SetFeeToSetter(_feeToSetter);
     }
 
     function setApprovedTokenManager(IApprovedTokenManager _approvedTokenManager) external {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
         approvedTokenManager = _approvedTokenManager;
+        emit SetApprovedTokenManager(_approvedTokenManager);
     }
 
     function setFeeRateNumerator(address tokenA, address tokenB, uint32 feeRateNumerator) external {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
         IUniswapV2Pair(getPair[tokenA][tokenB]).setFeeRateNumerator(feeRateNumerator);
+        emit SetFeeRateNumerator(tokenA, tokenB, feeRateNumerator);
     }
 }
