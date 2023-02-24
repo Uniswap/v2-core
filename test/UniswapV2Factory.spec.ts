@@ -60,7 +60,7 @@ describe('UniswapV2Factory', () => {
   it('printInitCodeHash', async () => {
     const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
     const initCodeHash = keccak256(bytecode)
-    expect(initCodeHash).to.eq('0x31cca1786497eae44e8acfd5141b175c1fde04d24c62b870e8b8e3f1b08d77c3')
+    expect(initCodeHash).to.eq('0xb2a005b79866a2f3bb0df5b75aa1368d6bd3889c89080f9f231acf4e2a923814')
   })
 
   it('createPair', async () => {
@@ -81,7 +81,7 @@ describe('UniswapV2Factory', () => {
     } else {
       tokens = [fixture.token2.address, fixture.token1.address]
     }
-    await expect(factory.createPair(tokens[0], tokens[1])).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await expect(factory.createPair(tokens[0], tokens[1])).to.be.revertedWith('HopeSwap: FORBIDDEN')
     await fixture.approvedTokenManager.approveToken(fixture.token1.address, true)
     await fixture.approvedTokenManager.approveToken(fixture.token2.address, true)
 
@@ -91,27 +91,27 @@ describe('UniswapV2Factory', () => {
   it('createPair:gas', async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(2938387)
+    expect(receipt.gasUsed).to.eq(2922331)
   })
 
   it('setFeeTo', async () => {
-    await expect(factory.connect(other).setFeeTo(other.address)).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await expect(factory.connect(other).setFeeTo(other.address)).to.be.revertedWith('HopeSwap: FORBIDDEN')
     await factory.setFeeTo(wallet.address)
     expect(await factory.feeTo()).to.eq(wallet.address)
   })
 
   it('setFeeToSetter', async () => {
-    await expect(factory.connect(other).setFeeToSetter(other.address)).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await expect(factory.connect(other).setFeeToSetter(other.address)).to.be.revertedWith('HopeSwap: FORBIDDEN')
     await factory.setFeeToSetter(other.address)
     expect(await factory.feeToSetter()).to.eq(other.address)
-    await expect(factory.setFeeToSetter(wallet.address)).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    await expect(factory.setFeeToSetter(wallet.address)).to.be.revertedWith('HopeSwap: FORBIDDEN')
   })
 
   it('setApprovedTokenManager', async () => {
     const fixture = await loadFixture(pairFixture)
     await expect(
       factory.connect(other).setApprovedTokenManager(fixture.anotherApprovedTokenManager.address)
-    ).to.be.revertedWith('UniswapV2: FORBIDDEN')
+    ).to.be.revertedWith('HopeSwap: FORBIDDEN')
     await factory.setApprovedTokenManager(fixture.anotherApprovedTokenManager.address)
     expect(await factory.approvedTokenManager()).to.eq(fixture.anotherApprovedTokenManager.address)
   })
