@@ -61,6 +61,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     );
     event Sync(uint112 reserve0, uint112 reserve1);
     event ClaimLightReward(uint256 amount);
+    event SetFeeRateNumerator(uint32 _feeRateNumerator);
 
     constructor() public {
         factory = msg.sender;
@@ -92,6 +93,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     function setFeeRateNumerator(uint32 _feeRateNumerator) external {
         require(msg.sender == factory, 'HopeSwap: FORBIDDEN'); // sufficient check
         feeRateNumerator = _feeRateNumerator;
+        emit SetFeeRateNumerator(_feeRateNumerator);
     }
     function getFeeRateNumerator() external view returns (uint32) {
         return feeRateNumerator;
