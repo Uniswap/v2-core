@@ -13,7 +13,15 @@ contract UniswapV2Factory is IUniswapV2Factory {
     mapping(address => mapping(address => address)) public getPair;
     address[] public allPairs;
 
+    // for claimLightReward
+    address public stHope = address(0);
+    address public minter = address(0);
+    address public ltToken = address(0) ;
+    mapping(address => address) pairGomboc;
+
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+    event SetLightRewardParams(address _stHope, address _minter, address _ltToken);
+    event SetPairGomboc(address pair, address gomboc);
 
     constructor(address _feeToSetter) public {
         feeToSetter = _feeToSetter;
@@ -67,5 +75,30 @@ contract UniswapV2Factory is IUniswapV2Factory {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
         IUniswapV2Pair(getPair[tokenA][tokenB]).setFeeRateNumerator(feeRateNumerator);
         emit SetFeeRateNumerator(tokenA, tokenB, feeRateNumerator);
+    }
+
+    function setLightRewardParams(address _stHope, address _minter, address _ltToken) external {
+        require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
+        stHope = _stHope;
+        minter = _minter;
+        ltToken = _ltToken;
+        emit SetLightRewardParams(_stHope, _minter, _ltToken);
+    }
+
+    function setPairGomboc(address pair, address gomboc) external {
+        require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
+
+        require(pair!=address(0), "HopeSwap: ZERO_ADDRESS");
+        require(gomboc!=address(0), "HopeSwap: ZERO_ADDRESS");
+
+        pairGomboc[pair] = gomboc;
+        emit SetPairGomboc(pair, gomboc);
+    }
+
+    function getLightRewardParams(address pair) external view returns (address _stHope, address _minter, address _ltToken, address _pairGomboc) {
+        _pairGomboc = pairGomboc[pair];
+        _stHope = stHope;
+        _minter = minter;
+        _ltToken = ltToken;
     }
 }

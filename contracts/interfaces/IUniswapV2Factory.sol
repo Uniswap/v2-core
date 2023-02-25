@@ -21,4 +21,5 @@ interface IUniswapV2Factory {
     function setFeeToSetter(address) external;
     function setApprovedTokenManager(IApprovedTokenManager _approvedTokenManager) external;
     function setFeeRateNumerator(address tokenA, address tokenB, uint32 feeRateNumerator) external;
+    function getLightRewardParams(address pair) external view returns (address _stHope, address _minter, address _ltToken, address _pairGomboc);
 }
