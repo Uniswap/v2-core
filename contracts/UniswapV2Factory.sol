@@ -79,6 +79,10 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     function setLightRewardParams(address _stHope, address _minter, address _ltToken) external {
         require(msg.sender == feeToSetter, 'HopeSwap: FORBIDDEN');
+        require(_stHope!=address(0), "HopeSwap: ZERO_ADDRESS");
+        require(_minter!=address(0), "HopeSwap: ZERO_ADDRESS");
+        require(_ltToken!=address(0), "HopeSwap: ZERO_ADDRESS");
+
         stHope = _stHope;
         minter = _minter;
         ltToken = _ltToken;
