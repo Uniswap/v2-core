@@ -7,7 +7,7 @@ import './libraries/UQ112x112.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Callee.sol';
-import './interfaces/IGomboc.sol';
+import './interfaces/ILightGauge.sol';
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using SafeMath  for uint;
@@ -220,22 +220,22 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
     }
 
-    // claim ltToken for pool whose currency pair contains stHope, and transfer to poolGomboc
+    // claim ltToken for pool whose currency pair contains stHope, and transfer to poolGauge
     // 1. mint with stHope: receive ltToken from minter to pool(self) contains stHope according stHope amount
-    // 2. deposit ltToken: transfer ltToken from pool(self) to poolGomboc
+    // 2. deposit ltToken: transfer ltToken from pool(self) to poolGauge
     function claimLightReward() external {
-        (address stHope, address minter, address ltToken, address pairGomboc) = IUniswapV2Factory(factory).getLightRewardParams(address(this));
+        (address stHope, address minter, address ltToken, address pairGauge) = IUniswapV2Factory(factory).getLightRewardParams(address(this));
         require(stHope != address(0), "HopeSwap: INVALID_STHOPE");
         require(ltToken != address(0), "HopeSwap: INVALID_LTTOKEN");
         require(minter != address(0), "HopeSwap: INVALID_MINTER");
-        require(pairGomboc != address(0), "HopeSwap: INVALID_PAIRGOMBOC");
+        require(pairGauge != address(0), "HopeSwap: INVALID_PAIRGAUGE");
 
-        uint256 amount = ILightGomboc(stHope).claimableTokens(address(this));
+        uint256 amount = ILightGauge(stHope).claimableTokens(address(this));
         require(amount>0, "HopeSwap: NO_BALANCE");
         IMinter(minter).mint(stHope);
 
-        IERC20(ltToken).approve(pairGomboc, amount);
-        ILightGomboc(pairGomboc).depositRewardToken(ltToken, amount);
+        IERC20(ltToken).approve(pairGauge, amount);
+        ILightGauge(pairGauge).depositRewardToken(ltToken, amount);
         emit ClaimLightReward(amount);
     }
 }

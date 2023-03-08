@@ -60,7 +60,7 @@ describe('UniswapV2Factory', () => {
   it('printInitCodeHash', async () => {
     const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
     const initCodeHash = keccak256(bytecode)
-    expect(initCodeHash).to.eq('0x9b2b67e6e6d588efcf92fcf02dae0b29cf475772dfb2866a69276d069ce3a018')
+    expect(initCodeHash).to.eq('0x419a61ea3e86c41892822bec35223ab89d9f38c7fb1ef50a4f9f46488c03041b')
   })
 
   it('createPair', async () => {
