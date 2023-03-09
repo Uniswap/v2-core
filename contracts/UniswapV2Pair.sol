@@ -92,7 +92,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     function setFeeRateNumerator(uint32 _feeRateNumerator) external {
         require(msg.sender == factory, 'HopeSwap: FORBIDDEN'); // sufficient check
-        require(_feeRateNumerator<=300, 'HopeSwap: INVALID_VALUE');
+        require(_feeRateNumerator>=9700, 'HopeSwap: INVALID_VALUE');
         feeRateNumerator = _feeRateNumerator;
         emit SetFeeRateNumerator(_feeRateNumerator);
     }
