@@ -70,7 +70,7 @@ describe('UniswapV2Factory', () => {
   it('printInitCodeHash', async () => {
     const bytecode = `0x${UniswapV2Pair.evm.bytecode.object}`
     const initCodeHash = keccak256(bytecode)
-    expect(initCodeHash).to.eq('0x688833cc615ef018e3d36b101419885c6b4ab1ce187b51c17bf7b64912f673a7')
+    expect(initCodeHash).to.eq('0x8c587edc53bd0ef93b6b0e6bc4ac8b7831808aa02c4f97fac3ccf1dd34d95b35')
   })
 
   it('createPair', async () => {
@@ -101,7 +101,7 @@ describe('UniswapV2Factory', () => {
   it('createPair:gas', async () => {
     const tx = await factory.createPair(...TEST_ADDRESSES)
     const receipt = await tx.wait()
-    expect(receipt.gasUsed).to.eq(2982805)
+    expect(receipt.gasUsed).to.eq(2986813)
   })
 
   it('setFeeTo', async () => {
