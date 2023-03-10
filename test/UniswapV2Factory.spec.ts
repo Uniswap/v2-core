@@ -1,7 +1,8 @@
 import chai, { expect } from 'chai'
 import { Contract } from 'ethers'
-import { AddressZero } from 'ethers/constants'
-import { bigNumberify, keccak256 } from 'ethers/utils'
+import { AddressZero } from '@ethersproject/constants'
+import { BigNumber } from '@ethersproject/bignumber'
+import { keccak256 } from '@ethersproject/keccak256'
 import { solidity, MockProvider, createFixtureLoader } from 'ethereum-waffle'
 
 import { getCreate2Address } from './shared/utilities'
@@ -18,12 +19,21 @@ const TEST_ADDRESSES: [string, string] = [
 
 describe('UniswapV2Factory', () => {
   const provider = new MockProvider({
-    hardfork: 'istanbul',
-    mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn',
-    gasLimit: 9999999
+    ganacheOptions: {
+      chain: {
+        hardfork: 'istanbul',
+        chainId: 1
+      },
+      wallet: {
+        mnemonic: 'horn horn horn horn horn horn horn horn horn horn horn horn'
+      },
+      miner: {
+        blockGasLimit: 9999999
+      }
+    }
   })
   const [wallet, other] = provider.getWallets()
-  const loadFixture = createFixtureLoader(provider, [wallet, other])
+  const loadFixture = createFixtureLoader([wallet, other], provider)
 
   let factory: Contract
   beforeEach(async () => {
@@ -42,7 +52,7 @@ describe('UniswapV2Factory', () => {
     const create2Address = getCreate2Address(factory.address, tokens, bytecode)
     await expect(factory.createPair(...tokens))
       .to.emit(factory, 'PairCreated')
-      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, bigNumberify(1))
+      .withArgs(TEST_ADDRESSES[0], TEST_ADDRESSES[1], create2Address, BigNumber.from(1))
 
     await expect(factory.createPair(...tokens)).to.be.reverted // UniswapV2: PAIR_EXISTS
     await expect(factory.createPair(...tokens.slice().reverse())).to.be.reverted // UniswapV2: PAIR_EXISTS
