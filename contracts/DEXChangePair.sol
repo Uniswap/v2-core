@@ -11,9 +11,11 @@ import './interfaces/IDEXChangeCallee.sol';
 contract DEXChangePair is IDEXChangePair, DEXChangeERC20 {
     using SafeMath  for uint;
     using UQ112x112 for uint224;
+    DEXChangePair public pair;
 
     uint public constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
+
 
     address public factory;
     address public token0;
@@ -34,6 +36,7 @@ contract DEXChangePair is IDEXChangePair, DEXChangeERC20 {
         _;
         unlocked = 1;
     }
+    
 
     function getReserves() public view returns (uint112 _reserve0, uint112 _reserve1, uint32 _blockTimestampLast) {
         _reserve0 = reserve0;
