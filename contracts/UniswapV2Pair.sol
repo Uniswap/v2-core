@@ -16,6 +16,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factory;
+    address public reptileFinanceVault;
     address public token0;
     address public token1;
 
@@ -63,10 +64,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
+    function initialize(address _token0, address _token1, address _reptileFinanceVault) external {
         require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
+        reptileFinanceVault = _reptileFinanceVault;
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -177,13 +179,21 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-        uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+        uint balance0Adjusted = balance0.mul(10000).sub(amount0In.mul(25));
+        uint balance1Adjusted = balance1.mul(10000).sub(amount1In.mul(25));
+        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(10000**2), 'UniswapV2: K');
         }
 
-        _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        {
+            uint reptileFinanceFe0 = amount0In.mul(5) / 10000;
+            uint reptileFinanceFe1 = amount1In.mul(5) / 10000;
+
+            _safeTransfer(token0, reptileFinanceVault, reptileFinanceFe0);
+            _safeTransfer(token1, reptileFinanceVault, reptileFinanceFe1);
+            
+            _update(balance0, balance1, _reserve0, _reserve1);
+            emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        }
     }
 
     // force balances to match reserves
