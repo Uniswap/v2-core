@@ -7,12 +7,12 @@ library Math {
         z = x < y ? x : y;
     }
 
-function sqrt(uint256 x) internal pure returns (uint256 result) {
+function sqrt(uint256 x) internal pure returns (uint256) {
     unchecked {
         if (x <= 1) { return x; }
         if (x >= ((1 << 128) - 1)**2) { return (1 << 128) - 1; }
         uint256 xAux = x;
-        result = 1;
+        uint256 result = 1;
         if (xAux >= (1 << 128)) { xAux >>= 128; result <<= 64; }
         if (xAux >= (1 << 64 )) { xAux >>= 64;  result <<= 32; }
         if (xAux >= (1 << 32 )) { xAux >>= 32;  result <<= 16; }
@@ -27,6 +27,9 @@ function sqrt(uint256 x) internal pure returns (uint256 result) {
         result = (result + x / result) >> 1;
         result = (result + x / result) >> 1;
         result = (result + x / result) >> 1;
-        return result * result <= x ? result : (result - 1);
+        if (result * result <= x) {
+            return result;
+        }
+        return result-1;
     }
 }
