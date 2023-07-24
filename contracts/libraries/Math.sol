@@ -27,7 +27,7 @@ function sqrt(uint256 x) internal pure returns (uint256) {
         result = (result + x / result) >> 1;
         result = (result + x / result) >> 1;
         result = (result + x / result) >> 1;
-        if (result * result <= x) {
+        if (result * result <= a) {
             return result;
         }
         return result-1;
