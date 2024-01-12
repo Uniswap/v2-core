@@ -3,18 +3,60 @@
   "paths": {
     "artifacts": "out",
     "build_infos": "out/build-info",
-    "sources": "contracts",
+    "sources": "src",
     "tests": "test",
     "scripts": "script",
     "libraries": [
-      "lib"
+      "lib",
+      "src/libraries"
     ]
   },
   "files": {
-    "contracts/UniswapV2ERC20.sol": {
-      "lastModificationDate": 1699704757352,
-      "contentHash": "4c24d958cf49846da9fd36a99d81f9fc",
-      "sourceName": "contracts/UniswapV2ERC20.sol",
+    "lib/forge-std/lib/ds-test/src/test.sol": {
+      "lastModificationDate": 1699707240728,
+      "contentHash": "9febff9d09f18af5306669dc276c4c43",
+      "sourceName": "lib/forge-std/lib/ds-test/src/test.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.5.0",
+      "artifacts": {
+        "DSTest": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "test.sol/DSTest.json"
+        }
+      }
+    },
+    "lib/forge-std/src/Base.sol": {
+      "lastModificationDate": 1699707240023,
+      "contentHash": "ee13c050b1914464f1d3f90cde90204b",
+      "sourceName": "lib/forge-std/src/Base.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -45,8 +87,911 @@
         }
       },
       "imports": [
-        "contracts/interfaces/IUniswapV2ERC20.sol",
-        "contracts/libraries/SafeMath.sol"
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/Vm.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "CommonBase": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Base.sol/CommonBase.json"
+        },
+        "ScriptBase": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Base.sol/ScriptBase.json"
+        },
+        "TestBase": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Base.sol/TestBase.json"
+        }
+      }
+    },
+    "lib/forge-std/src/Script.sol": {
+      "lastModificationDate": 1699707240023,
+      "contentHash": "ba325c778a7da8a21c2136aa32763c14",
+      "sourceName": "lib/forge-std/src/Script.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "Script": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Script.sol/Script.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdAssertions.sol": {
+      "lastModificationDate": 1699707240023,
+      "contentHash": "6cc2858240bcd443debbbf075490e325",
+      "sourceName": "lib/forge-std/src/StdAssertions.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/StdMath.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "StdAssertions": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdAssertions.sol/StdAssertions.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdChains.sol": {
+      "lastModificationDate": 1699707240766,
+      "contentHash": "b0324b2e5a11948f852032aa293b3a05",
+      "sourceName": "lib/forge-std/src/StdChains.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Vm.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "StdChains": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdChains.sol/StdChains.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdCheats.sol": {
+      "lastModificationDate": 1699707240023,
+      "contentHash": "d984e2c76dae07bac1e292af2a5d4fd1",
+      "sourceName": "lib/forge-std/src/StdCheats.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console2.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "StdCheats": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdCheats.sol/StdCheats.json"
+        },
+        "StdCheatsSafe": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdCheats.sol/StdCheatsSafe.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdError.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "64c896e1276a291776e5ea5aecb3870a",
+      "sourceName": "lib/forge-std/src/StdError.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "stdError": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdError.sol/stdError.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdInvariant.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "0a580d6fac69e9d4b6504f747f3c0c24",
+      "sourceName": "lib/forge-std/src/StdInvariant.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "StdInvariant": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdInvariant.sol/StdInvariant.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdJson.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "a341308627b7eeab7589534daad58186",
+      "sourceName": "lib/forge-std/src/StdJson.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Vm.sol"
+      ],
+      "versionRequirement": ">=0.6.0, <0.9.0",
+      "artifacts": {
+        "stdJson": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdJson.sol/stdJson.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdMath.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "9da8f453eba6bb98f3d75bc6822bfb29",
+      "sourceName": "lib/forge-std/src/StdMath.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "stdMath": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdMath.sol/stdMath.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdStorage.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "abd6f3379e6e2a7979b18abc21aea0c1",
+      "sourceName": "lib/forge-std/src/StdStorage.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Vm.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "stdStorage": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdStorage.sol/stdStorage.json"
+        },
+        "stdStorageSafe": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdStorage.sol/stdStorageSafe.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdStyle.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "6281165a12aa639705c691fccefd855e",
+      "sourceName": "lib/forge-std/src/StdStyle.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Vm.sol"
+      ],
+      "versionRequirement": ">=0.4.22, <0.9.0",
+      "artifacts": {
+        "StdStyle": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdStyle.sol/StdStyle.json"
+        }
+      }
+    },
+    "lib/forge-std/src/StdUtils.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "3ce83748fd76644688f916c9cced545b",
+      "sourceName": "lib/forge-std/src/StdUtils.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "StdUtils": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "StdUtils.sol/StdUtils.json"
+        }
+      }
+    },
+    "lib/forge-std/src/Test.sol": {
+      "lastModificationDate": 1699707240024,
+      "contentHash": "15866901137b5670eabf31362523bd28",
+      "sourceName": "lib/forge-std/src/Test.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdInvariant.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol"
+      ],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "Test": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Test.sol/Test.json"
+        }
+      }
+    },
+    "lib/forge-std/src/Vm.sol": {
+      "lastModificationDate": 1699707240767,
+      "contentHash": "eff2556a384c025f56150fb3f78de858",
+      "sourceName": "lib/forge-std/src/Vm.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "Vm": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Vm.sol/Vm.json"
+        },
+        "VmSafe": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Vm.sol/VmSafe.json"
+        }
+      }
+    },
+    "lib/forge-std/src/console.sol": {
+      "lastModificationDate": 1699707240025,
+      "contentHash": "100b8a33b917da1147740d7ab8b0ded3",
+      "sourceName": "lib/forge-std/src/console.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.4.22, <0.9.0",
+      "artifacts": {
+        "console": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "console.sol/console.json"
+        }
+      }
+    },
+    "lib/forge-std/src/console2.sol": {
+      "lastModificationDate": 1699707240025,
+      "contentHash": "491ca717c1915995e78cc361485a3067",
+      "sourceName": "lib/forge-std/src/console2.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.4.22, <0.9.0",
+      "artifacts": {
+        "console2": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "console2.sol/console2.json"
+        }
+      }
+    },
+    "lib/forge-std/src/interfaces/IMulticall3.sol": {
+      "lastModificationDate": 1699707240026,
+      "contentHash": "7b131ca1ca32ef6378b7b9ad5488b901",
+      "sourceName": "lib/forge-std/src/interfaces/IMulticall3.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "IMulticall3": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IMulticall3.sol/IMulticall3.json"
+        }
+      }
+    },
+    "lib/forge-std/src/safeconsole.sol": {
+      "lastModificationDate": 1699707240026,
+      "contentHash": "ac3b1bf5a444db5db3656021830258a8",
+      "sourceName": "lib/forge-std/src/safeconsole.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.6.2, <0.9.0",
+      "artifacts": {
+        "safeconsole": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "safeconsole.sol/safeconsole.json"
+        }
+      }
+    },
+    "script/Counter.s.sol": {
+      "lastModificationDate": 1699707238998,
+      "contentHash": "7539680fbd3ad49c6632713cc2bb6bf6",
+      "sourceName": "script/Counter.s.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/Script.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol"
+      ],
+      "versionRequirement": "^0.8.13",
+      "artifacts": {
+        "CounterScript": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Counter.s.sol/CounterScript.json"
+        }
+      }
+    },
+    "src/Counter.sol": {
+      "lastModificationDate": 1699707238998,
+      "contentHash": "ae6c800a2b4c57768024d6e9423d39e8",
+      "sourceName": "src/Counter.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.13",
+      "artifacts": {
+        "Counter": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Counter.sol/Counter.json"
+        }
+      }
+    },
+    "src/UniswapV2ERC20.sol": {
+      "lastModificationDate": 1699704757352,
+      "contentHash": "4c24d958cf49846da9fd36a99d81f9fc",
+      "sourceName": "src/UniswapV2ERC20.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "src/interfaces/IUniswapV2ERC20.sol",
+        "src/libraries/SafeMath.sol"
       ],
       "versionRequirement": "=0.5.16",
       "artifacts": {
@@ -55,10 +1000,10 @@
         }
       }
     },
-    "contracts/UniswapV2Factory.sol": {
+    "src/UniswapV2Factory.sol": {
       "lastModificationDate": 1699704757352,
       "contentHash": "bbd1d6d8cec14355db9a75d10b0d6802",
-      "sourceName": "contracts/UniswapV2Factory.sol",
+      "sourceName": "src/UniswapV2Factory.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -89,16 +1034,16 @@
         }
       },
       "imports": [
-        "contracts/UniswapV2ERC20.sol",
-        "contracts/UniswapV2Pair.sol",
-        "contracts/interfaces/IERC20.sol",
-        "contracts/interfaces/IUniswapV2Callee.sol",
-        "contracts/interfaces/IUniswapV2ERC20.sol",
-        "contracts/interfaces/IUniswapV2Factory.sol",
-        "contracts/interfaces/IUniswapV2Pair.sol",
-        "contracts/libraries/Math.sol",
-        "contracts/libraries/SafeMath.sol",
-        "contracts/libraries/UQ112x112.sol"
+        "src/UniswapV2ERC20.sol",
+        "src/UniswapV2Pair.sol",
+        "src/interfaces/IERC20.sol",
+        "src/interfaces/IUniswapV2Callee.sol",
+        "src/interfaces/IUniswapV2ERC20.sol",
+        "src/interfaces/IUniswapV2Factory.sol",
+        "src/interfaces/IUniswapV2Pair.sol",
+        "src/libraries/Math.sol",
+        "src/libraries/SafeMath.sol",
+        "src/libraries/UQ112x112.sol"
       ],
       "versionRequirement": "=0.5.16",
       "artifacts": {
@@ -107,10 +1052,10 @@
         }
       }
     },
-    "contracts/UniswapV2Pair.sol": {
+    "src/UniswapV2Pair.sol": {
       "lastModificationDate": 1699704757352,
       "contentHash": "04b129f0ab195c778c2717f368acc162",
-      "sourceName": "contracts/UniswapV2Pair.sol",
+      "sourceName": "src/UniswapV2Pair.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -141,15 +1086,15 @@
         }
       },
       "imports": [
-        "contracts/UniswapV2ERC20.sol",
-        "contracts/interfaces/IERC20.sol",
-        "contracts/interfaces/IUniswapV2Callee.sol",
-        "contracts/interfaces/IUniswapV2ERC20.sol",
-        "contracts/interfaces/IUniswapV2Factory.sol",
-        "contracts/interfaces/IUniswapV2Pair.sol",
-        "contracts/libraries/Math.sol",
-        "contracts/libraries/SafeMath.sol",
-        "contracts/libraries/UQ112x112.sol"
+        "src/UniswapV2ERC20.sol",
+        "src/interfaces/IERC20.sol",
+        "src/interfaces/IUniswapV2Callee.sol",
+        "src/interfaces/IUniswapV2ERC20.sol",
+        "src/interfaces/IUniswapV2Factory.sol",
+        "src/interfaces/IUniswapV2Pair.sol",
+        "src/libraries/Math.sol",
+        "src/libraries/SafeMath.sol",
+        "src/libraries/UQ112x112.sol"
       ],
       "versionRequirement": "=0.5.16",
       "artifacts": {
@@ -158,10 +1103,51 @@
         }
       }
     },
-    "contracts/interfaces/IERC20.sol": {
-      "lastModificationDate": 1699704757352,
+    "src/WETH.sol": {
+      "lastModificationDate": 1699707973366,
+      "contentHash": "9e9a1670d4edff6a6f264787b7fbf643",
+      "sourceName": "src/WETH.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.4.18",
+      "artifacts": {
+        "WETH": {
+          "0.4.26+commit.4563c3fc.Darwin.appleclang": "WETH.sol/WETH.json"
+        }
+      }
+    },
+    "src/interfaces/IERC20.sol": {
+      "lastModificationDate": 1699707396861,
       "contentHash": "3d2b948a9266ee66b6e739de97c7e6e9",
-      "sourceName": "contracts/interfaces/IERC20.sol",
+      "sourceName": "src/interfaces/IERC20.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -195,14 +1181,15 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "IERC20": {
-          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IERC20.sol/IERC20.json"
+          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IERC20.sol/IERC20.0.5.16.json",
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IERC20.sol/IERC20.0.8.23.json"
         }
       }
     },
-    "contracts/interfaces/IUniswapV2Callee.sol": {
-      "lastModificationDate": 1699704757352,
+    "src/interfaces/IUniswapV2Callee.sol": {
+      "lastModificationDate": 1699707396861,
       "contentHash": "30a4aed15b3fa3ce5588118b7cecfa7f",
-      "sourceName": "contracts/interfaces/IUniswapV2Callee.sol",
+      "sourceName": "src/interfaces/IUniswapV2Callee.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -236,14 +1223,15 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "IUniswapV2Callee": {
-          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Callee.sol/IUniswapV2Callee.json"
+          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Callee.sol/IUniswapV2Callee.0.5.16.json",
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IUniswapV2Callee.sol/IUniswapV2Callee.0.8.23.json"
         }
       }
     },
-    "contracts/interfaces/IUniswapV2ERC20.sol": {
-      "lastModificationDate": 1699704757352,
+    "src/interfaces/IUniswapV2ERC20.sol": {
+      "lastModificationDate": 1699707396862,
       "contentHash": "752c725168e1a5b73a8209897f18c5b9",
-      "sourceName": "contracts/interfaces/IUniswapV2ERC20.sol",
+      "sourceName": "src/interfaces/IUniswapV2ERC20.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -277,14 +1265,15 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "IUniswapV2ERC20": {
-          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2ERC20.sol/IUniswapV2ERC20.json"
+          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2ERC20.sol/IUniswapV2ERC20.0.5.16.json",
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IUniswapV2ERC20.sol/IUniswapV2ERC20.0.8.23.json"
         }
       }
     },
-    "contracts/interfaces/IUniswapV2Factory.sol": {
-      "lastModificationDate": 1699704757352,
+    "src/interfaces/IUniswapV2Factory.sol": {
+      "lastModificationDate": 1699707396862,
       "contentHash": "ec39b5372f4f4d52101b4da561e2aee6",
-      "sourceName": "contracts/interfaces/IUniswapV2Factory.sol",
+      "sourceName": "src/interfaces/IUniswapV2Factory.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -318,14 +1307,15 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "IUniswapV2Factory": {
-          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Factory.sol/IUniswapV2Factory.json"
+          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Factory.sol/IUniswapV2Factory.0.5.16.json",
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IUniswapV2Factory.sol/IUniswapV2Factory.0.8.23.json"
         }
       }
     },
-    "contracts/interfaces/IUniswapV2Pair.sol": {
-      "lastModificationDate": 1699704757352,
+    "src/interfaces/IUniswapV2Pair.sol": {
+      "lastModificationDate": 1699707396862,
       "contentHash": "3fa31c3860f2b9585c3a98c64850829e",
-      "sourceName": "contracts/interfaces/IUniswapV2Pair.sol",
+      "sourceName": "src/interfaces/IUniswapV2Pair.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -359,14 +1349,15 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "IUniswapV2Pair": {
-          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Pair.sol/IUniswapV2Pair.json"
+          "0.5.16+commit.9c3226ce.Darwin.appleclang": "IUniswapV2Pair.sol/IUniswapV2Pair.0.5.16.json",
+          "0.8.23+commit.f704f362.Darwin.appleclang": "IUniswapV2Pair.sol/IUniswapV2Pair.0.8.23.json"
         }
       }
     },
-    "contracts/libraries/Math.sol": {
+    "src/libraries/Math.sol": {
       "lastModificationDate": 1699704757353,
       "contentHash": "bee6c1959728d5d42c14151076cebd83",
-      "sourceName": "contracts/libraries/Math.sol",
+      "sourceName": "src/libraries/Math.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -404,10 +1395,10 @@
         }
       }
     },
-    "contracts/libraries/SafeMath.sol": {
+    "src/libraries/SafeMath.sol": {
       "lastModificationDate": 1699704757353,
       "contentHash": "a65356c329efeffba75210664f5df3cd",
-      "sourceName": "contracts/libraries/SafeMath.sol",
+      "sourceName": "src/libraries/SafeMath.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -445,10 +1436,10 @@
         }
       }
     },
-    "contracts/libraries/UQ112x112.sol": {
+    "src/libraries/UQ112x112.sol": {
       "lastModificationDate": 1699704757353,
       "contentHash": "2a703244e9f645c6fb297a983ce7c9c4",
-      "sourceName": "contracts/libraries/UQ112x112.sol",
+      "sourceName": "src/libraries/UQ112x112.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -486,10 +1477,10 @@
         }
       }
     },
-    "contracts/test/ERC20.sol": {
+    "src/test/ERC20.sol": {
       "lastModificationDate": 1699704757353,
       "contentHash": "5ad37a09a9d83a1255b7b71bc650a86a",
-      "sourceName": "contracts/test/ERC20.sol",
+      "sourceName": "src/test/ERC20.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -520,14 +1511,75 @@
         }
       },
       "imports": [
-        "contracts/UniswapV2ERC20.sol",
-        "contracts/interfaces/IUniswapV2ERC20.sol",
-        "contracts/libraries/SafeMath.sol"
+        "src/UniswapV2ERC20.sol",
+        "src/interfaces/IUniswapV2ERC20.sol",
+        "src/libraries/SafeMath.sol"
       ],
       "versionRequirement": "=0.5.16",
       "artifacts": {
         "ERC20": {
           "0.5.16+commit.9c3226ce.Darwin.appleclang": "ERC20.sol/ERC20.json"
+        }
+      }
+    },
+    "test/Counter.t.sol": {
+      "lastModificationDate": 1699707238998,
+      "contentHash": "cb58204d005faa2a5dfcf152c560595f",
+      "sourceName": "test/Counter.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdInvariant.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol",
+        "src/Counter.sol"
+      ],
+      "versionRequirement": "^0.8.13",
+      "artifacts": {
+        "CounterTest": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "Counter.t.sol/CounterTest.json"
         }
       }
     }
