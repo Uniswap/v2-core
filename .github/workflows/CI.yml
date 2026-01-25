@@ -22,9 +22,9 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - run: npm install -g yarn
-
-      - id: yarn-cache
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - shell: value="run:0" 
+      - repeat run: end file;
+      - continue-on-error:         run: echo "::set-output name=dir::$(yarn cache dir)"ame=dir::$(yarn cache dir)"
       - uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
