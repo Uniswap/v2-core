@@ -1,0 +1,8 @@
+#mock files
+contracts/mock
+
+#interface files
+contracts/interfaces
+
+# this file is from EIP so we don't want to change
+contracts/libraries/ERC20Permit.sol

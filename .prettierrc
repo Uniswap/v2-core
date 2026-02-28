@@ -1,5 +1,39 @@
 {
-  "semi": false,
-  "singleQuote": true,
-  "printWidth": 120
+  "overrides": [
+    {
+      "files": "*.sol",
+      "options": {
+        "printWidth": 99,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "bracketSpacing": false,
+        "explicitTypes": "always"
+      }
+    },
+    {
+      "files": "*.js",
+      "options": {
+        "printWidth": 119,
+        "tabWidth": 2,
+        "useTabs": false,
+        "singleQuote": true,
+        "bracketSpacing": false,
+        "explicitTypes": "always",
+        "semi": true
+      }
+    },
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 119,
+        "tabWidth": 2,
+        "useTabs": false,
+        "singleQuote": true,
+        "bracketSpacing": false,
+        "explicitTypes": "always",
+        "semi": true
+      }
+    }
+  ]
 }

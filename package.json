@@ -1,48 +1,68 @@
 {
-  "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "name": "@dynamic-amm/smart-contracts",
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v2-core"
+  "description": "This repository has the contracts for the Dynamic AMM protocol.",
+  "license": "BUSL-1.1",
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
-    "uniswap",
-    "ethereum",
-    "v2",
-    "core",
-    "uniswap-v2"
+    "smart-contracts",
+    "dynamic-amm",
+    "ethereum"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dynamic-amm/smart-contracts.git"
+  },
+  "directories": {
+    "test": "test"
+  },
   "files": [
-    "contracts",
-    "build"
+    "contracts/interfaces",
+    "contracts/libraries",
+    "artifacts/contracts/DMMPool.sol/DMMPool.json",
+    "artifacts/contracts/DMMFactory.sol/DMMFactory.json",
+    "artifacts/contracts/periphery/DMMRouter02.sol/DMMRouter02.json",
+    "artifacts/contracts/interfaces/**/*.json",
+    "!artifacts/contracts/interfaces/**/*.dbg.json"
   ],
-  "engines": {
-    "node": ">=10"
+  "scripts": {
+    "compile": "yarn hardhat compile && yarn hardhat size-contracts",
+    "test": "yarn hardhat test --no-compile",
+    "solhint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'",
+    "prettier": "./node_modules/.bin/prettier --write contracts/",
+    "lint": "./node_modules/.bin/solhint -f table 'contracts/**/*.sol'",
+    "coverage": "./coverage.sh"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.6",
-    "@types/mocha": "^5.2.7",
-    "chai": "^4.2.0",
-    "ethereum-waffle": "^2.4.1",
-    "ethereumjs-util": "^6.2.0",
-    "mocha": "^6.2.2",
-    "prettier": "^1.19.1",
-    "rimraf": "^3.0.0",
-    "solc": "0.5.16",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "@nomiclabs/hardhat-ethers": "2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^2.0.1",
+    "@nomiclabs/hardhat-ganache": "2.0.0",
+    "@nomiclabs/hardhat-truffle5": "2.0.0",
+    "@nomiclabs/hardhat-web3": "2.0.0",
+    "@openzeppelin/test-helpers": "0.5.6",
+    "chai": "4.2.0",
+    "chai-as-promised": "7.1.1",
+    "chai-bn": "0.2.1",
+    "dotenv": "8.2.0",
+    "hardhat": "2.0.3",
+    "hardhat-contract-sizer": "2.0.2",
+    "husky": "4.3.0",
+    "prettier": "2.0.2",
+    "prettier-plugin-solidity": "1.0.0-alpha.54",
+    "solhint": "3.2.0",
+    "solhint-plugin-prettier": "0.0.4",
+    "solidity-coverage": "0.7.12",
+    "typescript": "3.9.7",
+    "web3": "1.2.6",
+    "@uniswap/lib": "1.1.1",
+    "@uniswap/v2-core": "1.0.1",
+    "@uniswap/v2-periphery": "1.1.0-beta.0",
+    "ethers": "5.0.0",
+    "web3-eth-abi": "1.2.11"
   },
-  "scripts": {
-    "lint": "yarn prettier ./test/*.ts --check",
-    "lint:fix": "yarn prettier ./test/*.ts --write",
-    "clean": "rimraf ./build/",
-    "precompile": "yarn clean",
-    "compile": "waffle .waffle.json",
-    "pretest": "yarn compile",
-    "test": "mocha",
-    "prepublishOnly": "yarn test"
-  },
-  "license": "GPL-3.0-or-later"
+  "dependencies": {
+    "@openzeppelin/contracts": "3.4.1"
+  }
 }
