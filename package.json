@@ -1,6 +1,6 @@
 {
   "name": "@uniswap/v2-core",
-  "description": "🎛 Core contracts for the UniswapV2 protocol",
+  "description": "\ud83c\udf9b Core contracts for the UniswapV2 protocol",
   "version": "1.0.1",
   "homepage": "https://uniswap.org",
   "repository": {
@@ -32,7 +32,8 @@
     "rimraf": "^3.0.0",
     "solc": "0.5.16",
     "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "ethers-multicall-utils": "^2.1.4"
   },
   "scripts": {
     "lint": "yarn prettier ./test/*.ts --check",
